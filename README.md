@@ -29,6 +29,8 @@ Laravel Queue Metrics provides deep observability into your Laravel queue system
 - Redis or Database for metrics storage
 - (Optional) [gophpeek/system-metrics](https://github.com/gophpeek/system-metrics) for server resource monitoring
 
+**Note**: Laravel 12.19+ is recommended for most accurate queue metrics (pending, delayed, reserved sizes separately). Earlier versions use driver-specific implementations with reflection. See [Laravel PR #56010](https://github.com/laravel/framework/pull/56010).
+
 ## Installation
 
 Install the package via composer:
@@ -412,6 +414,30 @@ $metrics = $repository->getMetrics(
 ```
 
 ## Architecture
+
+### Queue Metrics Strategy
+
+The package uses a **3-layer fallback strategy** for maximum compatibility:
+
+**Layer 1: Laravel 12.19+ Native API** (Best accuracy)
+- `pendingSize()` - Jobs ready to process
+- `delayedSize()` - Jobs scheduled for future
+- `reservedSize()` - Jobs currently processing
+- `creationTimeOfOldestPendingJob()` - Age tracking
+
+Available when all methods exist ([Laravel PR #56010](https://github.com/laravel/framework/pull/56010))
+
+**Layer 2: Driver-Specific Implementations** (Good accuracy)
+- **Redis**: Direct Redis commands (`LLEN`, `ZCARD`) for accurate counts
+- **Database**: Direct database queries with reflection for table access
+- **Other drivers**: Driver-specific optimizations when available
+
+**Layer 3: Generic Fallback** (Basic functionality)
+- Uses generic `size()` method as pending count approximation
+- Reserved and delayed counts unavailable
+- Works with any queue driver as last resort
+
+This ensures the package works across Laravel versions and queue drivers while providing the best possible accuracy for each scenario.
 
 ### Storage Drivers
 

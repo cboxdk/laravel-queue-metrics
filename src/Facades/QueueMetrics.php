@@ -17,8 +17,8 @@ use PHPeek\LaravelQueueMetrics\Services\MetricsQueryService;
  * @method static QueueMetricsData getQueueMetrics(string $connection = 'default', string $queue = 'default')
  * @method static Collection<int, WorkerStatsData> getActiveWorkers(?string $connection = null, ?string $queue = null)
  * @method static BaselineData|null getBaseline(string $connection, string $queue)
- * @method static array getOverview()
- * @method static array healthCheck()
+ * @method static array{total_queues: int, total_jobs_processed: int, total_jobs_failed: int, total_active_workers: int, health_score: float} getOverview()
+ * @method static array{status: string, timestamp: int} healthCheck()
  *
  * @see MetricsQueryService
  */

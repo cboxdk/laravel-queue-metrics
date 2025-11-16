@@ -91,12 +91,6 @@ parameters:
 			path: src/Services/LaravelQueueInspector.php
 
 		-
-			message: '#^Call to function method_exists\(\) with Illuminate\\Contracts\\Queue\\Queue and ''size'' will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Services/LaravelQueueInspector.php
-
-		-
 			message: '#^Cannot access offset ''queue'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2

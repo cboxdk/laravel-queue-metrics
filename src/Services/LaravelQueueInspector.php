@@ -25,13 +25,24 @@ final readonly class LaravelQueueInspector implements QueueInspector
     {
         $queueInstance = $this->queueFactory->connection($connection);
 
-        // Try modern Laravel API first (Laravel 11+, PR #56010)
-        if (method_exists($queueInstance, 'size')) {
-            return $this->getDepthModernApi($queueInstance, $connection, $queue);
+        // Layer 1: Try Laravel 12.19+ native methods (PR #56010)
+        if ($this->hasAllNativeMethods($queueInstance)) {
+            return $this->getDepthNativeApi($queueInstance, $connection, $queue);
         }
 
-        // Fallback to reflection for older versions
+        // Layer 2: Try driver-specific implementations
         return $this->getDepthViaReflection($queueInstance, $connection, $queue);
+    }
+
+    /**
+     * Check if queue instance has all Laravel 12.19+ native methods.
+     */
+    private function hasAllNativeMethods(mixed $queueInstance): bool
+    {
+        return is_object($queueInstance)
+            && method_exists($queueInstance, 'pendingSize')
+            && method_exists($queueInstance, 'delayedSize')
+            && method_exists($queueInstance, 'reservedSize');
     }
 
     public function hasJobs(string $connection, string $queue): bool
@@ -73,36 +84,42 @@ final readonly class LaravelQueueInspector implements QueueInspector
     }
 
     /**
-     * Use modern Laravel Queue API (Laravel 11+).
+     * Use Laravel 12.19+ native queue methods (PR #56010).
      */
-    private function getDepthModernApi(
+    private function getDepthNativeApi(
         mixed $queueInstance,
         string $connection,
         string $queue,
     ): QueueDepthData {
-        $pendingJobs = 0;
-        if (is_object($queueInstance) && method_exists($queueInstance, 'size')) {
-            $size = $queueInstance->size($queue);
-            $pendingJobs = is_int($size) ? $size : 0;
+        // @phpstan-ignore method.nonObject (Laravel 12.19+ dynamic methods checked by hasAllNativeMethods)
+        $pending = $queueInstance->pendingSize($queue);
+        $pendingJobs = is_int($pending) ? $pending : 0;
+
+        // @phpstan-ignore method.nonObject (Laravel 12.19+ dynamic methods checked by hasAllNativeMethods)
+        $delayed = $queueInstance->delayedSize($queue);
+        $delayedJobs = is_int($delayed) ? $delayed : 0;
+
+        // @phpstan-ignore method.nonObject (Laravel 12.19+ dynamic methods checked by hasAllNativeMethods)
+        $reserved = $queueInstance->reservedSize($queue);
+        $reservedJobs = is_int($reserved) ? $reserved : 0;
+
+        // Get oldest pending job age if available (Laravel 12.19+)
+        $oldestPendingAge = null;
+        if (is_object($queueInstance) && method_exists($queueInstance, 'creationTimeOfOldestPendingJob')) {
+            $oldestCreationTime = $queueInstance->creationTimeOfOldestPendingJob($queue);
+            if ($oldestCreationTime !== null) {
+                $oldestPendingAge = Carbon::createFromTimestamp($oldestCreationTime);
+            }
         }
 
-        $reservedJobs = 0;
-        $delayedJobs = 0;
-
-        // Try to get reserved and delayed counts if methods exist
-        if (is_object($queueInstance) && method_exists($queueInstance, 'sizeReserved')) {
-            $reserved = $queueInstance->sizeReserved($queue);
-            $reservedJobs = is_int($reserved) ? $reserved : 0;
+        // Try to get oldest delayed job age
+        $oldestDelayedAge = null;
+        if (is_object($queueInstance) && method_exists($queueInstance, 'creationTimeOfOldestDelayedJob')) {
+            $oldestDelayedTime = $queueInstance->creationTimeOfOldestDelayedJob($queue);
+            if ($oldestDelayedTime !== null) {
+                $oldestDelayedAge = Carbon::createFromTimestamp($oldestDelayedTime);
+            }
         }
-
-        if (is_object($queueInstance) && method_exists($queueInstance, 'sizeDelayed')) {
-            $delayed = $queueInstance->sizeDelayed($queue);
-            $delayedJobs = is_int($delayed) ? $delayed : 0;
-        }
-
-        // Try to get oldest job timestamps
-        $oldestPendingAge = $this->getOldestJobAge($queueInstance, $queue, 'pending');
-        $oldestDelayedAge = $this->getOldestJobAge($queueInstance, $queue, 'delayed');
 
         return new QueueDepthData(
             connection: $connection,
@@ -117,70 +134,173 @@ final readonly class LaravelQueueInspector implements QueueInspector
     }
 
     /**
-     * Fallback using reflection for older Laravel versions.
+     * Layer 2: Driver-specific implementations with generic fallback.
      */
     private function getDepthViaReflection(
         mixed $queueInstance,
         string $connection,
         string $queue,
     ): QueueDepthData {
-        // For Redis queues, we can use Redis commands directly
+        // Redis queue - use direct Redis commands
         if ($queueInstance instanceof RedisQueue) {
             return $this->getRedisQueueDepth($queueInstance, $connection, $queue);
         }
 
-        // For other queue types, try reflection
-        if (! is_object($queueInstance)) {
-            return new QueueDepthData(
-                connection: $connection,
-                queue: $queue,
-                pendingJobs: 0,
-                reservedJobs: 0,
-                delayedJobs: 0,
-                oldestPendingJobAge: null,
-                oldestDelayedJobAge: null,
-                measuredAt: Carbon::now(),
-            );
+        // Database queue - use direct database queries
+        if ($this->isDatabaseQueue($queueInstance)) {
+            return $this->getDatabaseQueueDepth($queueInstance, $connection, $queue);
         }
 
+        // Layer 3: Generic fallback - try size() method
+        return $this->getGenericQueueDepth($queueInstance, $connection, $queue);
+    }
+
+    /**
+     * Check if queue instance is a database queue.
+     */
+    private function isDatabaseQueue(mixed $queueInstance): bool
+    {
+        if (! is_object($queueInstance)) {
+            return false;
+        }
+
+        $className = get_class($queueInstance);
+
+        return $className === 'Illuminate\Queue\DatabaseQueue';
+    }
+
+    /**
+     * Get queue depth for Database queues using direct database queries.
+     */
+    private function getDatabaseQueueDepth(
+        mixed $queueInstance,
+        string $connection,
+        string $queueName,
+    ): QueueDepthData {
         try {
+            if (! is_object($queueInstance)) {
+                return $this->getGenericQueueDepth($queueInstance, $connection, $queueName);
+            }
+
             $reflection = new ReflectionClass($queueInstance);
 
-            $pendingJobs = 0;
-            $reservedJobs = 0;
-            $delayedJobs = 0;
+            // Get database connection via reflection
+            $databaseProperty = $reflection->getProperty('database');
+            $databaseProperty->setAccessible(true);
+            $database = $databaseProperty->getValue($queueInstance);
 
-            // Try to call protected/private size methods
-            if ($reflection->hasMethod('size')) {
-                $method = $reflection->getMethod('size');
-                $method->setAccessible(true);
-                $size = $method->invoke($queueInstance, $queue);
-                $pendingJobs = is_int($size) ? $size : 0;
+            // Get table name via reflection
+            $tableProperty = $reflection->getProperty('table');
+            $tableProperty->setAccessible(true);
+            $table = $tableProperty->getValue($queueInstance);
+
+            // Validate we got the expected types
+            if (! is_object($database) || ! method_exists($database, 'table')) {
+                return $this->getGenericQueueDepth($queueInstance, $connection, $queueName);
+            }
+
+            if (! is_string($table)) {
+                return $this->getGenericQueueDepth($queueInstance, $connection, $queueName);
+            }
+
+            $now = Carbon::now();
+
+            // Count pending jobs (available now, not reserved)
+            $pending = $database->table($table)
+                ->where('queue', $queueName)
+                ->whereNull('reserved_at')
+                ->where('available_at', '<=', $now->timestamp)
+                ->count();
+
+            // Count delayed jobs (available in future)
+            $delayed = $database->table($table)
+                ->where('queue', $queueName)
+                ->where('available_at', '>', $now->timestamp)
+                ->count();
+
+            // Count reserved jobs (currently being processed)
+            $reserved = $database->table($table)
+                ->where('queue', $queueName)
+                ->whereNotNull('reserved_at')
+                ->count();
+
+            // Get oldest pending job
+            $oldestPendingAge = null;
+            if ($pending > 0) {
+                $oldestPendingTimestamp = $database->table($table)
+                    ->where('queue', $queueName)
+                    ->whereNull('reserved_at')
+                    ->where('available_at', '<=', $now->timestamp)
+                    ->orderBy('created_at')
+                    ->value('created_at');
+
+                if (is_numeric($oldestPendingTimestamp)) {
+                    $oldestPendingAge = Carbon::createFromTimestamp((int) $oldestPendingTimestamp);
+                }
+            }
+
+            // Get oldest delayed job
+            $oldestDelayedAge = null;
+            if ($delayed > 0) {
+                $oldestDelayedTimestamp = $database->table($table)
+                    ->where('queue', $queueName)
+                    ->where('available_at', '>', $now->timestamp)
+                    ->orderBy('available_at')
+                    ->value('available_at');
+
+                if (is_numeric($oldestDelayedTimestamp)) {
+                    $oldestDelayedAge = Carbon::createFromTimestamp((int) $oldestDelayedTimestamp);
+                }
             }
 
             return new QueueDepthData(
                 connection: $connection,
-                queue: $queue,
-                pendingJobs: $pendingJobs,
-                reservedJobs: $reservedJobs,
-                delayedJobs: $delayedJobs,
-                oldestPendingJobAge: null,
-                oldestDelayedJobAge: null,
+                queue: $queueName,
+                pendingJobs: $pending,
+                reservedJobs: $reserved,
+                delayedJobs: $delayed,
+                oldestPendingJobAge: $oldestPendingAge,
+                oldestDelayedJobAge: $oldestDelayedAge,
                 measuredAt: Carbon::now(),
             );
         } catch (ReflectionException) {
-            // If reflection fails, return empty depth
-            return new QueueDepthData(
-                connection: $connection,
-                queue: $queue,
-                pendingJobs: 0,
-                reservedJobs: 0,
-                delayedJobs: 0,
-                oldestPendingJobAge: null,
-                oldestDelayedJobAge: null,
-                measuredAt: Carbon::now(),
-            );
+            // Database reflection failed, use generic fallback
+            return $this->getGenericQueueDepth($queueInstance, $connection, $queueName);
         }
+    }
+
+    /**
+     * Layer 3: Generic fallback using size() method.
+     */
+    private function getGenericQueueDepth(
+        mixed $queueInstance,
+        string $connection,
+        string $queue,
+    ): QueueDepthData {
+        $pendingJobs = 0;
+
+        // Try generic size() method as last resort
+        if (is_object($queueInstance) && method_exists($queueInstance, 'size')) {
+            try {
+                $size = $queueInstance->size($queue);
+                // Use size as pending count (best approximation we have)
+                $pendingJobs = is_int($size) ? $size : 0;
+            } catch (\Throwable) {
+                // size() failed, return zeros
+                $pendingJobs = 0;
+            }
+        }
+
+        return new QueueDepthData(
+            connection: $connection,
+            queue: $queue,
+            pendingJobs: $pendingJobs,
+            reservedJobs: 0, // Cannot determine with generic method
+            delayedJobs: 0, // Cannot determine with generic method
+            oldestPendingJobAge: null,
+            oldestDelayedJobAge: null,
+            measuredAt: Carbon::now(),
+        );
     }
 
     /**
@@ -261,17 +381,4 @@ final readonly class LaravelQueueInspector implements QueueInspector
         }
     }
 
-    /**
-     * Try to get oldest job age from queue.
-     *
-     * This would require custom queue driver implementation or Laravel 11+ API.
-     * For now, return null and rely on Redis-specific implementation above.
-     */
-    private function getOldestJobAge(
-        mixed $queueInstance,
-        string $queue,
-        string $type = 'pending',
-    ): null {
-        return null;
-    }
 }
