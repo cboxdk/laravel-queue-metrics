@@ -135,11 +135,15 @@ final readonly class CalculateJobMetricsAction
         string $connection,
         string $queue,
     ): array {
+        $shortWindows = config('queue-metrics.windows.short', [60, 300, 900]);
+        $mediumWindows = config('queue-metrics.windows.medium', [3600]);
+        $longWindows = config('queue-metrics.windows.long', [86400]);
+
         /** @var array<int> */
         $windows = array_merge(
-            config('queue-metrics.windows.short', [60, 300, 900]),
-            config('queue-metrics.windows.medium', [3600]),
-            config('queue-metrics.windows.long', [86400]),
+            is_array($shortWindows) ? $shortWindows : [60, 300, 900],
+            is_array($mediumWindows) ? $mediumWindows : [3600],
+            is_array($longWindows) ? $longWindows : [86400],
         );
 
         $stats = [];

@@ -46,18 +46,18 @@ All 5 tasks completed:
 - [ ] Health check logic
 
 #### 2.4 PHPStan Cleanup
-- [⏸️] Current: 102 baseline errors (down from 114)
+- [⏸️] Current: 99 baseline errors (down from 114: **15 errors fixed**)
 - [✅] Removed unused properties in RecordTrendDataCommand (2 errors fixed)
 - [✅] Fixed ProcessSnapshot property access in RecordWorkerHeartbeatAction (2 errors fixed)
 - [✅] Added type guards to 9 DTO fromArray methods (8 errors fixed)
   - DurationStats, BaselineData, FailureInfo, HealthStats (5 errors)
   - JobExecutionData, MemoryStats, ThroughputStats, WindowStats, WorkerStatsData (3 errors)
+- [✅] Fixed array_merge in CalculateJobMetricsAction (3 errors fixed)
 - [⏸️] SystemMetrics DTO property access (external library, won't fix)
-- [ ] array_merge argument.type in CalculateJobMetricsAction (3 errors)
-- [ ] Remaining mixed type casting errors (~15 errors)
-- [ ] Remaining argument.type errors (~15 errors)
+- [ ] Remaining mixed type casting errors (~12 errors)
+- [ ] Remaining argument.type errors (~12 errors)
 - [ ] Other categories (remaining errors)
-- [ ] Target: <50 baseline errors
+- [ ] Target: <50 baseline errors (49 more to fix)
 
 **Estimated Time**: 2-3 days
 **Dependencies**: None
