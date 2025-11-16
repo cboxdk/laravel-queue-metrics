@@ -25,36 +25,6 @@ parameters:
 			path: src/Http/Controllers/PrometheusController.php
 
 		-
-			message: '#^Cannot access offset ''1min'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Http/Controllers/ServerMetricsController.php
-
-		-
-			message: '#^Cannot access offset ''load_average'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Http/Controllers/ServerMetricsController.php
-
-		-
-			message: '#^Cannot access offset ''mountpoint'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Http/Controllers/ServerMetricsController.php
-
-		-
-			message: '#^Cannot access offset ''usage_percent'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: src/Http/Controllers/ServerMetricsController.php
-
-		-
-			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Http/Controllers/ServerMetricsController.php
-
-		-
 			message: '#^Class Gophpeek\\SystemMetrics\\SystemMetrics not found\.$#'
 			identifier: class.notFound
 			count: 1

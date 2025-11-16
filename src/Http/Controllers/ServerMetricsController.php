@@ -36,17 +36,32 @@ final readonly class ServerMetricsController
         $health = $this->serverMetrics->getHealthStatus();
         $metrics = $this->serverMetrics->getCurrentMetrics();
 
+        if (!$metrics['available']) {
+            return response()->json([
+                'health' => $health,
+                'metrics' => null,
+            ]);
+        }
+
+        // Type-safe extraction with proper PHPDoc syntax
+        /** @var array{usage_percent: float, load_average: array{'1min': float, '5min': float, '15min': float}} $cpu */
+        $cpu = $metrics['cpu'];
+        /** @var array{usage_percent: float, used_bytes: int, total_bytes: int} $memory */
+        $memory = $metrics['memory'];
+        /** @var array<array{mountpoint: string, usage_percent: float, used_bytes: int}> $disk */
+        $disk = $metrics['disk'];
+
         return response()->json([
             'health' => $health,
-            'metrics' => $metrics['available'] ? [
-                'cpu_usage_percent' => $metrics['cpu']['usage_percent'],
-                'memory_usage_percent' => $metrics['memory']['usage_percent'],
-                'load_average_1min' => $metrics['cpu']['load_average']['1min'],
-                'disk_usage' => array_map(fn ($disk) => [
-                    'mountpoint' => $disk['mountpoint'],
-                    'usage_percent' => $disk['usage_percent'],
-                ], $metrics['disk']),
-            ] : null,
+            'metrics' => [
+                'cpu_usage_percent' => $cpu['usage_percent'],
+                'memory_usage_percent' => $memory['usage_percent'],
+                'load_average_1min' => $cpu['load_average']['1min'],
+                'disk_usage' => array_map(fn ($d) => [
+                    'mountpoint' => $d['mountpoint'],
+                    'usage_percent' => $d['usage_percent'],
+                ], $disk),
+            ],
         ]);
     }
 }
