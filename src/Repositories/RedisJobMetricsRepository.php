@@ -46,25 +46,30 @@ final class RedisJobMetricsRepository implements JobMetricsRepository
         string $queue,
         float $durationMs,
         float $memoryMb,
+        float $cpuTimeMs,
         Carbon $completedAt,
     ): void {
         $redis = $this->getRedis();
         $metricsKey = $this->key('jobs', $connection, $queue, $jobClass);
         $durationKey = $this->key('durations', $connection, $queue, $jobClass);
         $memoryKey = $this->key('memory', $connection, $queue, $jobClass);
+        $cpuKey = $this->key('cpu', $connection, $queue, $jobClass);
 
         // Increment counters atomically
         $redis->pipeline(function ($pipe) use (
             $metricsKey,
             $durationKey,
             $memoryKey,
+            $cpuKey,
             $durationMs,
             $memoryMb,
+            $cpuTimeMs,
             $completedAt
         ) {
             $pipe->hincrby($metricsKey, 'total_processed', 1);
             $pipe->hincrbyfloat($metricsKey, 'total_duration_ms', $durationMs);
             $pipe->hincrbyfloat($metricsKey, 'total_memory_mb', $memoryMb);
+            $pipe->hincrbyfloat($metricsKey, 'total_cpu_time_ms', $cpuTimeMs);
             $pipe->hset($metricsKey, 'last_processed_at', $completedAt->timestamp);
 
             // Store duration sample (sorted set with timestamp as score)
@@ -75,9 +80,14 @@ final class RedisJobMetricsRepository implements JobMetricsRepository
             $pipe->zadd($memoryKey, [$memoryMb => $completedAt->timestamp]);
             $pipe->expire($memoryKey, $this->getTtl('raw'));
 
+            // Store CPU time sample
+            $pipe->zadd($cpuKey, [$cpuTimeMs => $completedAt->timestamp]);
+            $pipe->expire($cpuKey, $this->getTtl('raw'));
+
             // Keep only recent samples (limit to 10000)
             $pipe->zremrangebyrank($durationKey, 0, -10001);
             $pipe->zremrangebyrank($memoryKey, 0, -10001);
+            $pipe->zremrangebyrank($cpuKey, 0, -10001);
         });
 
         // Clean up job tracking key
@@ -121,6 +131,7 @@ final class RedisJobMetricsRepository implements JobMetricsRepository
             'total_failed' => (int) ($data['total_failed'] ?? 0),
             'total_duration_ms' => (float) ($data['total_duration_ms'] ?? 0.0),
             'total_memory_mb' => (float) ($data['total_memory_mb'] ?? 0.0),
+            'total_cpu_time_ms' => (float) ($data['total_cpu_time_ms'] ?? 0.0),
             'last_processed_at' => isset($data['last_processed_at'])
                 ? Carbon::createFromTimestamp((int) $data['last_processed_at'])
                 : null,
@@ -160,6 +171,24 @@ final class RedisJobMetricsRepository implements JobMetricsRepository
         int $limit = 1000,
     ): array {
         $key = $this->key('memory', $connection, $queue, $jobClass);
+        $redis = $this->getRedis();
+
+        /** @var array<string> */
+        $samples = $redis->zrevrange($key, 0, $limit - 1);
+
+        return array_map('floatval', $samples);
+    }
+
+    /**
+     * @return array<int, float>
+     */
+    public function getCpuTimeSamples(
+        string $jobClass,
+        string $connection,
+        string $queue,
+        int $limit = 1000,
+    ): array {
+        $key = $this->key('cpu', $connection, $queue, $jobClass);
         $redis = $this->getRedis();
 
         /** @var array<string> */
