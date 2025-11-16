@@ -32,6 +32,7 @@ interface JobMetricsRepository
         string $queue,
         float $durationMs,
         float $memoryMb,
+        float $cpuTimeMs,
         Carbon $completedAt,
     ): void;
 
@@ -76,6 +77,18 @@ interface JobMetricsRepository
      * @return array<int, float>
      */
     public function getMemorySamples(
+        string $jobClass,
+        string $connection,
+        string $queue,
+        int $limit = 1000,
+    ): array;
+
+    /**
+     * Get CPU time samples for percentile calculations.
+     *
+     * @return array<int, float>
+     */
+    public function getCpuTimeSamples(
         string $jobClass,
         string $connection,
         string $queue,
