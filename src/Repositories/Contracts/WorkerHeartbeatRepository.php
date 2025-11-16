@@ -26,6 +26,8 @@ interface WorkerHeartbeatRepository
         ?string $currentJobClass,
         int $pid,
         string $hostname,
+        float $memoryUsageMb = 0.0,
+        float $cpuUsagePercent = 0.0,
     ): void;
 
     /**

@@ -7,7 +7,7 @@ namespace PHPeek\LaravelQueueMetrics\Repositories;
 use Carbon\Carbon;
 use Illuminate\Redis\Connections\Connection;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Services\RedisConnectionManager;
+use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
 
 /**
  * Redis-based implementation of job metrics repository.
@@ -15,7 +15,7 @@ use PHPeek\LaravelQueueMetrics\Services\RedisConnectionManager;
 final readonly class RedisJobMetricsRepository implements JobMetricsRepository
 {
     public function __construct(
-        private RedisConnectionManager $redis,
+        private StorageManager $redis,
     ) {}
 
     public function recordStart(

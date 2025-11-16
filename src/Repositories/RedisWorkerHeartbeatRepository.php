@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Services\RedisConnectionManager;
+use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
 
 /**
  * Redis-based implementation of worker heartbeat repository.
@@ -17,7 +17,7 @@ use PHPeek\LaravelQueueMetrics\Services\RedisConnectionManager;
 final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRepository
 {
     public function __construct(
-        private RedisConnectionManager $redis,
+        private StorageManager $redis,
     ) {}
 
     public function recordHeartbeat(
@@ -29,6 +29,8 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
         ?string $currentJobClass,
         int $pid,
         string $hostname,
+        float $memoryUsageMb = 0.0,
+        float $cpuUsagePercent = 0.0,
     ): void {
         $redis = $this->redis->getConnection();
         $workerKey = $this->redis->key('worker', $workerId);
@@ -70,6 +72,10 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
             ? $now->timestamp
             : (int) ($existingData['last_state_change'] ?? $now->timestamp);
 
+        // Track peak memory
+        $previousPeakMemory = (float) ($existingData['peak_memory_usage_mb'] ?? 0.0);
+        $peakMemoryUsageMb = max($previousPeakMemory, $memoryUsageMb);
+
         // Store worker data
         $redis->pipeline(function ($pipe) use (
             $workerKey,
@@ -86,7 +92,10 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
             $pid,
             $hostname,
             $now,
-            $lastStateChange
+            $lastStateChange,
+            $memoryUsageMb,
+            $cpuUsagePercent,
+            $peakMemoryUsageMb
         ) {
             $pipe->hmset($workerKey, [
                 'worker_id' => $workerId,
@@ -102,6 +111,9 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
                 'jobs_processed' => $jobsProcessed,
                 'pid' => $pid,
                 'hostname' => $hostname,
+                'memory_usage_mb' => $memoryUsageMb,
+                'cpu_usage_percent' => $cpuUsagePercent,
+                'peak_memory_usage_mb' => $peakMemoryUsageMb,
             ]);
 
             // Add to index with heartbeat as score for easy stale detection

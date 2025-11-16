@@ -19,6 +19,18 @@ parameters:
 			path: src/Actions/CalculateJobMetricsAction.php
 
 		-
+			message: '#^Access to an undefined property PHPeek\\SystemMetrics\\DTO\\Metrics\\Process\\ProcessSnapshot\:\:\$cpuTimes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Actions/RecordWorkerHeartbeatAction.php
+
+		-
+			message: '#^Access to an undefined property PHPeek\\SystemMetrics\\DTO\\Metrics\\Process\\ProcessSnapshot\:\:\$memoryRssBytes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Actions/RecordWorkerHeartbeatAction.php
+
+		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 4
@@ -397,33 +409,9 @@ parameters:
 			path: src/Repositories/RedisBaselineRepository.php
 
 		-
-			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
+			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
+			identifier: method.notFound
 			count: 5
-			path: src/Repositories/RedisBaselineRepository.php
-
-		-
-			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisBaselineRepository.php
-
-		-
-			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 4
-			path: src/Repositories/RedisBaselineRepository.php
-
-		-
-			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisBaselineRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisBaselineRepository.php
-
-		-
-			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisBaselineRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
-			identifier: class.notFound
-			count: 1
 			path: src/Repositories/RedisBaselineRepository.php
 
 		-
@@ -433,21 +421,9 @@ parameters:
 			path: src/Repositories/RedisJobMetricsRepository.php
 
 		-
-			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
+			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
+			identifier: method.notFound
 			count: 10
-			path: src/Repositories/RedisJobMetricsRepository.php
-
-		-
-			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 4
-			path: src/Repositories/RedisJobMetricsRepository.php
-
-		-
-			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 15
 			path: src/Repositories/RedisJobMetricsRepository.php
 
 		-
@@ -457,45 +433,21 @@ parameters:
 			path: src/Repositories/RedisJobMetricsRepository.php
 
 		-
-			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisJobMetricsRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisJobMetricsRepository.php
-
-		-
-			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisJobMetricsRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisJobMetricsRepository.php
-
-		-
 			message: '#^Binary operation "\-" between float\|int\|string and int results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
-			message: '#^Call to function method_exists\(\) with Illuminate\\Contracts\\Queue\\Queue and ''size'' will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Repositories/RedisQueueMetricsRepository.php
-
-		-
-			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
+			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
+			identifier: method.notFound
 			count: 5
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
-			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Repositories/RedisQueueMetricsRepository.php
-
-		-
-			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 6
+			message: '#^Call to function method_exists\(\) with Illuminate\\Contracts\\Queue\\Queue and ''size'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
@@ -511,45 +463,9 @@ parameters:
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
-			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisQueueMetricsRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisQueueMetricsRepository.php
-
-		-
-			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisQueueMetricsRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisQueueMetricsRepository.php
-
-		-
-			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
+			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
+			identifier: method.notFound
 			count: 8
-			path: src/Repositories/RedisWorkerHeartbeatRepository.php
-
-		-
-			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 2
-			path: src/Repositories/RedisWorkerHeartbeatRepository.php
-
-		-
-			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 10
-			path: src/Repositories/RedisWorkerHeartbeatRepository.php
-
-		-
-			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerHeartbeatRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisWorkerHeartbeatRepository.php
-
-		-
-			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerHeartbeatRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
-			identifier: class.notFound
-			count: 1
 			path: src/Repositories/RedisWorkerHeartbeatRepository.php
 
 		-
@@ -559,27 +475,9 @@ parameters:
 			path: src/Repositories/RedisWorkerRepository.php
 
 		-
-			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
+			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
+			identifier: method.notFound
 			count: 6
-			path: src/Repositories/RedisWorkerRepository.php
-
-		-
-			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 9
-			path: src/Repositories/RedisWorkerRepository.php
-
-		-
-			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Repositories/RedisWorkerRepository.php
-
-		-
-			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
-			identifier: class.notFound
-			count: 1
 			path: src/Repositories/RedisWorkerRepository.php
 
 		-

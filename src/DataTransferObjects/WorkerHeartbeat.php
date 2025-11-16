@@ -26,6 +26,9 @@ final readonly class WorkerHeartbeat
         public int $jobsProcessed,
         public int $pid,
         public string $hostname,
+        public float $memoryUsageMb = 0.0,
+        public float $cpuUsagePercent = 0.0,
+        public float $peakMemoryUsageMb = 0.0,
     ) {}
 
     /**
@@ -67,6 +70,9 @@ final readonly class WorkerHeartbeat
             jobsProcessed: is_numeric($data['jobs_processed'] ?? 0) ? (int) ($data['jobs_processed'] ?? 0) : 0,
             pid: is_numeric($data['pid'] ?? 0) ? (int) ($data['pid'] ?? 0) : 0,
             hostname: $hostname,
+            memoryUsageMb: is_numeric($data['memory_usage_mb'] ?? 0.0) ? (float) ($data['memory_usage_mb'] ?? 0.0) : 0.0,
+            cpuUsagePercent: is_numeric($data['cpu_usage_percent'] ?? 0.0) ? (float) ($data['cpu_usage_percent'] ?? 0.0) : 0.0,
+            peakMemoryUsageMb: is_numeric($data['peak_memory_usage_mb'] ?? 0.0) ? (float) ($data['peak_memory_usage_mb'] ?? 0.0) : 0.0,
         );
     }
 
@@ -89,6 +95,9 @@ final readonly class WorkerHeartbeat
             'jobs_processed' => $this->jobsProcessed,
             'pid' => $this->pid,
             'hostname' => $this->hostname,
+            'memory_usage_mb' => $this->memoryUsageMb,
+            'cpu_usage_percent' => $this->cpuUsagePercent,
+            'peak_memory_usage_mb' => $this->peakMemoryUsageMb,
         ];
     }
 
