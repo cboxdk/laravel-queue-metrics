@@ -32,23 +32,34 @@ final readonly class JobMetricsData
      */
     public static function fromArray(array $data): self
     {
-        $windowStats = array_map(
-            fn (array $window): WindowStats => WindowStats::fromArray($window),
-            $data['window_stats'] ?? []
-        );
+        $jobClass = $data['job_class'] ?? '';
+        $connection = $data['connection'] ?? 'default';
+        $queue = $data['queue'] ?? 'default';
+        $execution = $data['execution'] ?? [];
+        $duration = $data['duration'] ?? [];
+        $memory = $data['memory'] ?? [];
+        $throughput = $data['throughput'] ?? [];
+        $failures = $data['failures'] ?? [];
+        $windowStatsData = $data['window_stats'] ?? [];
+        $calculatedAt = $data['calculated_at'] ?? null;
+
+        $windowStats = is_array($windowStatsData) ? array_map(
+            fn (mixed $window): WindowStats => WindowStats::fromArray(is_array($window) ? $window : []),
+            $windowStatsData
+        ) : [];
 
         return new self(
-            jobClass: (string) ($data['job_class'] ?? ''),
-            connection: (string) ($data['connection'] ?? 'default'),
-            queue: (string) ($data['queue'] ?? 'default'),
-            execution: JobExecutionData::fromArray($data['execution'] ?? []),
-            duration: DurationStats::fromArray($data['duration'] ?? []),
-            memory: MemoryStats::fromArray($data['memory'] ?? []),
-            throughput: ThroughputStats::fromArray($data['throughput'] ?? []),
-            failures: FailureInfo::fromArray($data['failures'] ?? []),
+            jobClass: is_string($jobClass) ? $jobClass : '',
+            connection: is_string($connection) ? $connection : 'default',
+            queue: is_string($queue) ? $queue : 'default',
+            execution: JobExecutionData::fromArray(is_array($execution) ? $execution : []),
+            duration: DurationStats::fromArray(is_array($duration) ? $duration : []),
+            memory: MemoryStats::fromArray(is_array($memory) ? $memory : []),
+            throughput: ThroughputStats::fromArray(is_array($throughput) ? $throughput : []),
+            failures: FailureInfo::fromArray(is_array($failures) ? $failures : []),
             windowStats: $windowStats,
-            calculatedAt: isset($data['calculated_at'])
-                ? Carbon::parse($data['calculated_at'])
+            calculatedAt: (is_string($calculatedAt) || $calculatedAt instanceof \DateTimeInterface)
+                ? Carbon::parse($calculatedAt)
                 : Carbon::now(),
         );
     }

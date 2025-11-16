@@ -35,24 +35,31 @@ final readonly class QueueMetricsData
      */
     public static function fromArray(array $data): self
     {
+        $connection = $data['connection'] ?? 'default';
+        $queue = $data['queue'] ?? 'default';
+        $ageStatus = $data['age_status'] ?? 'normal';
+        $driver = $data['driver'] ?? 'unknown';
+        $health = $data['health'] ?? [];
+        $calculatedAt = $data['calculated_at'] ?? null;
+
         return new self(
-            connection: (string) ($data['connection'] ?? 'default'),
-            queue: (string) ($data['queue'] ?? 'default'),
-            depth: (int) ($data['depth'] ?? 0),
-            pending: (int) ($data['pending'] ?? 0),
-            scheduled: (int) ($data['scheduled'] ?? 0),
-            reserved: (int) ($data['reserved'] ?? 0),
-            oldestJobAge: (int) ($data['oldest_job_age'] ?? 0),
-            ageStatus: (string) ($data['age_status'] ?? 'normal'),
-            throughputPerMinute: (float) ($data['throughput_per_minute'] ?? 0.0),
-            avgDuration: (float) ($data['avg_duration'] ?? 0.0),
-            failureRate: (float) ($data['failure_rate'] ?? 0.0),
-            utilizationRate: (float) ($data['utilization_rate'] ?? 0.0),
-            activeWorkers: (int) ($data['active_workers'] ?? 0),
-            driver: (string) ($data['driver'] ?? 'unknown'),
-            health: HealthStats::fromArray($data['health'] ?? []),
-            calculatedAt: isset($data['calculated_at'])
-                ? Carbon::parse($data['calculated_at'])
+            connection: is_string($connection) ? $connection : 'default',
+            queue: is_string($queue) ? $queue : 'default',
+            depth: is_numeric($data['depth'] ?? 0) ? (int) $data['depth'] : 0,
+            pending: is_numeric($data['pending'] ?? 0) ? (int) $data['pending'] : 0,
+            scheduled: is_numeric($data['scheduled'] ?? 0) ? (int) $data['scheduled'] : 0,
+            reserved: is_numeric($data['reserved'] ?? 0) ? (int) $data['reserved'] : 0,
+            oldestJobAge: is_numeric($data['oldest_job_age'] ?? 0) ? (int) $data['oldest_job_age'] : 0,
+            ageStatus: is_string($ageStatus) ? $ageStatus : 'normal',
+            throughputPerMinute: is_numeric($data['throughput_per_minute'] ?? 0.0) ? (float) $data['throughput_per_minute'] : 0.0,
+            avgDuration: is_numeric($data['avg_duration'] ?? 0.0) ? (float) $data['avg_duration'] : 0.0,
+            failureRate: is_numeric($data['failure_rate'] ?? 0.0) ? (float) $data['failure_rate'] : 0.0,
+            utilizationRate: is_numeric($data['utilization_rate'] ?? 0.0) ? (float) $data['utilization_rate'] : 0.0,
+            activeWorkers: is_numeric($data['active_workers'] ?? 0) ? (int) $data['active_workers'] : 0,
+            driver: is_string($driver) ? $driver : 'unknown',
+            health: HealthStats::fromArray(is_array($health) ? $health : []),
+            calculatedAt: (is_string($calculatedAt) || $calculatedAt instanceof \DateTimeInterface)
+                ? Carbon::parse($calculatedAt)
                 : Carbon::now(),
         );
     }
