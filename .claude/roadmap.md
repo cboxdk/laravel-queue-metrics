@@ -19,11 +19,14 @@ All 5 tasks completed:
 **Goal**: Achieve 80%+ test coverage and eliminate technical debt
 
 #### 2.1 Unit Tests
+**Current: 63 tests passing, 148 assertions**
+
 - [✅] Storage drivers - RedisStorageDriver (23 tests)
 - [✅] Config classes validation (15 tests)
 - [⏸️] Database storage driver (needs integration tests)
 - [⏸️] Trend analysis calculations (needs integration tests due to final classes)
 - [⏸️] Server metrics health scoring (needs integration tests)
+- [ ] Actions (RecordJobStartAction, RecordJobCompletionAction, RecordJobFailureAction)
 - [ ] Worker heartbeat logic
 - [ ] Statistical functions (linear regression, R²)
 
@@ -42,9 +45,12 @@ All 5 tasks completed:
 - [ ] Health check logic
 
 #### 2.4 PHPStan Cleanup
-- [ ] Review 214 baseline errors
-- [ ] Add proper type hints where missing
-- [ ] Document suppressed errors
+- [⏸️] Current: 112 baseline errors (down from 114)
+- [✅] Removed unused properties in RecordTrendDataCommand
+- [⏸️] SystemMetrics DTO property access (4 errors - external library)
+- [ ] Mixed type casting errors (25 errors)
+- [ ] argument.type errors (25 errors)
+- [ ] Other categories (remaining errors)
 - [ ] Target: <50 baseline errors
 
 **Estimated Time**: 2-3 days
