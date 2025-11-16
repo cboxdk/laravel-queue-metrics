@@ -235,6 +235,36 @@ parameters:
 			path: src/DataTransferObjects/WorkerStatsData.php
 
 		-
+			message: '#^Class PHPeek\\LaravelQueueMetrics\\Facades\\QueueMetrics has PHPDoc tag @method for method getOverview\(\) return type with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Facades/QueueMetrics.php
+
+		-
+			message: '#^Class PHPeek\\LaravelQueueMetrics\\Facades\\QueueMetrics has PHPDoc tag @method for method healthCheck\(\) return type with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Facades/QueueMetrics.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: src/Listeners/JobFailedListener.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: src/Listeners/JobProcessedListener.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: src/Listeners/JobProcessingListener.php
+
+		-
 			message: '#^Binary operation "\-" between float\|int\|string and int results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
