@@ -1,10 +1,15 @@
 {
     "name": "gophpeek/laravel-queue-metrics",
-    "description": "This is my package laravel-queue-metrics",
+    "description": "Production-ready Laravel queue monitoring with metrics, analytics, and insights",
     "keywords": [
         "PHPeek",
         "laravel",
-        "laravel-queue-metrics"
+        "laravel-queue-metrics",
+        "queue",
+        "metrics",
+        "monitoring",
+        "analytics",
+        "performance"
     ],
     "homepage": "https://github.com/gophpeek/laravel-queue-metrics",
     "license": "MIT",
@@ -16,9 +21,10 @@
         }
     ],
     "require": {
-        "php": "^8.4",
+        "php": "^8.2|^8.3|^8.4",
         "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^11.0||^12.0"
+        "illuminate/contracts": "^11.0",
+        "gophpeek/system-metrics": "^1.0"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
@@ -65,7 +71,7 @@
                 "PHPeek\\LaravelQueueMetrics\\LaravelQueueMetricsServiceProvider"
             ],
             "aliases": {
-                "LaravelQueueMetrics": "PHPeek\\LaravelQueueMetrics\\Facades\\LaravelQueueMetrics"
+                "QueueMetrics": "PHPeek\\LaravelQueueMetrics\\Facades\\QueueMetrics"
             }
         }
     },
