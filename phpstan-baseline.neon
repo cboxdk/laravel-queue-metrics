@@ -193,24 +193,6 @@ parameters:
 			path: src/DataTransferObjects/WorkerStatsData.php
 
 		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 4
-			path: src/DataTransferObjects/WorkerStatsData.php
-
-		-
-			message: '#^Parameter \#1 \$time of static method Carbon\\Carbon\:\:parse\(\) expects Carbon\\Month\|Carbon\\WeekDay\|DateTimeInterface\|float\|int\|string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DataTransferObjects/WorkerStatsData.php
-
-		-
-			message: '#^Parameter \$currentJob of class PHPeek\\LaravelQueueMetrics\\DataTransferObjects\\WorkerStatsData constructor expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DataTransferObjects/WorkerStatsData.php
-
-		-
 			message: '#^Class PHPeek\\LaravelQueueMetrics\\Facades\\QueueMetrics has PHPDoc tag @method for method getOverview\(\) return type with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

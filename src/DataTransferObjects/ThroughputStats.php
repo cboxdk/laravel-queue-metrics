@@ -21,9 +21,9 @@ final readonly class ThroughputStats
     public static function fromArray(array $data): self
     {
         return new self(
-            perMinute: (float) ($data['per_minute'] ?? 0.0),
-            perHour: (float) ($data['per_hour'] ?? 0.0),
-            perDay: (float) ($data['per_day'] ?? 0.0),
+            perMinute: is_numeric($data['per_minute'] ?? 0.0) ? (float) $data['per_minute'] : 0.0,
+            perHour: is_numeric($data['per_hour'] ?? 0.0) ? (float) $data['per_hour'] : 0.0,
+            perDay: is_numeric($data['per_day'] ?? 0.0) ? (float) $data['per_day'] : 0.0,
         );
     }
 

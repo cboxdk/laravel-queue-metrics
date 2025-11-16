@@ -28,17 +28,24 @@ final readonly class WorkerStatsData
      */
     public static function fromArray(array $data): self
     {
+        $hostname = $data['hostname'] ?? gethostname() ?: 'unknown';
+        $connection = $data['connection'] ?? 'default';
+        $queue = $data['queue'] ?? 'default';
+        $status = $data['status'] ?? 'idle';
+        $currentJob = $data['current_job'] ?? null;
+        $spawnedAt = $data['spawned_at'] ?? null;
+
         return new self(
-            pid: (int) ($data['pid'] ?? 0),
-            hostname: (string) ($data['hostname'] ?? gethostname() ?: 'unknown'),
-            connection: (string) ($data['connection'] ?? 'default'),
-            queue: (string) ($data['queue'] ?? 'default'),
-            status: (string) ($data['status'] ?? 'idle'),
-            jobsProcessed: (int) ($data['jobs_processed'] ?? 0),
-            currentJob: $data['current_job'] ?? null,
-            idlePercentage: (float) ($data['idle_percentage'] ?? 0.0),
-            spawnedAt: isset($data['spawned_at'])
-                ? Carbon::parse($data['spawned_at'])
+            pid: is_numeric($data['pid'] ?? 0) ? (int) $data['pid'] : 0,
+            hostname: is_string($hostname) ? $hostname : 'unknown',
+            connection: is_string($connection) ? $connection : 'default',
+            queue: is_string($queue) ? $queue : 'default',
+            status: is_string($status) ? $status : 'idle',
+            jobsProcessed: is_numeric($data['jobs_processed'] ?? 0) ? (int) $data['jobs_processed'] : 0,
+            currentJob: is_string($currentJob) ? $currentJob : null,
+            idlePercentage: is_numeric($data['idle_percentage'] ?? 0.0) ? (float) $data['idle_percentage'] : 0.0,
+            spawnedAt: (is_string($spawnedAt) || $spawnedAt instanceof \DateTimeInterface)
+                ? Carbon::parse($spawnedAt)
                 : Carbon::now(),
         );
     }
