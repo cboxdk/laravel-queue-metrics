@@ -9,6 +9,7 @@ use PHPeek\LaravelQueueMetrics\Http\Controllers\OverviewController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\PrometheusController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\QueueDepthController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\QueueMetricsController;
+use PHPeek\LaravelQueueMetrics\Http\Controllers\ServerMetricsController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerStatusController;
 
@@ -48,6 +49,12 @@ Route::prefix(config('queue-metrics.api.prefix', 'queue-metrics'))
             ->name('queue-metrics.queues.index');
         Route::get('/queues/{connection}/{queue}/depth', [QueueDepthController::class, 'show'])
             ->name('queue-metrics.queues.depth');
+
+        // Server metrics
+        Route::get('/server', [ServerMetricsController::class, 'index'])
+            ->name('queue-metrics.server.index');
+        Route::get('/server/health', [ServerMetricsController::class, 'health'])
+            ->name('queue-metrics.server.health');
 
         // Prometheus export
         if (config('queue-metrics.prometheus.enabled', true)) {

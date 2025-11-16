@@ -33,8 +33,10 @@ use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
 use PHPeek\LaravelQueueMetrics\Services\LaravelQueueInspector;
 use PHPeek\LaravelQueueMetrics\Services\MetricsQueryService;
+use PHPeek\LaravelQueueMetrics\Services\ServerMetricsService;
 use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
 use PHPeek\LaravelQueueMetrics\Utilities\PercentileCalculator;
+use Gophpeek\SystemMetrics\SystemMetrics;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -87,9 +89,15 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             return new RedisWorkerHeartbeatRepository($app->make(StorageManager::class));
         });
 
+        // Register system metrics
+        $this->app->singleton(SystemMetrics::class, function () {
+            return new SystemMetrics();
+        });
+
         // Register services
         $this->app->singleton(QueueInspector::class, LaravelQueueInspector::class);
         $this->app->singleton(MetricsQueryService::class);
+        $this->app->singleton(ServerMetricsService::class);
 
         // Register utilities
         $this->app->singleton(PercentileCalculator::class);

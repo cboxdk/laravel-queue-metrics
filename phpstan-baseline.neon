@@ -253,6 +253,36 @@ parameters:
 			path: src/Facades/QueueMetrics.php
 
 		-
+			message: '#^Cannot access offset ''15min'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Http/Controllers/PrometheusController.php
+
+		-
+			message: '#^Cannot access offset ''1min'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Http/Controllers/PrometheusController.php
+
+		-
+			message: '#^Cannot access offset ''5min'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Http/Controllers/PrometheusController.php
+
+		-
+			message: '#^Cannot access offset ''load_average'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: src/Http/Controllers/PrometheusController.php
+
+		-
+			message: '#^Cannot access offset ''usage_percent'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Http/Controllers/PrometheusController.php
+
+		-
 			message: '#^Offset ''health_score'' on array\{total_queues\: int, total_jobs_processed\: int, total_jobs_failed\: int, total_active_workers\: int, health_score\: float\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -283,6 +313,12 @@ parameters:
 			path: src/Http/Controllers/PrometheusController.php
 
 		-
+			message: '#^PHPDoc tag @var has invalid value \(array\{usage_percent\: float, load_average\: array\{1min\: float, 5min\: float, 15min\: float\}\} \$cpu\)\: Unexpected token "\:", expected ''\}'' at offset 49 on line 1$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/Http/Controllers/PrometheusController.php
+
+		-
 			message: '#^Static method Spatie\\Prometheus\\Facades\\Prometheus\:\:addCounter\(\) invoked with 5 parameters, 1 required\.$#'
 			identifier: arguments.count
 			count: 2
@@ -291,8 +327,50 @@ parameters:
 		-
 			message: '#^Static method Spatie\\Prometheus\\Facades\\Prometheus\:\:addGauge\(\) invoked with 5 parameters, 1 required\.$#'
 			identifier: arguments.count
-			count: 3
+			count: 12
 			path: src/Http/Controllers/PrometheusController.php
+
+		-
+			message: '#^Cannot access offset ''1min'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Http/Controllers/ServerMetricsController.php
+
+		-
+			message: '#^Cannot access offset ''load_average'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Http/Controllers/ServerMetricsController.php
+
+		-
+			message: '#^Cannot access offset ''mountpoint'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Http/Controllers/ServerMetricsController.php
+
+		-
+			message: '#^Cannot access offset ''usage_percent'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: src/Http/Controllers/ServerMetricsController.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Http/Controllers/ServerMetricsController.php
+
+		-
+			message: '#^Class Gophpeek\\SystemMetrics\\SystemMetrics not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/LaravelQueueMetricsServiceProvider.php
+
+		-
+			message: '#^Instantiated class Gophpeek\\SystemMetrics\\SystemMetrics not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/LaravelQueueMetricsServiceProvider.php
 
 		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
@@ -563,6 +641,72 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Services/LaravelQueueInspector.php
+
+		-
+			message: '#^Binary operation "/" between mixed and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Call to method getMetrics\(\) on an unknown class Gophpeek\\SystemMetrics\\SystemMetrics\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Cannot access offset ''1min'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Cannot access offset ''count'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Cannot access offset ''load_average'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Cannot access offset ''usage_percent'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^PHPDoc tag @var has invalid value \(array\{usage_percent\: float, count\: int, load_average\: array\{1min\: float, 5min\: float, 15min\: float\}\} \$cpu\)\: Unexpected token "\:", expected ''\}'' at offset 61 on line 1$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Parameter \#3 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Parameter \$systemMetrics of method PHPeek\\LaravelQueueMetrics\\Services\\ServerMetricsService\:\:__construct\(\) has invalid type Gophpeek\\SystemMetrics\\SystemMetrics\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Services/ServerMetricsService.php
+
+		-
+			message: '#^Property PHPeek\\LaravelQueueMetrics\\Services\\ServerMetricsService\:\:\$systemMetrics has unknown class Gophpeek\\SystemMetrics\\SystemMetrics as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Services/ServerMetricsService.php
 
 		-
 			message: '#^Access to an undefined property object\:\:\$data\.$#'

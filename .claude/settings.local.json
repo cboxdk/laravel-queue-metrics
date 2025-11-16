@@ -15,7 +15,9 @@
       "Bash(git restore:*)",
       "Bash(vendor/bin/phpstan analyse:*)",
       "mcp__serena__list_dir",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__activate_project"
     ],
     "deny": [],
     "ask": []
