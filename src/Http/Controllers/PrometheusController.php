@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\Response;
+use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use PHPeek\LaravelQueueMetrics\Services\MetricsQueryService;
 use Spatie\Prometheus\Facades\Prometheus;
 
@@ -14,15 +15,13 @@ use Spatie\Prometheus\Facades\Prometheus;
 final readonly class PrometheusController
 {
     public function __construct(
-        private readonly MetricsQueryService $metricsQuery,
+        private MetricsQueryService $metricsQuery,
+        private QueueMetricsConfig $config,
     ) {}
 
     public function __invoke(): Response
     {
-        $namespace = config('queue-metrics.prometheus.namespace', 'laravel_queue');
-        if (! is_string($namespace)) {
-            $namespace = 'laravel_queue';
-        }
+        $namespace = $this->config->getPrometheusNamespace();
 
         $overview = $this->metricsQuery->getOverview();
 

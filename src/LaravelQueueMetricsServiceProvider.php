@@ -29,9 +29,11 @@ use PHPeek\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerHeartbeatRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerRepository;
+use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
+use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
 use PHPeek\LaravelQueueMetrics\Services\LaravelQueueInspector;
 use PHPeek\LaravelQueueMetrics\Services\MetricsQueryService;
-use PHPeek\LaravelQueueMetrics\Services\RedisConnectionManager;
+use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
 use PHPeek\LaravelQueueMetrics\Utilities\PercentileCalculator;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -44,65 +46,45 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             ->name('queue-metrics')
             ->hasConfigFile('queue-metrics')
             ->hasRoute('api')
+            ->hasMigration('2024_01_01_000001_create_queue_metrics_storage_tables')
             ->hasCommand(DetectStaleWorkersCommand::class);
     }
 
     public function packageRegistered(): void
     {
-        // Register Redis connection manager
-        $this->app->singleton(RedisConnectionManager::class, function ($app) {
-            $connectionName = config('queue-metrics.storage.redis.connection', 'default');
-            if (! is_string($connectionName)) {
-                $connectionName = 'default';
-            }
-
-            $prefix = config('queue-metrics.storage.redis.prefix', 'queue_metrics');
-            if (! is_string($prefix)) {
-                $prefix = 'queue_metrics';
-            }
-
-            $ttls = config('queue-metrics.storage.redis.ttl', []);
-            if (! is_array($ttls)) {
-                $ttls = [];
-            }
-
-            return new RedisConnectionManager($connectionName, $prefix, $ttls);
+        // Register config classes
+        $this->app->singleton(QueueMetricsConfig::class, function ($app) {
+            return QueueMetricsConfig::fromConfig();
         });
 
-        // Register repositories based on configured driver
+        $this->app->singleton(StorageConfig::class, function ($app) {
+            return $app->make(QueueMetricsConfig::class)->storage;
+        });
+
+        // Register storage manager
+        $this->app->singleton(StorageManager::class, function ($app) {
+            return new StorageManager($app->make(StorageConfig::class));
+        });
+
+        // Register repositories - all use StorageManager
         $this->app->singleton(JobMetricsRepository::class, function ($app) {
-            return match (config('queue-metrics.storage.driver', 'redis')) {
-                'redis' => new RedisJobMetricsRepository($app->make(RedisConnectionManager::class)),
-                default => new RedisJobMetricsRepository($app->make(RedisConnectionManager::class)),
-            };
+            return new RedisJobMetricsRepository($app->make(StorageManager::class));
         });
 
         $this->app->singleton(QueueMetricsRepository::class, function ($app) {
-            return match (config('queue-metrics.storage.driver', 'redis')) {
-                'redis' => new RedisQueueMetricsRepository($app->make(RedisConnectionManager::class)),
-                default => new RedisQueueMetricsRepository($app->make(RedisConnectionManager::class)),
-            };
+            return new RedisQueueMetricsRepository($app->make(StorageManager::class));
         });
 
         $this->app->singleton(WorkerRepository::class, function ($app) {
-            return match (config('queue-metrics.storage.driver', 'redis')) {
-                'redis' => new RedisWorkerRepository($app->make(RedisConnectionManager::class)),
-                default => new RedisWorkerRepository($app->make(RedisConnectionManager::class)),
-            };
+            return new RedisWorkerRepository($app->make(StorageManager::class));
         });
 
         $this->app->singleton(BaselineRepository::class, function ($app) {
-            return match (config('queue-metrics.storage.driver', 'redis')) {
-                'redis' => new RedisBaselineRepository($app->make(RedisConnectionManager::class)),
-                default => new RedisBaselineRepository($app->make(RedisConnectionManager::class)),
-            };
+            return new RedisBaselineRepository($app->make(StorageManager::class));
         });
 
         $this->app->singleton(WorkerHeartbeatRepository::class, function ($app) {
-            return match (config('queue-metrics.storage.driver', 'redis')) {
-                'redis' => new RedisWorkerHeartbeatRepository($app->make(RedisConnectionManager::class)),
-                default => new RedisWorkerHeartbeatRepository($app->make(RedisConnectionManager::class)),
-            };
+            return new RedisWorkerHeartbeatRepository($app->make(StorageManager::class));
         });
 
         // Register services

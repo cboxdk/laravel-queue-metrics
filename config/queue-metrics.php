@@ -30,25 +30,13 @@ return [
 
     'storage' => [
         'driver' => env('QUEUE_METRICS_STORAGE', 'redis'),
+        'connection' => env('QUEUE_METRICS_CONNECTION', 'default'),
+        'prefix' => 'queue_metrics',
 
-        'redis' => [
-            'connection' => env('QUEUE_METRICS_REDIS_CONNECTION', 'default'),
-            'prefix' => 'queue_metrics',
-            'ttl' => [
-                'raw' => 3600,        // 1 hour - raw job execution data
-                'aggregated' => 604800, // 7 days - calculated metrics
-                'baseline' => 2592000,  // 30 days - baseline calculations
-            ],
-        ],
-
-        'database' => [
-            'connection' => env('QUEUE_METRICS_DB_CONNECTION'),
-            'tables' => [
-                'jobs' => 'queue_metrics_jobs',
-                'queues' => 'queue_metrics_queues',
-                'workers' => 'queue_metrics_workers',
-                'baselines' => 'queue_metrics_baselines',
-            ],
+        'ttl' => [
+            'raw' => 3600,        // 1 hour - raw job execution data
+            'aggregated' => 604800, // 7 days - calculated metrics
+            'baseline' => 2592000,  // 30 days - baseline calculations
         ],
     ],
 

@@ -19,6 +19,12 @@ parameters:
 			path: src/Actions/CalculateJobMetricsAction.php
 
 		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 4
+			path: src/Config/QueueMetricsConfig.php
+
+		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
 			count: 4
@@ -289,12 +295,6 @@ parameters:
 			path: src/Http/Controllers/PrometheusController.php
 
 		-
-			message: '#^Parameter \#3 \$ttls of class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager constructor expects array\<string, int\>, array\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/LaravelQueueMetricsServiceProvider.php
-
-		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.expr
 			count: 2
@@ -319,14 +319,32 @@ parameters:
 			path: src/Repositories/RedisBaselineRepository.php
 
 		-
-			message: '#^Parameter \#2 \$pattern of method Redis\:\:scan\(\) expects string\|null, array\<string, int\|string\> given\.$#'
-			identifier: argument.type
+			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 5
+			path: src/Repositories/RedisBaselineRepository.php
+
+		-
+			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Repositories/RedisBaselineRepository.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between \(Redis\|string\|false\) and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
+			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 4
+			path: src/Repositories/RedisBaselineRepository.php
+
+		-
+			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisBaselineRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Repositories/RedisBaselineRepository.php
+
+		-
+			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisBaselineRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Repositories/RedisBaselineRepository.php
 
@@ -337,26 +355,38 @@ parameters:
 			path: src/Repositories/RedisJobMetricsRepository.php
 
 		-
+			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 10
+			path: src/Repositories/RedisJobMetricsRepository.php
+
+		-
+			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 4
+			path: src/Repositories/RedisJobMetricsRepository.php
+
+		-
+			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 15
+			path: src/Repositories/RedisJobMetricsRepository.php
+
+		-
 			message: '#^Invalid array key type float\.$#'
 			identifier: array.invalidKey
 			count: 3
 			path: src/Repositories/RedisJobMetricsRepository.php
 
 		-
-			message: '#^Method Redis\:\:pipeline\(\) invoked with 1 parameter, 0 required\.$#'
-			identifier: arguments.count
-			count: 2
-			path: src/Repositories/RedisJobMetricsRepository.php
-
-		-
-			message: '#^Parameter \#2 \$pattern of method Redis\:\:scan\(\) expects string\|null, array\<string, int\|string\> given\.$#'
-			identifier: argument.type
+			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisJobMetricsRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Repositories/RedisJobMetricsRepository.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between \(Redis\|string\|false\) and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
+			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisJobMetricsRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Repositories/RedisJobMetricsRepository.php
 
@@ -373,6 +403,24 @@ parameters:
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
+			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 5
+			path: src/Repositories/RedisQueueMetricsRepository.php
+
+		-
+			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 2
+			path: src/Repositories/RedisQueueMetricsRepository.php
+
+		-
+			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 6
+			path: src/Repositories/RedisQueueMetricsRepository.php
+
+		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
 			count: 1
@@ -385,21 +433,45 @@ parameters:
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
-			message: '#^Parameter \#2 \$pattern of method Redis\:\:scan\(\) expects string\|null, array\<string, int\|string\> given\.$#'
-			identifier: argument.type
+			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisQueueMetricsRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between \(Redis\|string\|false\) and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
+			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisQueueMetricsRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
-			message: '#^Method Redis\:\:pipeline\(\) invoked with 1 parameter, 0 required\.$#'
-			identifier: arguments.count
+			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 8
+			path: src/Repositories/RedisWorkerHeartbeatRepository.php
+
+		-
+			message: '#^Call to method getTtl\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
 			count: 2
+			path: src/Repositories/RedisWorkerHeartbeatRepository.php
+
+		-
+			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 10
+			path: src/Repositories/RedisWorkerHeartbeatRepository.php
+
+		-
+			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerHeartbeatRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Repositories/RedisWorkerHeartbeatRepository.php
+
+		-
+			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerHeartbeatRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
+			identifier: class.notFound
+			count: 1
 			path: src/Repositories/RedisWorkerHeartbeatRepository.php
 
 		-
@@ -409,8 +481,26 @@ parameters:
 			path: src/Repositories/RedisWorkerRepository.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between \(Redis\|string\|false\) and null will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
+			message: '#^Call to method getConnection\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 6
+			path: src/Repositories/RedisWorkerRepository.php
+
+		-
+			message: '#^Call to method key\(\) on an unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 9
+			path: src/Repositories/RedisWorkerRepository.php
+
+		-
+			message: '#^Parameter \$redis of method PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerRepository\:\:__construct\(\) has invalid type PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Repositories/RedisWorkerRepository.php
+
+		-
+			message: '#^Property PHPeek\\LaravelQueueMetrics\\Repositories\\RedisWorkerRepository\:\:\$redis has unknown class PHPeek\\LaravelQueueMetrics\\Services\\RedisConnectionManager as its type\.$#'
+			identifier: class.notFound
 			count: 1
 			path: src/Repositories/RedisWorkerRepository.php
 
@@ -473,3 +563,57 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Services/LaravelQueueInspector.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$data\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Storage/DatabaseStorageDriver.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Storage/DatabaseStorageDriver.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Storage/DatabaseStorageDriver.php
+
+		-
+			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:getSetMembers\(\) should return array\<string\> but returns array\<mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Storage/DatabaseStorageDriver.php
+
+		-
+			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:getSortedSetByRank\(\) should return array\<string\> but returns array\<mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Storage/DatabaseStorageDriver.php
+
+		-
+			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:getSortedSetByScore\(\) should return array\<string\> but returns array\<mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Storage/DatabaseStorageDriver.php
+
+		-
+			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:scanKeys\(\) should return array\<string\> but returns array\<mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Storage/DatabaseStorageDriver.php
+
+		-
+			message: '#^Method Redis\:\:pipeline\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Storage/RedisStorageDriver.php
+
+		-
+			message: '#^Parameter \#2 \$pattern of method Redis\:\:scan\(\) expects string\|null, array\<string, int\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Storage/RedisStorageDriver.php
