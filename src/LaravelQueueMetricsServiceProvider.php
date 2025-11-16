@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace PHPeek\LaravelQueueMetrics;
 
 use Illuminate\Support\Facades\Event;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Queue\Events\JobRetryRequested;
+use Illuminate\Queue\Events\JobTimedOut;
+use Illuminate\Queue\Events\Looping;
+use Illuminate\Queue\Events\WorkerStopping;
 use PHPeek\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
 use PHPeek\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
 use PHPeek\LaravelQueueMetrics\Actions\RecordJobFailureAction;
@@ -16,9 +22,15 @@ use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use PHPeek\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
 use PHPeek\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
 use PHPeek\LaravelQueueMetrics\Console\RecordTrendDataCommand;
+use PHPeek\LaravelQueueMetrics\Listeners\JobExceptionOccurredListener;
 use PHPeek\LaravelQueueMetrics\Listeners\JobFailedListener;
 use PHPeek\LaravelQueueMetrics\Listeners\JobProcessedListener;
 use PHPeek\LaravelQueueMetrics\Listeners\JobProcessingListener;
+use PHPeek\LaravelQueueMetrics\Listeners\JobQueuedListener;
+use PHPeek\LaravelQueueMetrics\Listeners\JobRetryRequestedListener;
+use PHPeek\LaravelQueueMetrics\Listeners\JobTimedOutListener;
+use PHPeek\LaravelQueueMetrics\Listeners\LoopingListener;
+use PHPeek\LaravelQueueMetrics\Listeners\WorkerStoppingListener;
 use PHPeek\LaravelQueueMetrics\Contracts\QueueInspector;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
@@ -122,9 +134,17 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             return;
         }
 
-        // Register event listeners
+        // Register job lifecycle event listeners
+        Event::listen(JobQueued::class, JobQueuedListener::class);
         Event::listen(JobProcessing::class, JobProcessingListener::class);
         Event::listen(JobProcessed::class, JobProcessedListener::class);
         Event::listen(JobFailed::class, JobFailedListener::class);
+        Event::listen(JobRetryRequested::class, JobRetryRequestedListener::class);
+        Event::listen(JobTimedOut::class, JobTimedOutListener::class);
+        Event::listen(JobExceptionOccurred::class, JobExceptionOccurredListener::class);
+
+        // Register worker lifecycle event listeners
+        Event::listen(WorkerStopping::class, WorkerStoppingListener::class);
+        Event::listen(Looping::class, LoopingListener::class);
     }
 }

@@ -106,6 +106,52 @@ interface JobMetricsRepository
     ): int;
 
     /**
+     * Record when a job is queued for time-to-start tracking.
+     */
+    public function recordQueuedAt(
+        string $jobClass,
+        string $connection,
+        string $queue,
+        Carbon $queuedAt,
+    ): void;
+
+    /**
+     * Record a retry request for tracking retry patterns.
+     */
+    public function recordRetryRequested(
+        string $jobId,
+        string $jobClass,
+        string $connection,
+        string $queue,
+        Carbon $retryRequestedAt,
+        int $attemptNumber,
+    ): void;
+
+    /**
+     * Record a job timeout event.
+     */
+    public function recordTimeout(
+        string $jobId,
+        string $jobClass,
+        string $connection,
+        string $queue,
+        Carbon $timedOutAt,
+    ): void;
+
+    /**
+     * Record an exception occurrence during job execution.
+     */
+    public function recordException(
+        string $jobId,
+        string $jobClass,
+        string $connection,
+        string $queue,
+        string $exceptionClass,
+        string $exceptionMessage,
+        Carbon $occurredAt,
+    ): void;
+
+    /**
      * Clean up old metrics data.
      */
     public function cleanup(int $olderThanSeconds): int;
