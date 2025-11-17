@@ -90,18 +90,32 @@ final readonly class MetricsQueryService
         $queues = $this->queueMetricsRepository->listQueues();
         $workers = $this->workerRepository->getActiveWorkers();
 
-        // Aggregate job counts from all discovered queues
+        // Aggregate job counts from all job metrics keys in Redis
         $totalProcessed = 0;
         $totalFailed = 0;
 
-        foreach ($queues as $queueInfo) {
-            $connection = $queueInfo['connection'];
-            $queue = $queueInfo['queue'];
+        // Scan Redis for all job metrics keys and aggregate
+        $pattern = config('database.redis.options.prefix', '') . config('queue-metrics.storage.prefix') . ':jobs:*';
+        $driver = app(\PHPeek\LaravelQueueMetrics\Storage\StorageManager::class)->driver();
 
-            // Get all job classes for this queue and sum their metrics
-            $metrics = $this->jobMetricsRepository->getMetrics('*', $connection, $queue);
-            $totalProcessed += (int) ($metrics['total_processed'] ?? 0);
-            $totalFailed += (int) ($metrics['total_failed'] ?? 0);
+        // Get all job metrics keys
+        $keys = [];
+        $cursor = '0';
+        do {
+            $result = $driver->scanKeys($pattern);
+            if (is_array($result)) {
+                $keys = array_merge($keys, $result);
+                break;
+            }
+        } while (false);
+
+        // Sum metrics from all keys
+        foreach ($keys as $key) {
+            $data = $driver->getHash($key);
+            if (is_array($data)) {
+                $totalProcessed += (int) ($data['total_processed'] ?? 0);
+                $totalFailed += (int) ($data['total_failed'] ?? 0);
+            }
         }
 
         return [

@@ -35,7 +35,11 @@
       "mcp__serena__write_memory",
       "WebFetch(domain:divinglaravel.com)",
       "WebFetch(domain:medium.com)",
-      "WebFetch(domain:stackoverflow.com)"
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(composer update:*)",
+      "Bash(php:*)",
+      "Bash(timeout 30 php:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
