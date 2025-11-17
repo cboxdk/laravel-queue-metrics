@@ -29,7 +29,13 @@
       "Bash(paste:*)",
       "Bash(echo:*)",
       "mcp__serena__replace_symbol_body",
-      "Bash(redis-cli:*)"
+      "Bash(redis-cli:*)",
+      "mcp__serena__get_current_config",
+      "mcp__serena__onboarding",
+      "mcp__serena__write_memory",
+      "WebFetch(domain:divinglaravel.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:stackoverflow.com)"
     ],
     "deny": [],
     "ask": []

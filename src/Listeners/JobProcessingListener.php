@@ -8,6 +8,7 @@ use Illuminate\Queue\Events\JobProcessing;
 use PHPeek\LaravelQueueMetrics\Actions\RecordJobStartAction;
 use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
+use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
 use PHPeek\SystemMetrics\ProcessMetrics;
 
 /**
@@ -61,10 +62,6 @@ final readonly class JobProcessingListener
 
     private function getWorkerId(): string
     {
-        return sprintf(
-            'worker_%s_%d',
-            gethostname() ?: 'unknown',
-            getmypid()
-        );
+        return HorizonDetector::generateWorkerId();
     }
 }

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 
 /**
  * Statistics for an individual queue worker.
+ * Supports both standard Laravel queue workers and Horizon workers.
  */
 final readonly class WorkerStatsData
 {
@@ -21,6 +22,10 @@ final readonly class WorkerStatsData
         public ?string $currentJob,
         public float $idlePercentage,
         public Carbon $spawnedAt,
+        public bool $isHorizonWorker = false,
+        public ?string $supervisorName = null,
+        public ?int $parentSupervisorPid = null,
+        public ?string $workersPoolName = null,
     ) {}
 
     /**
@@ -37,6 +42,10 @@ final readonly class WorkerStatsData
         $currentJob = $data['current_job'] ?? null;
         $idlePercentage = $data['idle_percentage'] ?? 0.0;
         $spawnedAt = $data['spawned_at'] ?? null;
+        $isHorizonWorker = $data['is_horizon_worker'] ?? false;
+        $supervisorName = $data['supervisor_name'] ?? null;
+        $parentSupervisorPid = $data['parent_supervisor_pid'] ?? null;
+        $workersPoolName = $data['workers_pool_name'] ?? null;
 
         return new self(
             pid: is_numeric($pid) ? (int) $pid : 0,
@@ -50,6 +59,10 @@ final readonly class WorkerStatsData
             spawnedAt: (is_string($spawnedAt) || $spawnedAt instanceof \DateTimeInterface)
                 ? Carbon::parse($spawnedAt)
                 : Carbon::now(),
+            isHorizonWorker: (bool) $isHorizonWorker,
+            supervisorName: is_string($supervisorName) ? $supervisorName : null,
+            parentSupervisorPid: is_numeric($parentSupervisorPid) ? (int) $parentSupervisorPid : null,
+            workersPoolName: is_string($workersPoolName) ? $workersPoolName : null,
         );
     }
 
@@ -68,6 +81,10 @@ final readonly class WorkerStatsData
             'current_job' => $this->currentJob,
             'idle_percentage' => $this->idlePercentage,
             'spawned_at' => $this->spawnedAt->toIso8601String(),
+            'is_horizon_worker' => $this->isHorizonWorker,
+            'supervisor_name' => $this->supervisorName,
+            'parent_supervisor_pid' => $this->parentSupervisorPid,
+            'workers_pool_name' => $this->workersPoolName,
         ];
     }
 

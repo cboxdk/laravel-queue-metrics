@@ -149,6 +149,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Time Windows
+    |--------------------------------------------------------------------------
+    |
+    | Define time windows (in seconds) for aggregating metrics.
+    | These windows are used to calculate metrics like throughput,
+    | average execution time, and success rates over different periods.
+    |
+    */
+
+    'windows' => [
+        'short' => [60, 300, 900],      // 1 minute, 5 minutes, 15 minutes
+        'medium' => [3600],              // 1 hour
+        'long' => [86400],               // 1 day
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Customizable Classes
     |--------------------------------------------------------------------------
     |

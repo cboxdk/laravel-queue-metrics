@@ -8,6 +8,7 @@ use Illuminate\Queue\Events\JobFailed;
 use PHPeek\LaravelQueueMetrics\Actions\RecordJobFailureAction;
 use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
+use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
 
 /**
  * Listen for failed jobs.
@@ -49,10 +50,6 @@ final readonly class JobFailedListener
 
     private function getWorkerId(): string
     {
-        return sprintf(
-            'worker_%s_%d',
-            gethostname() ?: 'unknown',
-            getmypid()
-        );
+        return HorizonDetector::generateWorkerId();
     }
 }

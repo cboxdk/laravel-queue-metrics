@@ -7,10 +7,12 @@ namespace PHPeek\LaravelQueueMetrics\Listeners;
 use Illuminate\Queue\Events\WorkerStopping;
 use PHPeek\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
 use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
+use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
 
 /**
  * Listen for worker stopping events.
  * Tracks worker shutdown for uptime and stability metrics.
+ * Supports both standard queue workers and Laravel Horizon.
  */
 final readonly class WorkerStoppingListener
 {
@@ -25,21 +27,15 @@ final readonly class WorkerStoppingListener
         // Transition worker to STOPPED state
         // This allows tracking:
         // - Worker uptime (from first heartbeat to stopped)
-        // - Graceful vs forced shutdown detection
         // - Worker stability metrics
         $this->transitionWorkerState->execute(
             workerId: $workerId,
             newState: WorkerState::STOPPED,
-            reason: $event->status === 0 ? 'graceful_shutdown' : 'forced_shutdown',
         );
     }
 
     private function getWorkerId(): string
     {
-        return sprintf(
-            'worker_%s_%d',
-            gethostname() ?: 'unknown',
-            getmypid()
-        );
+        return HorizonDetector::generateWorkerId();
     }
 }

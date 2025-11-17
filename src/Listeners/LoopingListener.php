@@ -7,10 +7,12 @@ namespace PHPeek\LaravelQueueMetrics\Listeners;
 use Illuminate\Queue\Events\Looping;
 use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
+use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
 
 /**
  * Listen for worker loop iterations.
  * Tracks worker health and activity through regular heartbeats.
+ * Supports both standard queue workers and Laravel Horizon.
  */
 final readonly class LoopingListener
 {
@@ -42,10 +44,6 @@ final readonly class LoopingListener
 
     private function getWorkerId(): string
     {
-        return sprintf(
-            'worker_%s_%d',
-            gethostname() ?: 'unknown',
-            getmypid()
-        );
+        return HorizonDetector::generateWorkerId();
     }
 }
