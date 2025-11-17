@@ -63,7 +63,8 @@
       "Bash(composer format:*)",
       "Bash(vendor/bin/pint:*)",
       "Bash(vendor/bin/phpcpd:*)",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(composer validate:*)"
     ],
     "deny": [],
     "ask": []
