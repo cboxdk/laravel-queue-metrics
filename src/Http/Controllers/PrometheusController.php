@@ -18,7 +18,7 @@ final readonly class PrometheusController
     public function __construct(
         private MetricsQueryService $metricsQuery,
         private QueueMetricsConfig $config,
-        private ServerMetricsService $serverMetrics,
+        private ?ServerMetricsService $serverMetrics = null,
     ) {}
 
     public function __invoke(): Response
@@ -68,8 +68,16 @@ final readonly class PrometheusController
             'Overall health score (0-100)'
         );
 
-        // Server resource metrics
-        $serverMetrics = $this->serverMetrics->getCurrentMetrics();
+        // Server resource metrics (only if ServerMetricsService is available)
+        if ($this->serverMetrics !== null) {
+            try {
+                $serverMetrics = $this->serverMetrics->getCurrentMetrics();
+            } catch (\Throwable $e) {
+                $serverMetrics = ['available' => false];
+            }
+        } else {
+            $serverMetrics = ['available' => false];
+        }
 
         if ($serverMetrics['available']) {
             // Type-safe extraction with proper PHPDoc syntax for string keys

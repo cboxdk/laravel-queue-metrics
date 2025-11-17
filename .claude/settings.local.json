@@ -42,7 +42,8 @@
       "Bash(curl:*)",
       "Bash(/Users/sylvester/Library/Application\\ Support/Herd/bin/php:*)",
       "Bash(/Users/sylvester/Library/Application Support/Herd/bin/php:*)",
-      "Bash(composer dump-autoload:*)"
+      "Bash(composer dump-autoload:*)",
+      "Bash(timeout 10 php:*)"
     ],
     "deny": [],
     "ask": []
