@@ -106,10 +106,18 @@ final readonly class MetricsQueryService
         // Get all job metrics keys
         $keys = $driver->scanKeys($pattern);
 
+        // Laravel's Redis prefix for stripping
+        $laravelPrefix = config('database.redis.options.prefix', '');
+
         // Sum metrics from all keys
-        foreach ($keys as $key) {
-            // getHash also needs the full key with prefix
-            $data = $driver->getHash($key);
+        foreach ($keys as $fullKey) {
+            // keys() returns keys WITH Laravel prefix already applied
+            // But getHash() will ADD prefix again, so we need to strip it first
+            $relativeKey = $laravelPrefix !== ''
+                ? str_replace($laravelPrefix, '', $fullKey)
+                : $fullKey;
+
+            $data = $driver->getHash($relativeKey);
             if (is_array($data)) {
                 $totalProcessed += (int) ($data['total_processed'] ?? 0);
                 $totalFailed += (int) ($data['total_failed'] ?? 0);
