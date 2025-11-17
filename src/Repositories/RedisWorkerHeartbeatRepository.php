@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
+use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of worker heartbeat repository.
@@ -17,7 +17,7 @@ use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
 final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRepository
 {
     public function __construct(
-        private StorageManager $redis,
+        private RedisMetricsStore $redis,
     ) {}
 
     public function recordHeartbeat(

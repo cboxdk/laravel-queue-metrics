@@ -95,16 +95,14 @@ final readonly class MetricsQueryService
         $totalFailed = 0;
 
         // Scan Redis for all job metrics keys and aggregate
-        $manager = app(\PHPeek\LaravelQueueMetrics\Storage\StorageManager::class);
+        $store = app(\PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore::class);
 
         // Laravel's Redis connection automatically adds prefix for KEYS command
         // So we only use our package prefix, not Laravel's Redis prefix
-        $pattern = $manager->key('jobs', '*', '*', '*');
-
-        $driver = $manager->driver();
+        $pattern = $store->key('jobs', '*', '*', '*');
 
         // Get all job metrics keys
-        $keys = $driver->scanKeys($pattern);
+        $keys = $store->scanKeys($pattern);
 
         // Laravel's Redis prefix for stripping
         $laravelPrefix = config('database.redis.options.prefix', '');
@@ -117,7 +115,7 @@ final readonly class MetricsQueryService
                 ? str_replace($laravelPrefix, '', $fullKey)
                 : $fullKey;
 
-            $data = $driver->getHash($relativeKey);
+            $data = $store->getHash($relativeKey);
             if (is_array($data)) {
                 $totalProcessed += (int) ($data['total_processed'] ?? 0);
                 $totalFailed += (int) ($data['total_failed'] ?? 0);

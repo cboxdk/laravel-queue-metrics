@@ -47,7 +47,7 @@ use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
 use PHPeek\LaravelQueueMetrics\Services\LaravelQueueInspector;
 use PHPeek\LaravelQueueMetrics\Services\MetricsQueryService;
 use PHPeek\LaravelQueueMetrics\Services\ServerMetricsService;
-use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
+use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
 use PHPeek\LaravelQueueMetrics\Utilities\PercentileCalculator;
 use Gophpeek\SystemMetrics\SystemMetrics;
 use Spatie\LaravelPackageTools\Package;
@@ -77,30 +77,30 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             return $app->make(QueueMetricsConfig::class)->storage;
         });
 
-        // Register storage manager
-        $this->app->singleton(StorageManager::class, function ($app) {
-            return new StorageManager($app->make(StorageConfig::class));
+        // Register Redis metrics store - uses Laravel's Redis connection directly
+        $this->app->singleton(RedisMetricsStore::class, function () {
+            return new RedisMetricsStore();
         });
 
-        // Register repositories - all use StorageManager
+        // Register repositories - all use RedisMetricsStore
         $this->app->singleton(JobMetricsRepository::class, function ($app) {
-            return new RedisJobMetricsRepository($app->make(StorageManager::class));
+            return new RedisJobMetricsRepository($app->make(RedisMetricsStore::class));
         });
 
         $this->app->singleton(QueueMetricsRepository::class, function ($app) {
-            return new RedisQueueMetricsRepository($app->make(StorageManager::class));
+            return new RedisQueueMetricsRepository($app->make(RedisMetricsStore::class));
         });
 
         $this->app->singleton(WorkerRepository::class, function ($app) {
-            return new RedisWorkerRepository($app->make(StorageManager::class));
+            return new RedisWorkerRepository($app->make(RedisMetricsStore::class));
         });
 
         $this->app->singleton(BaselineRepository::class, function ($app) {
-            return new RedisBaselineRepository($app->make(StorageManager::class));
+            return new RedisBaselineRepository($app->make(RedisMetricsStore::class));
         });
 
         $this->app->singleton(WorkerHeartbeatRepository::class, function ($app) {
-            return new RedisWorkerHeartbeatRepository($app->make(StorageManager::class));
+            return new RedisWorkerHeartbeatRepository($app->make(RedisMetricsStore::class));
         });
 
         // Register system metrics

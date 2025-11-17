@@ -7,7 +7,7 @@ namespace PHPeek\LaravelQueueMetrics\Repositories;
 use Carbon\Carbon;
 use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
+use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of baseline repository.
@@ -15,7 +15,7 @@ use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
 final readonly class RedisBaselineRepository implements BaselineRepository
 {
     public function __construct(
-        private StorageManager $redis,
+        private RedisMetricsStore $redis,
     ) {}
 
     public function storeBaseline(BaselineData $baseline): void

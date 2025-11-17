@@ -7,7 +7,7 @@ namespace PHPeek\LaravelQueueMetrics\Repositories;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Queue;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
+use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of queue metrics repository.
@@ -15,7 +15,7 @@ use PHPeek\LaravelQueueMetrics\Storage\StorageManager;
 final readonly class RedisQueueMetricsRepository implements QueueMetricsRepository
 {
     public function __construct(
-        private StorageManager $redis,
+        private RedisMetricsStore $redis,
     ) {}
 
     /**
