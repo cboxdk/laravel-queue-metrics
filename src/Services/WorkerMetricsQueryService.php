@@ -7,6 +7,7 @@ namespace PHPeek\LaravelQueueMetrics\Services;
 use Illuminate\Support\Collection;
 use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
+use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
 
@@ -113,47 +114,33 @@ final readonly class WorkerMetricsQueryService
      */
     public function getWorkersSummary(): array
     {
-        $workers = $this->workerRepository->getActiveWorkers();
-        $total = count($workers);
+        // Use WorkerHeartbeat for accurate time tracking
+        $heartbeats = $this->workerHeartbeatRepository->getActiveWorkers();
+        $total = count($heartbeats);
         $active = 0;
         $idle = 0;
         $totalJobsProcessed = 0;
-        $totalIdleTime = 0.0;
-        $totalBusyTime = 0.0;
+        $totalIdleTimeSeconds = 0;
+        $totalBusyTimeSeconds = 0;
 
-        foreach ($workers as $worker) {
-            if ($worker->status === 'active') {
+        foreach ($heartbeats as $heartbeat) {
+            // Count by state
+            if ($heartbeat->state === WorkerState::BUSY) {
                 $active++;
-            } elseif ($worker->status === 'idle') {
+            } else {
                 $idle++;
             }
 
-            // Get worker stats for jobs processed
-            // @phpstan-ignore-next-line - PHPStan knows hostname is string from PHPDoc, but handle gethostname() failure
-            $hostname = is_string($worker->hostname) ? $worker->hostname : gethostname();
-            // @phpstan-ignore-next-line - gethostname() can return false on failure
-            if ($hostname === false) {
-                $hostname = 'unknown';
-            }
-
-            $stats = $this->workerRepository->getWorkerStats(
-                $worker->pid,
-                $hostname
-            );
-
-            if ($stats) {
-                $totalJobsProcessed += $stats->jobsProcessed;
-                // Note: idleTime and busyTime not available in WorkerStatsData
-                // Using idlePercentage and jobs processed as approximation
-                $totalIdleTime += $stats->idlePercentage;
-                $totalBusyTime += (100 - $stats->idlePercentage);
-            }
+            // Aggregate actual time in seconds (not percentages!)
+            $totalJobsProcessed += $heartbeat->jobsProcessed;
+            $totalIdleTimeSeconds += $heartbeat->idleTimeSeconds;
+            $totalBusyTimeSeconds += $heartbeat->busyTimeSeconds;
         }
 
         $avgJobsPerWorker = $total > 0 ? $totalJobsProcessed / $total : 0.0;
 
-        $totalTime = $totalIdleTime + $totalBusyTime;
-        $avgIdlePercentage = $totalTime > 0 ? ($totalIdleTime / $totalTime) * 100 : 0.0;
+        $totalTimeSeconds = $totalIdleTimeSeconds + $totalBusyTimeSeconds;
+        $avgIdlePercentage = $totalTimeSeconds > 0 ? ($totalIdleTimeSeconds / $totalTimeSeconds) * 100 : 0.0;
 
         return [
             'total' => $total,
@@ -173,11 +160,11 @@ final readonly class WorkerMetricsQueryService
     public function getAllServersWithMetrics(): array
     {
         $servers = [];
-        $workers = $this->workerRepository->getActiveWorkers();
+        $heartbeats = $this->workerHeartbeatRepository->getActiveWorkers();
 
         // Group workers by hostname
-        foreach ($workers as $worker) {
-            $hostname = $worker->hostname ?? 'unknown';
+        foreach ($heartbeats as $heartbeat) {
+            $hostname = $heartbeat->hostname ?? 'unknown';
 
             if (! isset($servers[$hostname])) {
                 $servers[$hostname] = [
@@ -208,20 +195,24 @@ final readonly class WorkerMetricsQueryService
 
             $servers[$hostname]['workers']['total']++;
 
-            // Aggregate worker metrics
-            if ($worker->status === 'active') {
+            // Count by state
+            if ($heartbeat->state === WorkerState::BUSY) {
                 $servers[$hostname]['workers']['active']++;
-            } elseif ($worker->status === 'idle') {
+            } else {
                 $servers[$hostname]['workers']['idle']++;
             }
 
-            // Aggregate performance metrics from worker stats
-            $stats = $this->workerRepository->getWorkerStats($worker->pid, $hostname);
-            if ($stats) {
-                $servers[$hostname]['performance']['total_jobs_processed'] += $stats->jobsProcessed;
-                // Note: Memory metrics not available in WorkerStatsData
-                // These would need to be added to the DTO if needed
-            }
+            // Aggregate performance metrics from heartbeat
+            $servers[$hostname]['performance']['total_jobs_processed'] += $heartbeat->jobsProcessed;
+
+            // Aggregate resource metrics from heartbeat
+            $servers[$hostname]['resources']['total_memory_mb'] += $heartbeat->memoryUsageMb;
+            $servers[$hostname]['resources']['peak_memory_mb'] = max(
+                $servers[$hostname]['resources']['peak_memory_mb'],
+                $heartbeat->peakMemoryUsageMb
+            );
+            $servers[$hostname]['resources']['cpu_usage'] += $heartbeat->cpuUsagePercent;
+            $servers[$hostname]['resources']['memory_usage'] += $heartbeat->memoryUsageMb;
         }
 
         // Calculate averages and utilization per server
@@ -231,6 +222,10 @@ final readonly class WorkerMetricsQueryService
             if ($totalWorkers > 0) {
                 $server['resources']['avg_memory_per_job_mb'] =
                     $server['resources']['total_memory_mb'] / $totalWorkers;
+                $server['resources']['cpu_usage'] =
+                    $server['resources']['cpu_usage'] / $totalWorkers;
+                $server['resources']['memory_usage'] =
+                    $server['resources']['memory_usage'] / $totalWorkers;
 
                 $activeWorkers = $server['workers']['active'];
                 $server['utilization']['server_utilization'] = $activeWorkers / $totalWorkers;

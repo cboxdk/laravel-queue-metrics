@@ -120,10 +120,22 @@ final readonly class QueueMetricsQueryService
                 $metrics = $this->getQueueMetrics($connection, $queue);
                 $baseline = $this->getBaseline($connection, $queue);
 
-                // Count active workers for this specific queue
-                $activeWorkers = $this->workerHeartbeatRepository
-                    ->getActiveWorkers($connection, $queue)
-                    ->count();
+                // Get workers for this specific queue
+                $workers = $this->workerHeartbeatRepository
+                    ->getActiveWorkers($connection, $queue);
+
+                $activeWorkers = $workers->count();
+
+                // Calculate queue utilization rate from worker busy/idle time
+                $totalBusyTime = 0;
+                $totalIdleTime = 0;
+                foreach ($workers as $worker) {
+                    $totalBusyTime += $worker->busyTimeSeconds;
+                    $totalIdleTime += $worker->idleTimeSeconds;
+                }
+
+                $totalTime = $totalBusyTime + $totalIdleTime;
+                $utilizationRate = $totalTime > 0 ? ($totalBusyTime / $totalTime) * 100 : 0;
 
                 $queues[$queueKey] = [
                     'connection' => $connection,
@@ -138,7 +150,7 @@ final readonly class QueueMetricsQueryService
                     'throughput_per_minute' => $metrics->throughputPerMinute,
                     'avg_duration_ms' => $metrics->avgDuration,
                     'failure_rate' => $metrics->failureRate,
-                    'utilization_rate' => 0, // Note: Utilization rate calculation requires worker time tracking
+                    'utilization_rate' => round($utilizationRate, 2),
                     'active_workers' => $activeWorkers,
                     'baseline' => $baseline ? $baseline->toArray() : null,
                     'timestamp' => now()->toIso8601String(),
