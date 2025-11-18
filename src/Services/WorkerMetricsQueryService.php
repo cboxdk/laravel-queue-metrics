@@ -215,7 +215,7 @@ final readonly class WorkerMetricsQueryService
             $servers[$hostname]['resources']['memory_usage'] += $heartbeat->memoryUsageMb;
         }
 
-        // Calculate averages and utilization per server
+        // Calculate averages, utilization, and performance per server
         foreach ($servers as $hostname => &$server) {
             $totalWorkers = $server['workers']['total'];
             // @phpstan-ignore-next-line - Defensive check even though PHPStan knows totalWorkers >= 1
@@ -231,6 +231,21 @@ final readonly class WorkerMetricsQueryService
                 $server['utilization']['server_utilization'] = $activeWorkers / $totalWorkers;
                 $server['utilization']['avg_idle_percentage'] =
                     ($server['workers']['idle'] / $totalWorkers) * 100;
+
+                // Calculate jobs_per_minute from worker uptime data
+                // Get workers for this hostname to calculate total uptime
+                $hostnameWorkers = collect($heartbeats)->filter(
+                    fn ($hb) => $hb->hostname === $hostname
+                );
+
+                $totalUptimeSeconds = $hostnameWorkers->sum(
+                    fn ($hb) => $hb->busyTimeSeconds + $hb->idleTimeSeconds
+                );
+
+                $totalUptimeMinutes = $totalUptimeSeconds / 60;
+                $server['performance']['jobs_per_minute'] = $totalUptimeMinutes > 0
+                    ? round($server['performance']['total_jobs_processed'] / $totalUptimeMinutes, 2)
+                    : 0.0;
 
                 // Add capacity recommendation
                 $utilization = $server['utilization']['server_utilization'];
