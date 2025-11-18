@@ -11,20 +11,38 @@ use Illuminate\Support\Facades\Redis;
  * Simple wrapper around Laravel's Redis for queue metrics storage.
  * Uses Laravel's Redis connection directly instead of abstraction layer.
  */
-final readonly class RedisMetricsStore
+final class RedisMetricsStore
 {
-    private Connection $redis;
+    private ?Connection $redis = null;
 
-    private string $prefix;
+    private ?string $prefix = null;
 
-    public function __construct()
+    /**
+     * Get Redis connection (lazy loaded).
+     */
+    private function getRedis(): Connection
     {
-        /** @var string $connection */
-        $connection = config('queue-metrics.storage.connection', 'default');
-        $this->redis = Redis::connection($connection);
-        /** @var string $prefix */
-        $prefix = config('queue-metrics.storage.prefix', 'queue_metrics');
-        $this->prefix = $prefix;
+        if ($this->redis === null) {
+            /** @var string $connection */
+            $connection = config('queue-metrics.storage.connection', 'default');
+            $this->redis = Redis::connection($connection);
+        }
+
+        return $this->redis;
+    }
+
+    /**
+     * Get prefix (lazy loaded).
+     */
+    private function getPrefix(): string
+    {
+        if ($this->prefix === null) {
+            /** @var string $prefix */
+            $prefix = config('queue-metrics.storage.prefix', 'queue_metrics');
+            $this->prefix = $prefix;
+        }
+
+        return $this->prefix;
     }
 
     /**
@@ -32,7 +50,7 @@ final readonly class RedisMetricsStore
      */
     public function key(string ...$segments): string
     {
-        return $this->prefix.':'.implode(':', $segments);
+        return $this->getPrefix().':'.implode(':', $segments);
     }
 
     /**
@@ -49,7 +67,7 @@ final readonly class RedisMetricsStore
      */
     public function connection(): Connection
     {
-        return $this->redis;
+        return $this->getRedis();
     }
 
     /**
@@ -67,10 +85,11 @@ final readonly class RedisMetricsStore
      */
     public function setHash(string $key, array $data, ?int $ttl = null): void
     {
-        $this->redis->hmset($key, $data);
+        $redis = $this->getRedis();
+        $redis->hmset($key, $data);
 
         if ($ttl !== null) {
-            $this->redis->expire($key, $ttl);
+            $redis->expire($key, $ttl);
         }
     }
 
@@ -79,22 +98,23 @@ final readonly class RedisMetricsStore
      */
     public function getHash(string $key): array
     {
-        $result = $this->redis->hgetall($key);
+        $result = $this->getRedis()->hgetall($key);
 
         return is_array($result) ? $result : [];
     }
 
     public function getHashField(string $key, string $field): mixed
     {
-        return $this->redis->hget($key, $field);
+        return $this->getRedis()->hget($key, $field);
     }
 
     public function incrementHashField(string $key, string $field, int|float $value): void
     {
+        $redis = $this->getRedis();
         if (is_float($value)) {
-            $this->redis->hincrbyfloat($key, $field, $value);
+            $redis->hincrbyfloat($key, $field, $value);
         } else {
-            $this->redis->hincrby($key, $field, $value);
+            $redis->hincrby($key, $field, $value);
         }
     }
 
@@ -103,10 +123,10 @@ final readonly class RedisMetricsStore
      */
     public function addToSortedSet(string $key, array $membersWithScores, ?int $ttl = null): void
     {
-        $this->redis->zadd($key, $membersWithScores);
+        $this->getRedis()->zadd($key, $membersWithScores);
 
         if ($ttl !== null) {
-            $this->redis->expire($key, $ttl);
+            $this->getRedis()->expire($key, $ttl);
         }
     }
 
@@ -115,7 +135,7 @@ final readonly class RedisMetricsStore
      */
     public function getSortedSetByRank(string $key, int $start, int $stop): array
     {
-        return $this->redis->zrange($key, $start, $stop);
+        return $this->getRedis()->zrange($key, $start, $stop);
     }
 
     /**
@@ -123,27 +143,27 @@ final readonly class RedisMetricsStore
      */
     public function getSortedSetByScore(string $key, string $min, string $max): array
     {
-        return $this->redis->zrangebyscore($key, $min, $max);
+        return $this->getRedis()->zrangebyscore($key, $min, $max);
     }
 
     public function countSortedSetByScore(string $key, string $min, string $max): int
     {
-        return (int) $this->redis->zcount($key, $min, $max);
+        return (int) $this->getRedis()->zcount($key, $min, $max);
     }
 
     public function removeSortedSetByRank(string $key, int $start, int $stop): int
     {
-        return (int) $this->redis->zremrangebyrank($key, $start, $stop);
+        return (int) $this->getRedis()->zremrangebyrank($key, $start, $stop);
     }
 
     public function removeSortedSetByScore(string $key, string $min, string $max): int
     {
-        return (int) $this->redis->zremrangebyscore($key, $min, $max);
+        return (int) $this->getRedis()->zremrangebyscore($key, $min, $max);
     }
 
     public function removeFromSortedSet(string $key, string $member): void
     {
-        $this->redis->zrem($key, $member);
+        $this->getRedis()->zrem($key, $member);
     }
 
     /**
@@ -152,7 +172,7 @@ final readonly class RedisMetricsStore
     public function addToSet(string $key, array $members): void
     {
         if (! empty($members)) {
-            $this->redis->sadd($key, $members);
+            $this->getRedis()->sadd($key, $members);
         }
     }
 
@@ -161,7 +181,7 @@ final readonly class RedisMetricsStore
      */
     public function getSetMembers(string $key): array
     {
-        return $this->redis->smembers($key);
+        return $this->getRedis()->smembers($key);
     }
 
     /**
@@ -170,22 +190,22 @@ final readonly class RedisMetricsStore
     public function removeFromSet(string $key, array $members): void
     {
         if (! empty($members)) {
-            $this->redis->srem($key, $members);
+            $this->getRedis()->srem($key, $members);
         }
     }
 
     public function set(string $key, mixed $value, ?int $ttl = null): void
     {
         if ($ttl !== null) {
-            $this->redis->setex($key, $ttl, $value);
+            $this->getRedis()->setex($key, $ttl, $value);
         } else {
-            $this->redis->set($key, $value);
+            $this->getRedis()->set($key, $value);
         }
     }
 
     public function get(string $key): mixed
     {
-        return $this->redis->get($key);
+        return $this->getRedis()->get($key);
     }
 
     /**
@@ -201,17 +221,17 @@ final readonly class RedisMetricsStore
             return 0;
         }
 
-        return (int) $this->redis->del(...$keys);
+        return (int) $this->getRedis()->del(...$keys);
     }
 
     public function exists(string $key): bool
     {
-        return (bool) $this->redis->exists($key);
+        return (bool) $this->getRedis()->exists($key);
     }
 
     public function expire(string $key, int $seconds): bool
     {
-        return (bool) $this->redis->expire($key, $seconds);
+        return (bool) $this->getRedis()->expire($key, $seconds);
     }
 
     /**
@@ -221,10 +241,10 @@ final readonly class RedisMetricsStore
     {
         // Get the underlying PhpRedis client - it includes Redis connection prefix
         /** @var \Redis $client */
-        $client = $this->redis->client();
+        $client = $this->getRedis()->client();
 
         // Get Laravel's Redis connection prefix (e.g., 'laravel_database_')
-        $connectionPrefix = $this->redis->_prefix('');
+        $connectionPrefix = $this->getRedis()->_prefix('');
 
         // Combine connection prefix with our pattern
         $fullPattern = $connectionPrefix.$pattern;
@@ -255,7 +275,7 @@ final readonly class RedisMetricsStore
     public function pipeline(callable $callback): void
     {
         // @phpstan-ignore-next-line - PhpRedis pipeline accepts no parameters in newer versions
-        $this->redis->pipeline(function ($pipe) use ($callback) {
+        $this->getRedis()->pipeline(function ($pipe) use ($callback) {
             $wrapper = new PipelineWrapper($pipe);
             $callback($wrapper);
         });
@@ -270,19 +290,21 @@ final readonly class RedisMetricsStore
      */
     public function transaction(callable $callback): array
     {
+        $redis = $this->getRedis();
+
         // Laravel Redis uses multi() and exec() for transactions
-        $this->redis->multi();
+        $redis->multi();
 
         try {
             // @phpstan-ignore-next-line - Laravel Connection type is compatible with PipelineWrapper
-            $wrapper = new PipelineWrapper($this->redis);
+            $wrapper = new PipelineWrapper($redis);
             $callback($wrapper);
 
-            $results = $this->redis->exec();
+            $results = $redis->exec();
 
             return is_array($results) ? $results : [];
         } catch (\Throwable $e) {
-            $this->redis->discard();
+            $redis->discard();
             throw $e;
         }
     }
@@ -295,7 +317,7 @@ final readonly class RedisMetricsStore
     public function eval(string $script, int $numKeys, ...$args): mixed
     {
         // @phpstan-ignore-next-line - Redis eval accepts variadic args but PHPStan expects array
-        return $this->redis->eval($script, $numKeys, ...$args);
+        return $this->getRedis()->eval($script, $numKeys, ...$args);
     }
 
     /**
@@ -305,6 +327,6 @@ final readonly class RedisMetricsStore
      */
     public function command(string $method, array $parameters = []): mixed
     {
-        return $this->redis->command($method, $parameters);
+        return $this->getRedis()->command($method, $parameters);
     }
 }
