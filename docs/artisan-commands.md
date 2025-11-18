@@ -54,20 +54,6 @@ protected function schedule(Schedule $schedule)
 }
 ```
 
----
-
-### queue-metrics:migrate-discovery
-
-Migrate existing metrics to discovery sets.
-
-```bash
-php artisan queue-metrics:migrate-discovery
-```
-
-**Purpose**: One-time migration command to improve performance by using Redis sets for discovery instead of key scanning.
-
-**When to run**: After upgrading from a version that didn't use discovery sets.
-
 ## Recommended Schedule
 
 ```php

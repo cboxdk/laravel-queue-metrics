@@ -24,7 +24,6 @@ use PHPeek\LaravelQueueMetrics\Commands\CalculateBaselinesCommand;
 use PHPeek\LaravelQueueMetrics\Commands\CleanupStaleWorkersCommand;
 use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
-use PHPeek\LaravelQueueMetrics\Console\Commands\MigrateToDiscoverySetsCommand;
 use PHPeek\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
 use PHPeek\LaravelQueueMetrics\Console\RecordTrendDataCommand;
 use PHPeek\LaravelQueueMetrics\Contracts\QueueInspector;
@@ -72,8 +71,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             ->hasCommand(CalculateBaselinesCommand::class)
             ->hasCommand(CleanupStaleWorkersCommand::class)
             ->hasCommand(DetectStaleWorkersCommand::class)
-            ->hasCommand(RecordTrendDataCommand::class)
-            ->hasCommand(MigrateToDiscoverySetsCommand::class);
+            ->hasCommand(RecordTrendDataCommand::class);
     }
 
     public function packageRegistered(): void
