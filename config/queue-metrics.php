@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use PHPeek\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
 use PHPeek\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
 use PHPeek\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
 use PHPeek\LaravelQueueMetrics\Actions\RecordJobFailureAction;
@@ -20,7 +21,6 @@ use PHPeek\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerHeartbeatRepository;
 use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerRepository;
-use PHPeek\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
 
 // config for PHPeek/LaravelQueueMetrics
 return [

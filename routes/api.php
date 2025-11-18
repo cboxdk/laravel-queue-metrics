@@ -18,7 +18,6 @@ use PHPeek\LaravelQueueMetrics\Http\Controllers\ServerMetricsController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\TrendAnalysisController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerStatusController;
-use PHPeek\LaravelQueueMetrics\Http\Middleware\ThrottlePrometheus;
 
 Route::prefix('queue-metrics')
     ->middleware(config('queue-metrics.middleware', ['api']))

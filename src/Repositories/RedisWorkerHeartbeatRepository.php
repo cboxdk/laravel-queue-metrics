@@ -11,7 +11,6 @@ use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
 use PHPeek\LaravelQueueMetrics\Exceptions\LuaScriptException;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Support\LuaScriptCache;
 use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**

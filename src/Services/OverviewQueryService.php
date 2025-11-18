@@ -6,7 +6,6 @@ namespace PHPeek\LaravelQueueMetrics\Services;
 
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
 use PHPeek\LaravelQueueMetrics\Services\Contracts\OverviewQueryInterface;
-use PHPeek\LaravelQueueMetrics\Services\TrendAnalysisService;
 
 /**
  * Service that orchestrates comprehensive overview by combining job, queue, and worker metrics.

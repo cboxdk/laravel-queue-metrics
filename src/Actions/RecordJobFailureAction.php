@@ -46,7 +46,6 @@ final readonly class RecordJobFailureAction
         // Execute before_record hooks
         $data = $this->hookManager->execute('before_record', $data);
         /** @var array<string, mixed> $data */
-
         $this->repository->recordFailure(
             jobId: $data['job_id'],
             jobClass: $data['job_class'],

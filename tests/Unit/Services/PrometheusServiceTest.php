@@ -5,7 +5,6 @@ declare(strict_types=1);
 use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use PHPeek\LaravelQueueMetrics\Services\Contracts\OverviewQueryInterface;
 use PHPeek\LaravelQueueMetrics\Services\PrometheusService;
-use PHPeek\LaravelQueueMetrics\Services\ServerMetricsService;
 use Spatie\Prometheus\Facades\Prometheus;
 
 test('it exports queue depth metrics with labels', function () {

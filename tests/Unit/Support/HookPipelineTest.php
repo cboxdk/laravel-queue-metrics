@@ -2,20 +2,22 @@
 
 declare(strict_types=1);
 
+use Illuminate\Pipeline\Pipeline;
 use PHPeek\LaravelQueueMetrics\Contracts\MetricsHook;
 use PHPeek\LaravelQueueMetrics\Support\HookPipeline;
-use Illuminate\Pipeline\Pipeline;
 
 it('runs hooks through Laravel Pipeline', function () {
     $pipeline = new Pipeline(app());
     $hookPipeline = new HookPipeline($pipeline);
 
-    $hook = new class implements MetricsHook {
+    $hook = new class implements MetricsHook
+    {
         public function handle(mixed $payload): mixed
         {
             if (is_array($payload)) {
                 $payload['hook_executed'] = true;
             }
+
             return $payload;
         }
 
@@ -42,7 +44,8 @@ it('preserves payload when hook returns null', function () {
     $pipeline = new Pipeline(app());
     $hookPipeline = new HookPipeline($pipeline);
 
-    $hook = new class implements MetricsHook {
+    $hook = new class implements MetricsHook
+    {
         public function handle(mixed $payload): mixed
         {
             return $payload; // Return as-is
@@ -69,12 +72,14 @@ it('chains multiple hooks in sequence', function () {
     $pipeline = new Pipeline(app());
     $hookPipeline = new HookPipeline($pipeline);
 
-    $hook1 = new class implements MetricsHook {
+    $hook1 = new class implements MetricsHook
+    {
         public function handle(mixed $payload): mixed
         {
             if (is_array($payload)) {
                 $payload['hook1'] = 'executed';
             }
+
             return $payload;
         }
 
@@ -89,12 +94,14 @@ it('chains multiple hooks in sequence', function () {
         }
     };
 
-    $hook2 = new class implements MetricsHook {
+    $hook2 = new class implements MetricsHook
+    {
         public function handle(mixed $payload): mixed
         {
             if (is_array($payload)) {
                 $payload['hook2'] = 'executed';
             }
+
             return $payload;
         }
 

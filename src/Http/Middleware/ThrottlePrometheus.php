@@ -23,7 +23,7 @@ final readonly class ThrottlePrometheus
     public function handle(Request $request, Closure $next, int $maxAttempts = 60, int $decayMinutes = 1): Response
     {
 
-        $key = 'prometheus:' . $request->ip();
+        $key = 'prometheus:'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             return response()->json([

@@ -29,7 +29,7 @@ final class MigrateToDiscoverySetsCommand extends Command
         $jobPattern = $redis->key('jobs', '*', '*', '*');
         $jobKeys = $redis->driver()->scanKeys($jobPattern);
 
-        $this->info('Found ' . count($jobKeys) . ' job metrics keys');
+        $this->info('Found '.count($jobKeys).' job metrics keys');
 
         $jobsAdded = 0;
         foreach ($jobKeys as $key) {
@@ -51,7 +51,7 @@ final class MigrateToDiscoverySetsCommand extends Command
         $queuePattern = $redis->key('queue_snapshot', '*', '*');
         $queueKeys = $redis->driver()->scanKeys($queuePattern);
 
-        $this->info('Found ' . count($queueKeys) . ' queue snapshot keys');
+        $this->info('Found '.count($queueKeys).' queue snapshot keys');
 
         $queuesAdded = 0;
         foreach ($queueKeys as $key) {
@@ -74,8 +74,8 @@ final class MigrateToDiscoverySetsCommand extends Command
 
         $this->info('');
         $this->info('Migration complete!');
-        $this->info("Discovered queues: " . count($discoveredQueues));
-        $this->info("Discovered jobs: " . count($discoveredJobs));
+        $this->info('Discovered queues: '.count($discoveredQueues));
+        $this->info('Discovered jobs: '.count($discoveredJobs));
 
         return self::SUCCESS;
     }

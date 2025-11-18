@@ -48,7 +48,6 @@ final readonly class RecordJobCompletionAction
         // Execute before_record hooks
         $data = $this->hookManager->execute('before_record', $data);
         /** @var array<string, mixed> $data */
-
         $this->repository->recordCompletion(
             jobId: $data['job_id'],
             jobClass: $data['job_class'],
