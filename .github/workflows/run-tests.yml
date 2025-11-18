@@ -21,7 +21,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, windows-latest]
-        php: [8.4, 8.3, 8.2]
+        php: [8.4, 8.3]
         laravel: [12.*, 11.*, 10.*]
         stability: [prefer-lowest, prefer-stable]
         include:
@@ -31,10 +31,6 @@ jobs:
             testbench: 9.*
           - laravel: 10.*
             testbench: 8.*
-        exclude:
-          # Laravel 12 kræver PHP 8.3+
-          - laravel: 12.*
-            php: 8.2
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
@@ -71,7 +67,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.4, 8.3, 8.2]
+        php: [8.4, 8.3]
         laravel: [12.*, 11.*, 10.*]
         stability: [prefer-stable]
         include:
@@ -81,10 +77,6 @@ jobs:
             testbench: 9.*
           - laravel: 10.*
             testbench: 8.*
-        exclude:
-          # Laravel 12 kræver PHP 8.3+
-          - laravel: 12.*
-            php: 8.2
 
     name: Redis Integration - P${{ matrix.php }} - L${{ matrix.laravel }}
 
