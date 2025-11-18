@@ -56,6 +56,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         float $memoryMb,
         float $cpuTimeMs,
         Carbon $completedAt,
+        ?string $hostname = null,
     ): void {
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
         $durationKey = $this->redis->key('durations', $connection, $queue, $jobClass);
@@ -105,6 +106,19 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $pipe->removeSortedSetByRank($cpuKey, 0, -10001);
         });
 
+        // Store hostname-scoped metrics if hostname is provided
+        if ($hostname !== null) {
+            $this->recordHostnameMetrics(
+                $hostname,
+                $connection,
+                $queue,
+                $jobClass,
+                $durationMs,
+                true,
+                $completedAt
+            );
+        }
+
         // Clean up job tracking key
         $this->redis->driver()->delete($this->redis->key('job', $jobId));
     }
@@ -116,6 +130,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         string $queue,
         string $exception,
         Carbon $failedAt,
+        ?string $hostname = null,
     ): void {
         $driver = $this->redis->driver();
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
@@ -131,8 +146,83 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $pipe->expire($metricsKey, $ttl);
         });
 
+        // Store hostname-scoped metrics if hostname is provided
+        if ($hostname !== null) {
+            $this->recordHostnameMetrics(
+                $hostname,
+                $connection,
+                $queue,
+                $jobClass,
+                0.0,
+                false,
+                $failedAt
+            );
+        }
+
         // Clean up job tracking key
         $driver->delete($this->redis->key('job', $jobId));
+    }
+
+    /**
+     * Record hostname-scoped job metrics for server-level aggregation.
+     */
+    private function recordHostnameMetrics(
+        string $hostname,
+        string $connection,
+        string $queue,
+        string $jobClass,
+        float $durationMs,
+        bool $success,
+        Carbon $timestamp,
+    ): void {
+        $serverKey = $this->redis->key('server_jobs', $hostname, $connection, $queue, $jobClass);
+        $ttl = $this->redis->getTtl('raw');
+
+        $this->redis->driver()->pipeline(function ($pipe) use ($serverKey, $durationMs, $success, $timestamp, $ttl) {
+            if ($success) {
+                $pipe->incrementHashField($serverKey, 'total_processed', 1);
+                $pipe->incrementHashField($serverKey, 'total_duration_ms', $durationMs);
+            } else {
+                $pipe->incrementHashField($serverKey, 'total_failed', 1);
+            }
+            $pipe->setHash($serverKey, ['last_updated_at' => $timestamp->timestamp]);
+            $pipe->expire($serverKey, $ttl);
+        });
+    }
+
+    /**
+     * Get hostname-scoped job metrics for a specific server.
+     *
+     * @return array<string, array{total_processed: int, total_failed: int, total_duration_ms: float, failure_rate: float, avg_duration_ms: float}>
+     */
+    public function getHostnameJobMetrics(string $hostname): array
+    {
+        $pattern = $this->redis->key('server_jobs', $hostname, '*');
+        $keys = $this->redis->driver()->scanKeys($pattern);
+        $metrics = [];
+
+        foreach ($keys as $key) {
+            /** @var array<string, string> */
+            $data = $this->redis->driver()->getHash($key) ?: [];
+
+            $totalProcessed = (int) ($data['total_processed'] ?? 0);
+            $totalFailed = (int) ($data['total_failed'] ?? 0);
+            $totalDurationMs = (float) ($data['total_duration_ms'] ?? 0.0);
+
+            $totalJobs = $totalProcessed + $totalFailed;
+            $failureRate = $totalJobs > 0 ? ($totalFailed / $totalJobs) * 100 : 0.0;
+            $avgDurationMs = $totalProcessed > 0 ? $totalDurationMs / $totalProcessed : 0.0;
+
+            $metrics[$key] = [
+                'total_processed' => $totalProcessed,
+                'total_failed' => $totalFailed,
+                'total_duration_ms' => $totalDurationMs,
+                'failure_rate' => round($failureRate, 2),
+                'avg_duration_ms' => round($avgDurationMs, 2),
+            ];
+        }
+
+        return $metrics;
     }
 
     /**

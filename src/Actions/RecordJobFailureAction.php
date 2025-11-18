@@ -23,6 +23,7 @@ final readonly class RecordJobFailureAction
         string $connection,
         string $queue,
         Throwable $exception,
+        ?string $hostname = null,
     ): void {
         if (! config('queue-metrics.enabled', true)) {
             return;
@@ -35,6 +36,7 @@ final readonly class RecordJobFailureAction
             queue: $queue,
             exception: $exception->getMessage().' in '.$exception->getFile().':'.$exception->getLine(),
             failedAt: Carbon::now(),
+            hostname: $hostname,
         );
     }
 }

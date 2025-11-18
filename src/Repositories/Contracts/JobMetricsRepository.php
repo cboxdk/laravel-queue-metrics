@@ -34,6 +34,7 @@ interface JobMetricsRepository
         float $memoryMb,
         float $cpuTimeMs,
         Carbon $completedAt,
+        ?string $hostname = null,
     ): void;
 
     /**
@@ -46,7 +47,15 @@ interface JobMetricsRepository
         string $queue,
         string $exception,
         Carbon $failedAt,
+        ?string $hostname = null,
     ): void;
+
+    /**
+     * Get hostname-scoped job metrics for a specific server.
+     *
+     * @return array<string, array{total_processed: int, total_failed: int, total_duration_ms: float, failure_rate: float, avg_duration_ms: float}>
+     */
+    public function getHostnameJobMetrics(string $hostname): array;
 
     /**
      * Get raw metrics for a specific job.

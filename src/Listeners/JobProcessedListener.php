@@ -48,6 +48,7 @@ final readonly class JobProcessedListener
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
+        $hostname = gethostname() ?: 'unknown';
 
         $this->recordJobCompletion->execute(
             jobId: $jobId,
@@ -57,6 +58,7 @@ final readonly class JobProcessedListener
             durationMs: $durationMs,
             memoryMb: $memoryMb,
             cpuTimeMs: $cpuTimeMs,
+            hostname: $hostname,
         );
 
         // Record worker heartbeat with IDLE state (job completed)

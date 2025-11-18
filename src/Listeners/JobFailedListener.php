@@ -27,6 +27,7 @@ final readonly class JobFailedListener
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
+        $hostname = gethostname() ?: 'unknown';
 
         $this->recordJobFailure->execute(
             jobId: $job->getJobId(),
@@ -34,6 +35,7 @@ final readonly class JobFailedListener
             connection: $connection,
             queue: $queue,
             exception: $event->exception,
+            hostname: $hostname,
         );
 
         // Record worker heartbeat with IDLE state (job failed, worker ready for next job)

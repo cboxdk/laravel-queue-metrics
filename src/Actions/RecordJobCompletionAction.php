@@ -24,6 +24,7 @@ final readonly class RecordJobCompletionAction
         float $durationMs,
         float $memoryMb,
         float $cpuTimeMs = 0.0,
+        ?string $hostname = null,
     ): void {
         if (! config('queue-metrics.enabled', true)) {
             return;
@@ -38,6 +39,7 @@ final readonly class RecordJobCompletionAction
             memoryMb: $memoryMb,
             cpuTimeMs: $cpuTimeMs,
             completedAt: Carbon::now(),
+            hostname: $hostname,
         );
     }
 }
