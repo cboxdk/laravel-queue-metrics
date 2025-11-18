@@ -4,7 +4,7 @@ Get Laravel Queue Metrics up and running in your Laravel application.
 
 ## Requirements
 
-- **PHP**: 8.2 or higher
+- **PHP**: 8.3 or higher
 - **Laravel**: 11.0+ or 12.0+
 - **Storage**: Redis (recommended) or Database
 - **Optional**: [gophpeek/system-metrics](https://github.com/gophpeek/system-metrics) for server monitoring

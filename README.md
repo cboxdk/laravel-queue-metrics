@@ -112,7 +112,7 @@ Extensible architecture with events for reactive monitoring and notifications.
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.3+
 - Laravel 11.0+ or 12.0+
 - Redis or Database for metrics storage
 
