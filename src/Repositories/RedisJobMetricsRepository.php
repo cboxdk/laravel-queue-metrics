@@ -29,6 +29,9 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $jobKey = $this->redis->key('job', $jobId);
         $ttl = $this->redis->getTtl('raw');
 
+        // Register job in discovery set (push-based tracking)
+        $this->markJobDiscovered($connection, $queue, $jobClass);
+
         // Increment total queued counter
         $driver->incrementHashField($metricsKey, 'total_queued', 1);
 
@@ -339,6 +342,41 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         }
 
         return $deleted;
+    }
+
+    /**
+     * List all discovered jobs using discovery set (O(N) instead of O(total_keys)).
+     *
+     * @return array<int, array{connection: string, queue: string, jobClass: string}>
+     */
+    public function listJobs(): array
+    {
+        $key = $this->redis->key('discovery', 'jobs');
+        $members = $this->redis->driver()->getSetMembers($key);
+
+        $jobs = [];
+        foreach ($members as $member) {
+            // Parse "connection:queue:JobClass" format
+            $parts = explode(':', $member, 3);
+            if (count($parts) === 3) {
+                $jobs[] = [
+                    'connection' => $parts[0],
+                    'queue' => $parts[1],
+                    'jobClass' => $parts[2],
+                ];
+            }
+        }
+
+        return $jobs;
+    }
+
+    /**
+     * Register job in discovery set (push-based tracking).
+     */
+    public function markJobDiscovered(string $connection, string $queue, string $jobClass): void
+    {
+        $key = $this->redis->key('discovery', 'jobs');
+        $this->redis->driver()->addToSet($key, ["{$connection}:{$queue}:{$jobClass}"]);
     }
 
     /**

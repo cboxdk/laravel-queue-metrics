@@ -37,20 +37,15 @@ final class RecordTrendDataCommand extends Command
         $recordedQueues = 0;
         $recordedWorkers = 0;
 
-        // Get all queue depths from metricsQuery
+        // Get all queue depths from metricsQuery (discover from Redis keys)
         try {
-            /** @var array<int, array{connection?: string, queue?: string, depth?: array{pending?: int, delayed?: int, reserved?: int}}> $allQueues */
-            $allQueues = $this->metricsQuery->getAllQueues();
+            /** @var array<string, array{connection: string, queue: string, depth: int, pending: int}> $allQueues */
+            $allQueues = $this->metricsQuery->getAllQueuesWithMetrics();
 
             foreach ($allQueues as $queueData) {
                 $connection = $queueData['connection'] ?? 'redis';
                 $queue = $queueData['queue'] ?? 'default';
-
-                // Queue data already contains depth info
-                $depthData = $queueData['depth'] ?? [];
-                $depth = ($depthData['pending'] ?? 0)
-                    + ($depthData['delayed'] ?? 0)
-                    + ($depthData['reserved'] ?? 0);
+                $depth = $queueData['depth'] ?? 0;
 
                 $this->recordQueueDepth->execute($connection, $queue, $depth);
                 $recordedQueues++;

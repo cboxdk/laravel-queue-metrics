@@ -18,6 +18,7 @@ use PHPeek\LaravelQueueMetrics\Http\Controllers\ServerMetricsController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\TrendAnalysisController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerController;
 use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerStatusController;
+use PHPeek\LaravelQueueMetrics\Http\Middleware\ThrottlePrometheus;
 
 Route::prefix('queue-metrics')
     ->middleware(config('queue-metrics.middleware', ['api']))
@@ -86,7 +87,12 @@ Route::prefix('queue-metrics')
 
         // Prometheus export
         if (config('queue-metrics.prometheus.enabled', true)) {
-            Route::get('/prometheus', PrometheusController::class)
+            $route = Route::get('/prometheus', PrometheusController::class)
                 ->name('queue-metrics.prometheus');
+
+            // Apply optional rate limiting if enabled
+            if (config('queue-metrics.prometheus.rate_limit.enabled', false)) {
+                $route->middleware(ThrottlePrometheus::class);
+            }
         }
     });

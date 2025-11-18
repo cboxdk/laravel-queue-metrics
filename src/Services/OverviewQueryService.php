@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace PHPeek\LaravelQueueMetrics\Services;
 
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use PHPeek\LaravelQueueMetrics\Services\Contracts\OverviewQueryInterface;
+use PHPeek\LaravelQueueMetrics\Services\TrendAnalysisService;
 
 /**
  * Service that orchestrates comprehensive overview by combining job, queue, and worker metrics.
  */
-final readonly class OverviewQueryService
+final readonly class OverviewQueryService implements OverviewQueryInterface
 {
     public function __construct(
         private JobMetricsQueryService $jobMetricsQuery,
         private QueueMetricsQueryService $queueMetricsQuery,
         private WorkerMetricsQueryService $workerMetricsQuery,
         private BaselineRepository $baselineRepository,
+        private TrendAnalysisService $trendAnalysisService,
     ) {}
 
     /**
@@ -29,6 +32,7 @@ final readonly class OverviewQueryService
      *     servers: array<string, array<string, mixed>>,
      *     workers: array<string, mixed>,
      *     baselines: array<string, array<string, mixed>>,
+     *     trends: array<string, mixed>,
      *     metadata: array{timestamp: string, package_version: string, laravel_version: string, storage_driver: mixed}
      * }
      */
@@ -55,12 +59,44 @@ final readonly class OverviewQueryService
         $servers = $this->workerMetricsQuery->getAllServersWithMetrics();
         $workers = $this->workerMetricsQuery->getWorkersSummary();
 
+        // Fetch trend data for ALL queues
+        $queueDepthTrends = [];
+        foreach ($queuePairs as $queuePair) {
+            try {
+                $connection = $queuePair['connection'];
+                $queue = $queuePair['queue'];
+                $key = "{$connection}:{$queue}";
+
+                $queueDepthTrends[$key] = $this->trendAnalysisService->analyzeQueueDepthTrend(
+                    $connection,
+                    $queue
+                );
+            } catch (\Throwable $e) {
+                // Skip queues that fail, continue with others
+                continue;
+            }
+        }
+
+        // Fetch worker efficiency trend (global, not per-queue)
+        $workerEfficiencyTrend = [];
+        try {
+            $workerEfficiencyTrend = $this->trendAnalysisService->analyzeWorkerEfficiencyTrend();
+        } catch (\Throwable $e) {
+            // Worker efficiency is optional
+        }
+
+        $trends = [
+            'queue_depth' => $queueDepthTrends,
+            'worker_efficiency' => $workerEfficiencyTrend,
+        ];
+
         return [
             'queues' => $queues,
             'jobs' => $jobs,
             'servers' => $servers,
             'workers' => $workers,
             'baselines' => $baselines,
+            'trends' => $trends,
             'metadata' => [
                 'timestamp' => now()->toIso8601String(),
                 'package_version' => '1.0.0',

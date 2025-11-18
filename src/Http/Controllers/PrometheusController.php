@@ -5,174 +5,27 @@ declare(strict_types=1);
 namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\Response;
-use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
-use PHPeek\LaravelQueueMetrics\Services\OverviewQueryService;
-use PHPeek\LaravelQueueMetrics\Services\ServerMetricsService;
+use PHPeek\LaravelQueueMetrics\Services\PrometheusService;
 use Spatie\Prometheus\Facades\Prometheus;
 
 /**
- * Prometheus metrics exporter using Spatie's Laravel Prometheus.
+ * Prometheus metrics exporter controller.
+ *
+ * Delegates comprehensive metric collection to PrometheusService,
+ * then renders metrics in Prometheus exposition format.
  */
 final readonly class PrometheusController
 {
     public function __construct(
-        private readonly OverviewQueryService $metricsQuery,
-        private readonly QueueMetricsConfig $config,
-        private readonly ?ServerMetricsService $serverMetrics = null,
+        private readonly PrometheusService $prometheusService,
     ) {}
 
     public function __invoke(): Response
     {
-        $namespace = $this->config->getPrometheusNamespace();
+        // Export all metrics to Prometheus collectors
+        $this->prometheusService->exportMetrics();
 
-        $overview = $this->metricsQuery->getOverview();
-
-        // Register gauges
-        Prometheus::addGauge(
-            'queues_total',
-            (float) count($overview['queues']),
-            null,
-            $namespace,
-            'Total number of queues'
-        );
-
-        Prometheus::addCounter(
-            'jobs_processed_total',
-            is_int($overview['workers']['total_jobs_processed']) ? $overview['workers']['total_jobs_processed'] : 0,
-            null,
-            $namespace,
-            'Total number of jobs processed'
-        );
-
-        // Note: total_jobs_failed would need to be aggregated from job metrics
-        // Currently not available in overview structure
-        Prometheus::addCounter(
-            'jobs_failed_total',
-            0, // Would need to be calculated from job-level metrics
-            null,
-            $namespace,
-            'Total number of jobs failed'
-        );
-
-        Prometheus::addGauge(
-            'workers_active',
-            is_numeric($overview['workers']['active']) ? (float) $overview['workers']['active'] : 0.0,
-            null,
-            $namespace,
-            'Number of active workers'
-        );
-
-        // Note: health_score would need to be calculated from health metrics
-        // Currently not available in overview structure
-        Prometheus::addGauge(
-            'health_score',
-            0.0, // Would need to be calculated from health metrics
-            null,
-            $namespace,
-            'Overall health score (0-100)'
-        );
-
-        // Server resource metrics (only if ServerMetricsService is available)
-        if ($this->serverMetrics !== null) {
-            try {
-                $serverMetrics = $this->serverMetrics->getCurrentMetrics();
-            } catch (\Throwable $e) {
-                logger()->warning('Failed to retrieve server metrics', [
-                    'error' => $e->getMessage(),
-                ]);
-                $serverMetrics = ['available' => false];
-            }
-        } else {
-            $serverMetrics = ['available' => false];
-        }
-
-        if ($serverMetrics['available']) {
-            // Type-safe extraction with proper PHPDoc syntax for string keys
-            /** @var array{usage_percent: float, load_average: array{'1min': float, '5min': float, '15min': float}} $cpu */
-            $cpu = $serverMetrics['cpu'];
-            /** @var array{usage_percent: float, used_bytes: int, total_bytes: int} $memory */
-            $memory = $serverMetrics['memory'];
-            /** @var array<array{mountpoint: string, usage_percent: float, used_bytes: int}> $disks */
-            $disks = $serverMetrics['disk'];
-
-            // CPU metrics
-            Prometheus::addGauge(
-                'server_cpu_usage_percent',
-                $cpu['usage_percent'],
-                null,
-                $namespace,
-                'Server CPU usage percentage'
-            );
-
-            Prometheus::addGauge(
-                'server_cpu_load_1min',
-                $cpu['load_average']['1min'],
-                null,
-                $namespace,
-                'Server CPU load average (1 minute)'
-            );
-
-            Prometheus::addGauge(
-                'server_cpu_load_5min',
-                $cpu['load_average']['5min'],
-                null,
-                $namespace,
-                'Server CPU load average (5 minutes)'
-            );
-
-            Prometheus::addGauge(
-                'server_cpu_load_15min',
-                $cpu['load_average']['15min'],
-                null,
-                $namespace,
-                'Server CPU load average (15 minutes)'
-            );
-
-            // Memory metrics
-            Prometheus::addGauge(
-                'server_memory_usage_percent',
-                $memory['usage_percent'],
-                null,
-                $namespace,
-                'Server memory usage percentage'
-            );
-
-            Prometheus::addGauge(
-                'server_memory_used_bytes',
-                (float) $memory['used_bytes'],
-                null,
-                $namespace,
-                'Server memory used in bytes'
-            );
-
-            Prometheus::addGauge(
-                'server_memory_total_bytes',
-                (float) $memory['total_bytes'],
-                null,
-                $namespace,
-                'Server total memory in bytes'
-            );
-
-            // Disk metrics (for each mountpoint)
-            foreach ($disks as $disk) {
-                Prometheus::addGauge(
-                    'server_disk_usage_percent',
-                    $disk['usage_percent'],
-                    ['mountpoint' => $disk['mountpoint']],
-                    $namespace,
-                    'Server disk usage percentage by mountpoint'
-                );
-
-                Prometheus::addGauge(
-                    'server_disk_used_bytes',
-                    (float) $disk['used_bytes'],
-                    ['mountpoint' => $disk['mountpoint']],
-                    $namespace,
-                    'Server disk used in bytes by mountpoint'
-                );
-            }
-        }
-
+        // Render metrics in Prometheus text format
         $metrics = Prometheus::renderCollectors();
 
         return response($metrics, 200, [

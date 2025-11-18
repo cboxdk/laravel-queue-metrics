@@ -23,6 +23,7 @@ use PHPeek\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
 use PHPeek\LaravelQueueMetrics\Commands\CalculateBaselinesCommand;
 use PHPeek\LaravelQueueMetrics\Commands\CleanupStaleWorkersCommand;
 use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
+use PHPeek\LaravelQueueMetrics\Console\Commands\MigrateToDiscoverySetsCommand;
 use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
 use PHPeek\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
 use PHPeek\LaravelQueueMetrics\Console\RecordTrendDataCommand;
@@ -71,7 +72,8 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             ->hasCommand(CalculateBaselinesCommand::class)
             ->hasCommand(CleanupStaleWorkersCommand::class)
             ->hasCommand(DetectStaleWorkersCommand::class)
-            ->hasCommand(RecordTrendDataCommand::class);
+            ->hasCommand(RecordTrendDataCommand::class)
+            ->hasCommand(MigrateToDiscoverySetsCommand::class);
     }
 
     public function packageRegistered(): void
@@ -103,6 +105,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
         $this->app->singleton(QueueMetricsQueryService::class);
         $this->app->singleton(WorkerMetricsQueryService::class);
         $this->app->singleton(OverviewQueryService::class);
+        $this->app->singleton(Services\Contracts\OverviewQueryInterface::class, OverviewQueryService::class);
         $this->app->singleton(ServerMetricsService::class);
         $this->app->singleton(Services\TrendAnalysisService::class);
         $this->app->singleton(Services\BaselineDeviationService::class);
@@ -199,6 +202,11 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
 
             // Schedule adaptive baseline calculation
             $this->scheduleAdaptiveBaselineCalculation($scheduler);
+
+            // Schedule trend data recording (every minute for real-time trends)
+            $scheduler->command('queue-metrics:record-trends')
+                ->everyMinute()
+                ->withoutOverlapping();
         });
     }
 

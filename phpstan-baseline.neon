@@ -1,27 +1,27 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Static method Spatie\\Prometheus\\Facades\\Prometheus\:\:addCounter\(\) invoked with 5 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 2
-			path: src/Http/Controllers/PrometheusController.php
+			message: '#^Offset ''connection'' on array\{connection\: string, queue\: string, depth\: int, pending\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Console/RecordTrendDataCommand.php
 
 		-
-			message: '#^Static method Spatie\\Prometheus\\Facades\\Prometheus\:\:addGauge\(\) invoked with 5 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 12
-			path: src/Http/Controllers/PrometheusController.php
+			message: '#^Offset ''depth'' on array\{connection\: string, queue\: string, depth\: int, pending\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Console/RecordTrendDataCommand.php
+
+		-
+			message: '#^Offset ''queue'' on array\{connection\: string, queue\: string, depth\: int, pending\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Console/RecordTrendDataCommand.php
 
 		-
 			message: '#^Binary operation "\-" between float\|int\|string and int results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
-			path: src/Repositories/RedisBaselineRepository.php
-
-		-
-			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
-			identifier: method.notFound
-			count: 5
 			path: src/Repositories/RedisBaselineRepository.php
 
 		-
@@ -31,21 +31,9 @@ parameters:
 			path: src/Repositories/RedisJobMetricsRepository.php
 
 		-
-			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
-			identifier: method.notFound
-			count: 10
-			path: src/Repositories/RedisJobMetricsRepository.php
-
-		-
 			message: '#^Binary operation "\-" between float\|int\|string and int results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
-			path: src/Repositories/RedisQueueMetricsRepository.php
-
-		-
-			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
-			identifier: method.notFound
-			count: 5
 			path: src/Repositories/RedisQueueMetricsRepository.php
 
 		-
@@ -53,24 +41,6 @@ parameters:
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Repositories/RedisQueueMetricsRepository.php
-
-		-
-			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
-			identifier: method.notFound
-			count: 8
-			path: src/Repositories/RedisWorkerHeartbeatRepository.php
-
-		-
-			message: '#^Binary operation "\-" between float\|int\|string and int results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Repositories/RedisWorkerRepository.php
-
-		-
-			message: '#^Call to an undefined method PHPeek\\LaravelQueueMetrics\\Storage\\StorageManager\:\:getConnection\(\)\.$#'
-			identifier: method.notFound
-			count: 6
-			path: src/Repositories/RedisWorkerRepository.php
 
 		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
@@ -127,6 +97,84 @@ parameters:
 			path: src/Services/LaravelQueueInspector.php
 
 		-
+			message: '#^Offset ''avg'' on array\{avg\: float, min\: float, max\: float, p50\: float, p95\: float, p99\: float, stddev\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''failure_count'' on array\{success_count\: int, failure_count\: int, success_rate\: float, failure_rate\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''max'' on array\{avg\: float, min\: float, max\: float, p50\: float, p95\: float, p99\: float, stddev\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''p50'' on array\{avg\: float, min\: float, max\: float, p50\: float, p95\: float, p99\: float, stddev\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''p95'' on array\{avg\: float, min\: float, max\: float, p50\: float, p95\: float, p99\: float, stddev\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''p95'' on array\{avg\: float, min\: float, max\: float, peak\: float, p95\: float, p99\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''p99'' on array\{avg\: float, min\: float, max\: float, p50\: float, p95\: float, p99\: float, stddev\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''p99'' on array\{avg\: float, min\: float, max\: float, peak\: float, p95\: float, p99\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''peak'' on array\{avg\: float, min\: float, max\: float, peak\: float, p95\: float, p99\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''per_hour'' on array\{per_minute\: float, per_hour\: float, per_day\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''per_minute'' on array\{per_minute\: float, per_hour\: float, per_day\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''success_count'' on array\{success_count\: int, failure_count\: int, success_rate\: float, failure_rate\: float\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
+			message: '#^Offset ''trends'' on array\{queues\: array\<string, array\<string, mixed\>\>, jobs\: array\<string, array\<string, mixed\>\>, workers\: array\<string, mixed\>, baselines\: array\<string, array\<string, mixed\>\>\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/PrometheusService.php
+
+		-
 			message: '#^Parameter \#1 \.\.\.\$arg1 of function max expects non\-empty\-array, list\<float\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -137,57 +185,3 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Services/TrendAnalysisService.php
-
-		-
-			message: '#^Access to an undefined property object\:\:\$data\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Storage/DatabaseStorageDriver.php
-
-		-
-			message: '#^Access to an undefined property object\:\:\$value\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Storage/DatabaseStorageDriver.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: src/Storage/DatabaseStorageDriver.php
-
-		-
-			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:getSetMembers\(\) should return array\<string\> but returns array\<mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Storage/DatabaseStorageDriver.php
-
-		-
-			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:getSortedSetByRank\(\) should return array\<string\> but returns array\<mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Storage/DatabaseStorageDriver.php
-
-		-
-			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:getSortedSetByScore\(\) should return array\<string\> but returns array\<mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Storage/DatabaseStorageDriver.php
-
-		-
-			message: '#^Method PHPeek\\LaravelQueueMetrics\\Storage\\DatabaseStorageDriver\:\:scanKeys\(\) should return array\<string\> but returns array\<mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Storage/DatabaseStorageDriver.php
-
-		-
-			message: '#^Method Redis\:\:pipeline\(\) invoked with 1 parameter, 0 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/Storage/RedisStorageDriver.php
-
-		-
-			message: '#^Parameter \#2 \$pattern of method Redis\:\:scan\(\) expects string\|null, array\<string, int\|string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Storage/RedisStorageDriver.php

@@ -77,6 +77,30 @@ return [
     'prometheus' => [
         'enabled' => env('QUEUE_METRICS_PROMETHEUS_ENABLED', true),
         'namespace' => env('QUEUE_METRICS_PROMETHEUS_NAMESPACE', 'laravel_queue'),
+
+        // Cache TTL for metrics export (in seconds)
+        // Prevents multiple concurrent requests from overloading Redis with key scans
+        'cache_ttl' => env('QUEUE_METRICS_PROMETHEUS_CACHE_TTL', 10),
+
+        // Optional rate limiting for Prometheus endpoint
+        // Enable this if you want to prevent abuse of the metrics endpoint
+        'rate_limit' => [
+            'enabled' => env('QUEUE_METRICS_PROMETHEUS_RATE_LIMIT_ENABLED', false),
+            'max_attempts' => env('QUEUE_METRICS_PROMETHEUS_RATE_LIMIT_MAX_ATTEMPTS', 60),
+            'decay_minutes' => env('QUEUE_METRICS_PROMETHEUS_RATE_LIMIT_DECAY_MINUTES', 1),
+        ],
+
+        // Histogram buckets for job duration and memory metrics
+        // These can be overridden to match your application's characteristics
+        'buckets' => [
+            // Duration buckets (seconds): 10ms to 60s
+            // Default: [0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 30, 60]
+            'duration' => [],
+
+            // Memory buckets (megabytes): 10MB to 1GB
+            // Default: [10, 25, 50, 100, 250, 500, 1000]
+            'memory' => [],
+        ],
     ],
 
     /*

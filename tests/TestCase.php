@@ -21,6 +21,7 @@ class TestCase extends Orchestra
     {
         return [
             LaravelQueueMetricsServiceProvider::class,
+            \Spatie\Prometheus\PrometheusServiceProvider::class,
         ];
     }
 

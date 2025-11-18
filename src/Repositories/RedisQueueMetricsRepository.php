@@ -147,21 +147,23 @@ final readonly class RedisQueueMetricsRepository implements QueueMetricsReposito
     }
 
     /**
+     * List all discovered queues using discovery set (O(N) instead of O(total_keys)).
+     *
      * @return array<int, array{connection: string, queue: string}>
      */
     public function listQueues(): array
     {
-        $pattern = $this->redis->key('discovered', '*', '*');
-        $keys = $this->scanKeys($pattern);
+        $key = $this->redis->key('discovery', 'queues');
+        $members = $this->redis->driver()->getSetMembers($key);
 
         $queues = [];
-        foreach ($keys as $key) {
-            // Extract connection and queue from key
-            $parts = explode(':', $key);
-            if (count($parts) >= 4) {
+        foreach ($members as $member) {
+            // Parse "connection:queue" format
+            $parts = explode(':', $member, 2);
+            if (count($parts) === 2) {
                 $queues[] = [
-                    'connection' => $parts[2],
-                    'queue' => $parts[3],
+                    'connection' => $parts[0],
+                    'queue' => $parts[1],
                 ];
             }
         }
@@ -169,10 +171,13 @@ final readonly class RedisQueueMetricsRepository implements QueueMetricsReposito
         return $queues;
     }
 
+    /**
+     * Register queue in discovery set (push-based tracking).
+     */
     public function markQueueDiscovered(string $connection, string $queue): void
     {
-        $key = $this->redis->key('discovered', $connection, $queue);
-        $this->redis->driver()->set($key, Carbon::now()->timestamp);
+        $key = $this->redis->key('discovery', 'queues');
+        $this->redis->driver()->addToSet($key, ["{$connection}:{$queue}"]);
     }
 
     public function cleanup(int $olderThanSeconds): int

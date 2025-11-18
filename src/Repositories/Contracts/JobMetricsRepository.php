@@ -155,4 +155,16 @@ interface JobMetricsRepository
      * Clean up old metrics data.
      */
     public function cleanup(int $olderThanSeconds): int;
+
+    /**
+     * List all discovered jobs (push-based discovery).
+     *
+     * @return array<int, array{connection: string, queue: string, jobClass: string}>
+     */
+    public function listJobs(): array;
+
+    /**
+     * Register job in discovery set (push-based tracking).
+     */
+    public function markJobDiscovered(string $connection, string $queue, string $jobClass): void;
 }
