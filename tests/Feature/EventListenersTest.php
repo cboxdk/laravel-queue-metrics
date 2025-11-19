@@ -6,10 +6,9 @@ namespace PHPeek\LaravelQueueMetrics\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use Orchestra\Testbench\TestCase;
-use PHPeek\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use PHPeek\LaravelQueueMetrics\Tests\Feature\Support\TestJob;
+use PHPeek\LaravelQueueMetrics\Tests\TestCase;
 
 /**
  * @group redis
@@ -28,15 +27,10 @@ final class EventListenersTest extends TestCase
         parent::setUp();
     }
 
-    protected function getPackageProviders($app): array
-    {
-        return [
-            LaravelQueueMetricsServiceProvider::class,
-        ];
-    }
-
     protected function defineEnvironment($app): void
     {
+        parent::defineEnvironment($app);
+
         $app['config']->set('queue.default', 'sync');
         $app['config']->set('queue-metrics.enabled', true);
         $app['config']->set('queue-metrics.storage.driver', 'redis');
