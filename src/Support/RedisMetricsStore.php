@@ -135,7 +135,9 @@ final class RedisMetricsStore
      */
     public function getSortedSetByRank(string $key, int $start, int $stop): array
     {
-        return $this->getRedis()->zrange($key, $start, $stop);
+        $result = $this->getRedis()->zrange($key, $start, $stop);
+
+        return is_array($result) ? $result : [];
     }
 
     /**
@@ -143,7 +145,9 @@ final class RedisMetricsStore
      */
     public function getSortedSetByScore(string $key, string $min, string $max): array
     {
-        return $this->getRedis()->zrangebyscore($key, $min, $max);
+        $result = $this->getRedis()->zrangebyscore($key, $min, $max);
+
+        return is_array($result) ? $result : [];
     }
 
     public function countSortedSetByScore(string $key, string $min, string $max): int
@@ -181,7 +185,9 @@ final class RedisMetricsStore
      */
     public function getSetMembers(string $key): array
     {
-        return $this->getRedis()->smembers($key);
+        $result = $this->getRedis()->smembers($key);
+
+        return is_array($result) ? $result : [];
     }
 
     /**

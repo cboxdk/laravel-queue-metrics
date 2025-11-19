@@ -29,6 +29,9 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
+        // Disable queue metrics during tests to avoid Redis connection attempts
+        config()->set('queue-metrics.enabled', false);
+
         /*
          foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/../database/migrations') as $migration) {
             (include $migration->getRealPath())->up();
