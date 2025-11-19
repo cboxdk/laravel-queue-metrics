@@ -25,7 +25,7 @@ it('can be dispatched with health score data', function () {
             && $event->previousScore === 70.0
             && $event->status === 'critical';
     });
-});
+})->group('functional');
 
 it('detects critical severity when score drops significantly', function () {
     $event = new HealthScoreChanged(
@@ -39,7 +39,7 @@ it('detects critical severity when score drops significantly', function () {
     expect($event->getSeverity())->toBe('critical')
         ->and($event->status)->toBe('critical')
         ->and($event->currentScore)->toBeLessThan(50.0);
-});
+})->group('functional');
 
 it('detects warning severity when score changes moderately', function () {
     $event = new HealthScoreChanged(
@@ -53,7 +53,7 @@ it('detects warning severity when score changes moderately', function () {
     expect($event->getSeverity())->toBe('warning')
         ->and($event->status)->toBe('warning')
         ->and(abs($event->currentScore - $event->previousScore))->toBeGreaterThan(20.0);
-});
+})->group('functional');
 
 it('detects info severity when score changes slightly', function () {
     $event = new HealthScoreChanged(
@@ -66,7 +66,7 @@ it('detects info severity when score changes slightly', function () {
 
     expect($event->getSeverity())->toBe('info')
         ->and(abs($event->currentScore - $event->previousScore))->toBeLessThan(15.0);
-});
+})->group('functional');
 
 it('detects normal severity when score is stable', function () {
     $event = new HealthScoreChanged(
@@ -79,7 +79,7 @@ it('detects normal severity when score is stable', function () {
 
     expect($event->getSeverity())->toBe('normal')
         ->and(abs($event->currentScore - $event->previousScore))->toBeLessThan(10.0);
-});
+})->group('functional');
 
 it('handles healthy status transition', function () {
     $event = new HealthScoreChanged(
@@ -93,7 +93,7 @@ it('handles healthy status transition', function () {
     expect($event->status)->toBe('healthy')
         ->and($event->currentScore)->toBeGreaterThan($event->previousScore)
         ->and($event->getSeverity())->toBe('critical'); // Large change = critical severity
-});
+})->group('functional');
 
 it('handles warning status transition', function () {
     $event = new HealthScoreChanged(
@@ -107,7 +107,7 @@ it('handles warning status transition', function () {
     expect($event->status)->toBe('warning')
         ->and($event->currentScore)->toBeGreaterThan(50.0)
         ->and($event->currentScore)->toBeLessThan(80.0);
-});
+})->group('functional');
 
 it('handles critical status transition', function () {
     $event = new HealthScoreChanged(
@@ -121,9 +121,9 @@ it('handles critical status transition', function () {
     expect($event->status)->toBe('critical')
         ->and($event->currentScore)->toBeLessThan(50.0)
         ->and($event->getSeverity())->toBe('critical');
-});
+})->group('functional');
 
 it('is dispatchable using trait', function () {
     expect(class_uses(HealthScoreChanged::class))
         ->toContain('Illuminate\Foundation\Events\Dispatchable');
-});
+})->group('functional');

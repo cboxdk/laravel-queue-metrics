@@ -60,7 +60,7 @@ it('creates config from Laravel config', function () {
             'job_history' => 604800,
             'worker_history' => 86400,
         ]);
-});
+})->group('functional');
 
 it('has storage config instance', function () {
     $config = QueueMetricsConfig::fromConfig();
@@ -68,20 +68,20 @@ it('has storage config instance', function () {
     expect($config->storage->driver)->toBe('redis')
         ->and($config->storage->connection)->toBe('default')
         ->and($config->storage->prefix)->toBe('queue_metrics');
-});
+})->group('functional');
 
 it('gets prometheus namespace', function () {
     $config = QueueMetricsConfig::fromConfig();
 
     expect($config->getPrometheusNamespace())->toBe('laravel_queue');
-});
+})->group('functional');
 
 it('returns default prometheus namespace when missing', function () {
     config()->set('queue-metrics.prometheus', []);
     $config = QueueMetricsConfig::fromConfig();
 
     expect($config->getPrometheusNamespace())->toBe('laravel_queue');
-});
+})->group('functional');
 
 it('handles missing config with defaults', function () {
     config()->set('queue-metrics', []);
@@ -89,31 +89,31 @@ it('handles missing config with defaults', function () {
 
     expect($config->enabled)->toBeTrue()
         ->and($config->storage)->toBeInstanceOf(StorageConfig::class);
-});
+})->group('functional');
 
 it('respects disabled state', function () {
     config()->set('queue-metrics.enabled', false);
     $config = QueueMetricsConfig::fromConfig();
 
     expect($config->enabled)->toBeFalse();
-});
+})->group('functional');
 
 it('is readonly', function () {
     $config = QueueMetricsConfig::fromConfig();
 
     expect(fn () => $config->enabled = false)
         ->toThrow(Error::class);
-});
+})->group('functional');
 
 it('gets api middleware array', function () {
     $config = QueueMetricsConfig::fromConfig();
 
     expect($config->api['middleware'])->toBe(['api']);
-});
+})->group('functional');
 
 it('gets worker heartbeat interval', function () {
     $config = QueueMetricsConfig::fromConfig();
 
     expect($config->workerHeartbeat['interval'])->toBe(30)
         ->and($config->workerHeartbeat['timeout'])->toBe(90);
-});
+})->group('functional');

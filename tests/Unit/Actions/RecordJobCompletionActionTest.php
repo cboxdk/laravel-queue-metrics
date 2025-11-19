@@ -43,7 +43,7 @@ it('records job completion with all parameters', function () {
         memoryMb: 25.3,
         cpuTimeMs: 300.0,
     );
-});
+})->group('functional');
 
 it('records job completion with zero CPU time by default', function () {
     $this->repository->shouldReceive('recordCompletion')
@@ -68,7 +68,7 @@ it('records job completion with zero CPU time by default', function () {
         durationMs: 500.0,
         memoryMb: 10.5,
     );
-});
+})->group('functional');
 
 it('does nothing when metrics are disabled', function () {
     config(['queue-metrics.enabled' => false]);
@@ -83,7 +83,7 @@ it('does nothing when metrics are disabled', function () {
         durationMs: 1000.0,
         memoryMb: 20.0,
     );
-});
+})->group('functional');
 
 it('handles very short duration jobs', function () {
     $this->repository->shouldReceive('recordCompletion')
@@ -109,7 +109,7 @@ it('handles very short duration jobs', function () {
         memoryMb: 5.2,
         cpuTimeMs: 0.1,
     );
-});
+})->group('functional');
 
 it('handles very long duration jobs', function () {
     $this->repository->shouldReceive('recordCompletion')
@@ -135,7 +135,7 @@ it('handles very long duration jobs', function () {
         memoryMb: 512.0,
         cpuTimeMs: 3000000.0,
     );
-});
+})->group('functional');
 
 it('records completion time at execution moment', function () {
     Carbon::setTestNow('2024-01-15 14:45:30');
@@ -163,7 +163,7 @@ it('records completion time at execution moment', function () {
         memoryMb: 30.0,
         cpuTimeMs: 500.0,
     );
-});
+})->group('functional');
 
 it('handles different queue connections', function () {
     $this->repository->shouldReceive('recordCompletion')
@@ -189,4 +189,4 @@ it('handles different queue connections', function () {
         memoryMb: 15.5,
         cpuTimeMs: 250.0,
     );
-});
+})->group('functional');

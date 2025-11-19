@@ -42,7 +42,7 @@ it('records job start with all parameters', function () {
         connection: 'redis',
         queue: 'default',
     );
-});
+})->group('functional');
 
 it('does nothing when metrics are disabled', function () {
     config(['queue-metrics.enabled' => false]);
@@ -55,7 +55,7 @@ it('does nothing when metrics are disabled', function () {
         connection: 'redis',
         queue: 'default',
     );
-});
+})->group('functional');
 
 it('handles different queue connections', function () {
     $this->queueRepository->shouldReceive('markQueueDiscovered')
@@ -78,7 +78,7 @@ it('handles different queue connections', function () {
         connection: 'database',
         queue: 'emails',
     );
-});
+})->group('functional');
 
 it('records start time at execution moment', function () {
     Carbon::setTestNow('2024-01-15 14:45:30');
@@ -103,7 +103,7 @@ it('records start time at execution moment', function () {
         connection: 'redis',
         queue: 'reports',
     );
-});
+})->group('functional');
 
 it('handles job IDs with special characters', function () {
     $this->queueRepository->shouldReceive('markQueueDiscovered')
@@ -126,4 +126,4 @@ it('handles job IDs with special characters', function () {
         connection: 'redis',
         queue: 'default',
     );
-});
+})->group('functional');

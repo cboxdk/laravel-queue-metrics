@@ -25,7 +25,7 @@ it('can be dispatched with efficiency metrics', function () {
             && $event->activeWorkers === 8
             && $event->idleWorkers === 2;
     });
-});
+})->group('functional');
 
 it('recommends scale up when efficiency is high and no idle workers', function () {
     $event = new WorkerEfficiencyChanged(
@@ -39,7 +39,7 @@ it('recommends scale up when efficiency is high and no idle workers', function (
     expect($event->getScalingRecommendation())->toBe('scale_up')
         ->and($event->currentEfficiency)->toBe(92.0)
         ->and($event->idleWorkers)->toBe(0);
-});
+})->group('functional');
 
 it('recommends scale down when efficiency is low with many idle workers', function () {
     $event = new WorkerEfficiencyChanged(
@@ -53,7 +53,7 @@ it('recommends scale down when efficiency is low with many idle workers', functi
     expect($event->getScalingRecommendation())->toBe('scale_down')
         ->and($event->currentEfficiency)->toBe(45.0)
         ->and($event->idleWorkers)->toBeGreaterThan(3);
-});
+})->group('functional');
 
 it('recommends maintain when efficiency is in acceptable range', function () {
     $event = new WorkerEfficiencyChanged(
@@ -67,7 +67,7 @@ it('recommends maintain when efficiency is in acceptable range', function () {
     expect($event->getScalingRecommendation())->toBe('maintain')
         ->and($event->currentEfficiency)->toBeGreaterThan(50.0)
         ->and($event->currentEfficiency)->toBeLessThan(90.0);
-});
+})->group('functional');
 
 it('detects efficiency increase', function () {
     $event = new WorkerEfficiencyChanged(
@@ -80,7 +80,7 @@ it('detects efficiency increase', function () {
 
     expect($event->currentEfficiency)->toBeGreaterThan($event->previousEfficiency)
         ->and($event->changePercentage)->toBe(15.0);
-});
+})->group('functional');
 
 it('detects efficiency decrease', function () {
     $event = new WorkerEfficiencyChanged(
@@ -93,9 +93,9 @@ it('detects efficiency decrease', function () {
 
     expect($event->currentEfficiency)->toBeLessThan($event->previousEfficiency)
         ->and($event->changePercentage)->toBe(20.0);
-});
+})->group('functional');
 
 it('is dispatchable using trait', function () {
     expect(class_uses(WorkerEfficiencyChanged::class))
         ->toContain('Illuminate\Foundation\Events\Dispatchable');
-});
+})->group('functional');

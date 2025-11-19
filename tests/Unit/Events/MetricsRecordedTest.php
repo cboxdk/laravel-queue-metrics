@@ -70,7 +70,7 @@ it('can be dispatched with job metrics data', function () {
             && $event->metrics->queue === 'default'
             && $event->metrics->execution->totalProcessed === 95;
     });
-});
+})->group('functional');
 
 it('contains complete job metrics data', function () {
     $metricsData = new JobMetricsData(
@@ -94,9 +94,9 @@ it('contains complete job metrics data', function () {
         ->and($event->metrics->duration->avg)->toBe(100.0)
         ->and($event->metrics->memory->peak)->toBe(45.0)
         ->and($event->metrics->throughput->perMinute)->toBe(5.0);
-});
+})->group('functional');
 
 it('is dispatchable using trait', function () {
     expect(class_uses(MetricsRecorded::class))
         ->toContain('Illuminate\Foundation\Events\Dispatchable');
-});
+})->group('functional');

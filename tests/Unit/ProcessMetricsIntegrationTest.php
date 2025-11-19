@@ -70,7 +70,7 @@ it('tracks process metrics with child processes enabled', function () {
 
     // Cleanup
     unset($data);
-});
+})->group('functional');
 
 it('calculates CPU time correctly from delta metrics', function () {
     $pid = getmypid();
@@ -96,7 +96,7 @@ it('calculates CPU time correctly from delta metrics', function () {
 
     expect($cpuTimeMs)->toBeGreaterThanOrEqual(0.0);
     expect($cpuUsagePercent)->toBeGreaterThanOrEqual(0.0);
-});
+})->group('functional');
 
 it('tracks peak memory during execution', function () {
     $pid = getmypid();
@@ -129,7 +129,7 @@ it('tracks peak memory during execution', function () {
     $peakMemory = $stats->peak->memoryRssBytes;
 
     expect($peakMemory)->toBeGreaterThanOrEqual($initialMemory);
-});
+})->group('functional');
 
 it('handles process group snapshots with children', function () {
     $pid = getmypid();
@@ -152,7 +152,7 @@ it('handles process group snapshots with children', function () {
         // Process group reading may not be supported on all systems
         expect($groupResult->isFailure())->toBeTrue();
     }
-});
+})->group('functional');
 
 it('provides process count including children', function () {
     $pid = getmypid();
@@ -177,4 +177,4 @@ it('provides process count including children', function () {
     // If we have child processes, count should be > 1
     // Note: In test environment, we typically only have the parent process
     expect($stats->processCount)->toBe(1);
-});
+})->group('functional');

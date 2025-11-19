@@ -41,7 +41,7 @@ it('records job failure with exception details', function () {
         queue: 'default',
         exception: $exception,
     );
-});
+})->group('functional');
 
 it('does nothing when metrics are disabled', function () {
     config(['queue-metrics.enabled' => false]);
@@ -57,7 +57,7 @@ it('does nothing when metrics are disabled', function () {
         queue: 'default',
         exception: $exception,
     );
-});
+})->group('functional');
 
 it('handles different exception types', function () {
     $exception = new InvalidArgumentException('Invalid input data');
@@ -81,7 +81,7 @@ it('handles different exception types', function () {
         queue: 'validation',
         exception: $exception,
     );
-});
+})->group('functional');
 
 it('records failure time at execution moment', function () {
     Carbon::setTestNow('2024-01-15 14:45:30');
@@ -107,7 +107,7 @@ it('records failure time at execution moment', function () {
         queue: 'default',
         exception: $exception,
     );
-});
+})->group('functional');
 
 it('handles exceptions with special characters in message', function () {
     $exception = new RuntimeException("Error: 'string' with \"quotes\" & symbols!");
@@ -131,7 +131,7 @@ it('handles exceptions with special characters in message', function () {
         queue: 'default',
         exception: $exception,
     );
-});
+})->group('functional');
 
 it('includes file path and line number in exception message', function () {
     $exception = new RuntimeException('Critical error');
@@ -159,7 +159,7 @@ it('includes file path and line number in exception message', function () {
         queue: 'default',
         exception: $exception,
     );
-});
+})->group('functional');
 
 it('handles different queue connections', function () {
     $exception = new RuntimeException('Database error');
@@ -183,4 +183,4 @@ it('handles different queue connections', function () {
         queue: 'sync',
         exception: $exception,
     );
-});
+})->group('functional');

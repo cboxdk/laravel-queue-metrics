@@ -42,7 +42,7 @@ it('can be dispatched with baseline data', function () {
             && $event->baseline->jobClass === 'App\Jobs\ProcessOrder'
             && $event->significantChange === true;
     });
-});
+})->group('functional');
 
 it('indicates significant change when baseline changes by more than 20%', function () {
     $baseline = new BaselineData(
@@ -62,7 +62,7 @@ it('indicates significant change when baseline changes by more than 20%', functi
     expect($event->significantChange)->toBeTrue()
         ->and($event->baseline->cpuPercentPerJob)->toBe(10.0)
         ->and($event->baseline->confidenceScore)->toBe(0.90);
-});
+})->group('functional');
 
 it('indicates no significant change when baseline is stable', function () {
     $baseline = new BaselineData(
@@ -81,7 +81,7 @@ it('indicates no significant change when baseline is stable', function () {
 
     expect($event->significantChange)->toBeFalse()
         ->and($event->baseline->confidenceScore)->toBe(1.0);
-});
+})->group('functional');
 
 it('handles aggregated baseline without job class', function () {
     $aggregatedBaseline = new BaselineData(
@@ -100,9 +100,9 @@ it('handles aggregated baseline without job class', function () {
 
     expect($event->baseline->jobClass)->toBe('')
         ->and($event->baseline->sampleCount)->toBe(500);
-});
+})->group('functional');
 
 it('is dispatchable using trait', function () {
     expect(class_uses(BaselineRecalculated::class))
         ->toContain('Illuminate\Foundation\Events\Dispatchable');
-});
+})->group('functional');

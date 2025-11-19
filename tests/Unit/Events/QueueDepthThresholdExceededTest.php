@@ -36,7 +36,7 @@ it('can be dispatched when queue depth exceeds threshold', function () {
             && $event->threshold === 100
             && $event->percentageOver === 50.0;
     });
-});
+})->group('functional');
 
 it('calculates percentage over threshold correctly', function () {
     $depthData = new QueueDepthData(
@@ -54,7 +54,7 @@ it('calculates percentage over threshold correctly', function () {
 
     expect($event->percentageOver)->toBe(100.0) // 100% over threshold
         ->and($event->depth->totalJobs())->toBe(200);
-});
+})->group('functional');
 
 it('provides depth data for horizontal scaling decisions', function () {
     $depthData = new QueueDepthData(
@@ -74,7 +74,7 @@ it('provides depth data for horizontal scaling decisions', function () {
         ->and($event->depth->hasBacklog())->toBeTrue()
         ->and($event->depth->pendingJobs)->toBe(500)
         ->and($event->percentageOver)->toBe(460.0);
-});
+})->group('functional');
 
 it('includes oldest job age information', function () {
     $oldestAge = Carbon::now()->subHours(1);
@@ -94,9 +94,9 @@ it('includes oldest job age information', function () {
 
     expect($event->depth->secondsOldestPendingJob())->toBeGreaterThan(3500.0) // ~1 hour
         ->and($event->depth->oldestPendingJobAge)->toBe($oldestAge);
-});
+})->group('functional');
 
 it('is dispatchable using trait', function () {
     expect(class_uses(QueueDepthThresholdExceeded::class))
         ->toContain('Illuminate\Foundation\Events\Dispatchable');
-});
+})->group('functional');

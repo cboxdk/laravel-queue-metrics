@@ -24,7 +24,7 @@ it('creates config from array with all values', function () {
             'aggregated' => 86400,
             'baseline' => 604800,
         ]);
-});
+})->group('functional');
 
 it('creates config with defaults when values missing', function () {
     $config = StorageConfig::fromArray([]);
@@ -37,7 +37,7 @@ it('creates config with defaults when values missing', function () {
             'aggregated' => 604800,
             'baseline' => 2592000,
         ]);
-});
+})->group('functional');
 
 it('gets ttl for known type', function () {
     $config = StorageConfig::fromArray([
@@ -51,7 +51,7 @@ it('gets ttl for known type', function () {
     expect($config->getTtl('raw'))->toBe(1800)
         ->and($config->getTtl('aggregated'))->toBe(86400)
         ->and($config->getTtl('baseline'))->toBe(604800);
-});
+})->group('functional');
 
 it('returns default ttl for unknown type', function () {
     $config = StorageConfig::fromArray([
@@ -61,7 +61,7 @@ it('returns default ttl for unknown type', function () {
     ]);
 
     expect($config->getTtl('unknown'))->toBe(3600);
-});
+})->group('functional');
 
 it('handles database driver', function () {
     $config = StorageConfig::fromArray([
@@ -71,11 +71,11 @@ it('handles database driver', function () {
 
     expect($config->driver)->toBe('database')
         ->and($config->connection)->toBe('mysql');
-});
+})->group('functional');
 
 it('is readonly', function () {
     $config = StorageConfig::fromArray([]);
 
     expect(fn () => $config->driver = 'changed')
         ->toThrow(Error::class);
-});
+})->group('functional');

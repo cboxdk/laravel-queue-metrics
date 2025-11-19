@@ -33,7 +33,7 @@ it('transitions worker to new state with default transition time', function () {
         workerId: 'worker-123',
         newState: WorkerState::BUSY,
     );
-});
+})->group('functional');
 
 it('transitions worker to new state with specific transition time', function () {
     $transitionTime = Carbon::parse('2024-01-15 14:00:00');
@@ -51,7 +51,7 @@ it('transitions worker to new state with specific transition time', function () 
         newState: WorkerState::IDLE,
         transitionTime: $transitionTime,
     );
-});
+})->group('functional');
 
 it('does nothing when metrics are disabled', function () {
     config(['queue-metrics.enabled' => false]);
@@ -62,7 +62,7 @@ it('does nothing when metrics are disabled', function () {
         workerId: 'worker-123',
         newState: WorkerState::BUSY,
     );
-});
+})->group('functional');
 
 it('handles transition to idle state', function () {
     $this->repository->shouldReceive('transitionState')
@@ -77,7 +77,7 @@ it('handles transition to idle state', function () {
         workerId: 'worker-789',
         newState: WorkerState::IDLE,
     );
-});
+})->group('functional');
 
 it('handles transition to busy state', function () {
     $this->repository->shouldReceive('transitionState')
@@ -92,7 +92,7 @@ it('handles transition to busy state', function () {
         workerId: 'worker-abc',
         newState: WorkerState::BUSY,
     );
-});
+})->group('functional');
 
 it('handles transition to terminated state', function () {
     $this->repository->shouldReceive('transitionState')
@@ -107,7 +107,7 @@ it('handles transition to terminated state', function () {
         workerId: 'worker-xyz',
         newState: WorkerState::STOPPED,
     );
-});
+})->group('functional');
 
 it('uses current time when transition time is not provided', function () {
     Carbon::setTestNow('2024-01-15 16:45:30');
@@ -127,7 +127,7 @@ it('uses current time when transition time is not provided', function () {
         workerId: 'worker-test',
         newState: WorkerState::BUSY,
     );
-});
+})->group('functional');
 
 it('handles worker IDs with special characters', function () {
     $this->repository->shouldReceive('transitionState')
@@ -142,4 +142,4 @@ it('handles worker IDs with special characters', function () {
         workerId: 'worker-123-abc-xyz',
         newState: WorkerState::IDLE,
     );
-});
+})->group('functional');
