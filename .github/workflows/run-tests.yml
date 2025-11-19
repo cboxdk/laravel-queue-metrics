@@ -57,6 +57,7 @@ jobs:
         run: composer show -D
 
       - name: Execute tests
+        shell: bash
         run: |
           if [ "${{ matrix.stability }}" == "prefer-lowest" ]; then
             vendor/bin/pest --ci --exclude-group=redis,arch,functional
