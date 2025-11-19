@@ -57,7 +57,12 @@ jobs:
         run: composer show -D
 
       - name: Execute tests
-        run: vendor/bin/pest --ci --exclude-group=redis
+        run: |
+          if [ "${{ matrix.stability }}" == "prefer-lowest" ]; then
+            vendor/bin/pest --ci --exclude-group=redis,arch
+          else
+            vendor/bin/pest --ci --exclude-group=redis
+          fi
 
   test-with-redis:
     runs-on: ubuntu-latest
