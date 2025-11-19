@@ -18,6 +18,16 @@ final class EventListenersTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        // Skip entire test class if Redis is not available
+        if (! getenv('REDIS_AVAILABLE')) {
+            $this->markTestSkipped('Requires Redis - run with redis group');
+        }
+
+        parent::setUp();
+    }
+
     protected function getPackageProviders($app): array
     {
         return [
