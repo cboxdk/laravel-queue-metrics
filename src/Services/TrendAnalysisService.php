@@ -96,8 +96,16 @@ final readonly class TrendAnalysisService
             'available' => true,
             'connection' => $connection,
             'queue' => $queue,
-            'period_seconds' => $periodSeconds,
-            'data_points' => $count,
+            // Time window context
+            'time_window' => [
+                'window_seconds' => $periodSeconds,
+                'window_start' => $startTime->toIso8601String(),
+                'window_end' => $now->toIso8601String(),
+                'analyzed_at' => $now->toIso8601String(),
+                'sample_count' => $count,
+                'sample_interval_seconds' => $intervalSeconds,
+            ],
+            // Current and historical statistics
             'statistics' => [
                 'current' => end($depths) ?: 0,
                 'average' => round($avg, 2),
@@ -105,14 +113,16 @@ final readonly class TrendAnalysisService
                 'max' => $max,
                 'std_dev' => round($stdDev, 2),
             ],
+            // Trend direction and confidence
             'trend' => [
                 'slope' => round($trend['slope'], 4),
                 'direction' => $trend['slope'] > 0.1 ? 'increasing' : ($trend['slope'] < -0.1 ? 'decreasing' : 'stable'),
                 'confidence' => round($trend['r_squared'], 3),
             ],
+            // Forecast for next interval
             'forecast' => [
                 'next_value' => round($forecast, 2),
-                'next_timestamp' => $now->copy()->addSeconds($intervalSeconds)->timestamp,
+                'next_timestamp' => $now->copy()->addSeconds($intervalSeconds)->toIso8601String(),
             ],
         ];
     }
@@ -185,13 +195,22 @@ final readonly class TrendAnalysisService
             'available' => true,
             'connection' => $connection,
             'queue' => $queue,
-            'period_seconds' => $periodSeconds,
+            // Time window context
+            'time_window' => [
+                'window_seconds' => $periodSeconds,
+                'window_start' => $startTime->toIso8601String(),
+                'window_end' => $now->toIso8601String(),
+                'analyzed_at' => $now->toIso8601String(),
+                'sample_count' => $count,
+            ],
+            // Throughput statistics
             'statistics' => [
                 'total_jobs' => $totalJobs,
                 'average_per_interval' => round($avg, 2),
                 'jobs_per_minute' => round($jobsPerMinute, 2),
                 'jobs_per_hour' => round($jobsPerMinute * 60, 2),
             ],
+            // Trend direction
             'trend' => [
                 'slope' => round($trend['slope'], 4),
                 'direction' => $trend['slope'] > 0 ? 'increasing' : ($trend['slope'] < 0 ? 'decreasing' : 'stable'),
@@ -256,14 +275,22 @@ final readonly class TrendAnalysisService
 
         return [
             'available' => true,
-            'period_seconds' => $periodSeconds,
-            'data_points' => $count,
+            // Time window context
+            'time_window' => [
+                'window_seconds' => $periodSeconds,
+                'window_start' => $startTime->toIso8601String(),
+                'window_end' => $now->toIso8601String(),
+                'analyzed_at' => $now->toIso8601String(),
+                'sample_count' => $count,
+            ],
+            // Worker efficiency statistics
             'efficiency' => [
                 'current' => round(end($efficiencies) ?: 0, 2),
                 'average' => round(array_sum($efficiencies) / max($count, 1), 2),
                 'min' => round(min($efficiencies), 2),
                 'max' => round(max($efficiencies), 2),
             ],
+            // Resource usage statistics
             'resource_usage' => [
                 'avg_memory_mb' => round(array_sum($memoryUsages) / max($count, 1), 2),
                 'avg_cpu_percent' => round(array_sum($cpuUsages) / max($count, 1), 2),

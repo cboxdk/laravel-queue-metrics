@@ -144,15 +144,23 @@ final readonly class WorkerMetricsQueryService
         $avgJobsPerWorker = $total > 0 ? $totalJobsProcessed / $total : 0.0;
 
         $totalTimeSeconds = $totalIdleTimeSeconds + $totalBusyTimeSeconds;
-        $avgIdlePercentage = $totalTimeSeconds > 0 ? ($totalIdleTimeSeconds / $totalTimeSeconds) * 100 : 0.0;
+        $lifetimeBusyPercentage = $totalTimeSeconds > 0 ? ($totalBusyTimeSeconds / $totalTimeSeconds) * 100 : 0.0;
+        $currentBusyPercentage = $total > 0 ? ($active / $total) * 100 : 0.0;
 
         return [
-            'total' => $total,
-            'active' => $active,
-            'idle' => $idle,
-            'avg_jobs_per_worker' => round($avgJobsPerWorker, 2),
-            'total_jobs_processed' => $totalJobsProcessed,
-            'avg_idle_percentage' => round($avgIdlePercentage, 2),
+            'count' => [
+                'total' => $total,
+                'active' => $active,
+                'idle' => $idle,
+            ],
+            'utilization' => [
+                'current_busy_percent' => round($currentBusyPercentage, 2),
+                'lifetime_busy_percent' => round($lifetimeBusyPercentage, 2),
+            ],
+            'performance' => [
+                'avg_jobs_per_worker' => round($avgJobsPerWorker, 2),
+                'total_jobs_processed' => $totalJobsProcessed,
+            ],
         ];
     }
 
@@ -173,82 +181,106 @@ final readonly class WorkerMetricsQueryService
             if (! isset($servers[$hostname])) {
                 $servers[$hostname] = [
                     'hostname' => $hostname,
-                    'workers' => ['total' => 0, 'active' => 0, 'idle' => 0],
-                    'performance' => [
-                        'total_jobs_processed' => 0,
-                        'total_jobs_failed' => 0,
-                        'failure_rate' => 0.0,
-                        'jobs_per_minute' => 0.0,
-                        'avg_job_duration_ms' => 0.0,
+                    // Application tier: Queue worker counts and states
+                    'queue_workers' => [
+                        'count' => ['total' => 0, 'active' => 0, 'idle' => 0],
+                        'utilization' => [
+                            'current_busy_percent' => 0.0, // % of workers busy right now
+                            'lifetime_busy_percent' => 0.0, // % of time workers have been busy
+                        ],
                     ],
-                    'resources' => [
-                        'total_memory_mb' => 0.0,
-                        'avg_memory_per_job_mb' => 0.0,
+                    // Application tier: Job processing metrics
+                    'job_processing' => [
+                        'lifetime' => [
+                            'total_processed' => 0,
+                            'total_failed' => 0,
+                            'failure_rate_percent' => 0.0,
+                        ],
+                        'current' => [
+                            'jobs_per_minute' => 0.0, // Based on actual elapsed time
+                            'avg_duration_ms' => 0.0,
+                        ],
+                    ],
+                    // Process tier: Worker process resource usage
+                    'worker_processes' => [
+                        'avg_memory_per_worker_mb' => 0.0,
+                        'avg_cpu_per_worker_percent' => 0.0,
                         'peak_memory_mb' => 0.0,
-                        'cpu_usage' => 0.0,
-                        'memory_usage' => 0.0,
+                        'total_memory_mb' => 0.0, // Sum across all workers
                     ],
-                    'utilization' => [
-                        'server_utilization' => 0.0,
-                        'avg_idle_percentage' => 0.0,
-                        'capacity_recommendation' => null,
+                    // Capacity planning
+                    'capacity' => [
+                        'recommendation' => null,
                     ],
                     'timestamp' => now()->toIso8601String(),
                 ];
             }
 
-            $servers[$hostname]['workers']['total']++;
+            $servers[$hostname]['queue_workers']['count']['total']++;
 
             // Count by state
             if ($heartbeat->state === WorkerState::BUSY) {
-                $servers[$hostname]['workers']['active']++;
+                $servers[$hostname]['queue_workers']['count']['active']++;
             } else {
-                $servers[$hostname]['workers']['idle']++;
+                $servers[$hostname]['queue_workers']['count']['idle']++;
             }
 
-            // Aggregate performance metrics from heartbeat
-            $servers[$hostname]['performance']['total_jobs_processed'] += $heartbeat->jobsProcessed;
+            // Aggregate job processing metrics from heartbeat
+            $servers[$hostname]['job_processing']['lifetime']['total_processed'] += $heartbeat->jobsProcessed;
 
-            // Aggregate resource metrics from heartbeat
-            $servers[$hostname]['resources']['total_memory_mb'] += $heartbeat->memoryUsageMb;
-            $servers[$hostname]['resources']['peak_memory_mb'] = max(
-                $servers[$hostname]['resources']['peak_memory_mb'],
+            // Aggregate worker process resource metrics from heartbeat
+            $servers[$hostname]['worker_processes']['total_memory_mb'] += $heartbeat->memoryUsageMb;
+            $servers[$hostname]['worker_processes']['peak_memory_mb'] = max(
+                $servers[$hostname]['worker_processes']['peak_memory_mb'],
                 $heartbeat->peakMemoryUsageMb
             );
-            $servers[$hostname]['resources']['cpu_usage'] += $heartbeat->cpuUsagePercent;
-            $servers[$hostname]['resources']['memory_usage'] += $heartbeat->memoryUsageMb;
+            $servers[$hostname]['worker_processes']['avg_cpu_per_worker_percent'] += $heartbeat->cpuUsagePercent;
+            $servers[$hostname]['worker_processes']['avg_memory_per_worker_mb'] += $heartbeat->memoryUsageMb;
         }
 
         // Calculate averages, utilization, and performance per server
         foreach ($servers as $hostname => &$server) {
-            $totalWorkers = $server['workers']['total'];
+            $totalWorkers = $server['queue_workers']['count']['total'];
             // @phpstan-ignore-next-line - Defensive check even though PHPStan knows totalWorkers >= 1
             if ($totalWorkers > 0) {
-                $server['resources']['avg_memory_per_job_mb'] =
-                    $server['resources']['total_memory_mb'] / $totalWorkers;
-                $server['resources']['cpu_usage'] =
-                    $server['resources']['cpu_usage'] / $totalWorkers;
-                $server['resources']['memory_usage'] =
-                    $server['resources']['memory_usage'] / $totalWorkers;
+                // Calculate worker process resource averages
+                $server['worker_processes']['avg_memory_per_worker_mb'] =
+                    $server['worker_processes']['total_memory_mb'] / $totalWorkers;
+                $server['worker_processes']['avg_cpu_per_worker_percent'] =
+                    $server['worker_processes']['avg_cpu_per_worker_percent'] / $totalWorkers;
 
-                $activeWorkers = $server['workers']['active'];
-                $server['utilization']['server_utilization'] = $activeWorkers / $totalWorkers;
-                $server['utilization']['avg_idle_percentage'] =
-                    ($server['workers']['idle'] / $totalWorkers) * 100;
+                // Calculate current worker utilization (% busy right now)
+                $activeWorkers = $server['queue_workers']['count']['active'];
+                $server['queue_workers']['utilization']['current_busy_percent'] =
+                    round(($activeWorkers / $totalWorkers) * 100, 2);
 
-                // Calculate jobs_per_minute from worker uptime data
-                // Get workers for this hostname to calculate total uptime
+                // Calculate lifetime worker efficiency (% of time spent busy)
                 $hostnameWorkers = collect($heartbeats)->filter(
                     fn ($hb) => $hb->hostname === $hostname
                 );
 
-                $totalUptimeSeconds = $hostnameWorkers->sum(
+                $totalBusyTime = $hostnameWorkers->sum(fn ($hb) => $hb->busyTimeSeconds);
+                $totalIdleTime = $hostnameWorkers->sum(fn ($hb) => $hb->idleTimeSeconds);
+                $totalTime = $totalBusyTime + $totalIdleTime;
+
+                $server['queue_workers']['utilization']['lifetime_busy_percent'] = $totalTime > 0
+                    ? round(($totalBusyTime / $totalTime) * 100, 2)
+                    : 0.0;
+
+                // Calculate jobs_per_minute from actual elapsed time
+                $oldestWorkerUptimeSeconds = $hostnameWorkers->max(
                     fn ($hb) => $hb->busyTimeSeconds + $hb->idleTimeSeconds
                 );
 
-                $totalUptimeMinutes = $totalUptimeSeconds / 60;
-                $server['performance']['jobs_per_minute'] = $totalUptimeMinutes > 0
-                    ? round($server['performance']['total_jobs_processed'] / $totalUptimeMinutes, 2)
+                // Type safety: max() can return mixed, ensure numeric
+                $uptimeSeconds = is_numeric($oldestWorkerUptimeSeconds) ? (float) $oldestWorkerUptimeSeconds : 0.0;
+
+                $elapsedMinutes = $uptimeSeconds > 0
+                    ? $uptimeSeconds / 60
+                    : 0;
+
+                $server['job_processing']['current']['jobs_per_minute'] = $elapsedMinutes > 0
+                    ? round($server['job_processing']['lifetime']['total_processed'] / $elapsedMinutes, 2)
                     : 0.0;
 
                 // Get hostname-scoped job metrics for detailed job performance
@@ -263,34 +295,45 @@ final readonly class WorkerMetricsQueryService
                     $totalJobsProcessed += $metrics['total_processed'];
                 }
 
-                $server['performance']['total_jobs_failed'] = $totalJobsFailed;
+                $server['job_processing']['lifetime']['total_failed'] = $totalJobsFailed;
                 $totalJobs = $totalJobsProcessed + $totalJobsFailed;
-                $server['performance']['failure_rate'] = $totalJobs > 0
+                $server['job_processing']['lifetime']['failure_rate_percent'] = $totalJobs > 0
                     ? round(($totalJobsFailed / $totalJobs) * 100, 2)
                     : 0.0;
-                $server['performance']['avg_job_duration_ms'] = $totalJobsProcessed > 0
+                $server['job_processing']['current']['avg_duration_ms'] = $totalJobsProcessed > 0
                     ? round($totalDurationMs / $totalJobsProcessed, 2)
                     : 0.0;
 
-                // Add capacity recommendation
-                $utilization = $server['utilization']['server_utilization'];
-                if ($utilization > 0.9) {
-                    $server['utilization']['capacity_recommendation'] =
+                // Add capacity recommendation based on current utilization
+                $currentUtilization = $server['queue_workers']['utilization']['current_busy_percent'] / 100;
+                if ($currentUtilization > 90) {
+                    $server['capacity']['recommendation'] =
                         'Consider horizontal scaling: Add more workers or servers';
-                } elseif ($utilization < 0.3) {
-                    $server['utilization']['capacity_recommendation'] =
+                } elseif ($currentUtilization < 30) {
+                    $server['capacity']['recommendation'] =
                         'Consider reducing worker count to optimize resource usage';
                 }
             }
 
-            // Add system resource limits (only for current server)
-            // Note: This gets system limits for the current server running this code
-            // For multi-server setups, we'd need each server to report its own limits
-            // Uses fast getSystemLimits() to avoid macOS CPU polling performance issues
-            if ($hostname === gethostname()) {
+            // System tier: Add actual server resources (only for current server)
+            // Note: This gets system resources for the current server running this code
+            // For multi-server setups, we'd need each server to report its own resources
+            // Uses fast getSystemLimits() with 5-second cache to avoid macOS CPU polling issues
+
+            // Try to match hostname (gethostname() might return different format than worker)
+            $currentHostname = gethostname();
+            $hostnameMatch = false;
+
+            if ($currentHostname !== false) {
+                $hostnameMatch = $hostname === $currentHostname
+                    || str_starts_with($hostname, $currentHostname)
+                    || str_starts_with($currentHostname, $hostname);
+            }
+
+            if ($hostnameMatch) {
                 $systemLimits = $this->serverMetricsService->getSystemLimits();
                 if ($systemLimits['available']) {
-                    $server['system_limits'] = $systemLimits;
+                    $server['server_resources'] = $systemLimits;
                 }
             }
         }

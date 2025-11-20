@@ -143,7 +143,7 @@ final readonly class QueueMetricsQueryService
 
                 $activeWorkers = $workers->count();
 
-                // Calculate queue utilization rate from worker busy/idle time
+                // Calculate worker utilization from busy/idle time
                 $totalBusyTime = 0;
                 $totalIdleTime = 0;
                 foreach ($workers as $worker) {
@@ -152,7 +152,11 @@ final readonly class QueueMetricsQueryService
                 }
 
                 $totalTime = $totalBusyTime + $totalIdleTime;
-                $utilizationRate = $totalTime > 0 ? ($totalBusyTime / $totalTime) * 100 : 0;
+                $lifetimeBusyPercent = $totalTime > 0 ? ($totalBusyTime / $totalTime) * 100 : 0;
+
+                // Calculate current worker state (% busy right now)
+                $busyWorkers = $workers->filter(fn ($w) => $w->state->value === 'busy')->count();
+                $currentBusyPercent = $activeWorkers > 0 ? ($busyWorkers / $activeWorkers) * 100 : 0;
 
                 // Get trend data
                 $trends = $this->getQueueTrends($connection, $queue);
@@ -161,17 +165,31 @@ final readonly class QueueMetricsQueryService
                     'connection' => $connection,
                     'queue' => $queue,
                     'driver' => $connection,
-                    'depth' => $depth->totalJobs(),
-                    'pending' => $depth->pendingJobs,
-                    'scheduled' => $depth->delayedJobs,
-                    'reserved' => $depth->reservedJobs,
-                    'oldest_job_age_seconds' => $depth->secondsOldestPendingJob() ?? 0,
-                    'oldest_job_age_status' => $depth->oldestPendingJobAge?->toIso8601String() ?? 'unknown',
-                    'throughput_per_minute' => $metrics->throughputPerMinute,
-                    'avg_duration_ms' => $metrics->avgDuration,
-                    'failure_rate' => $metrics->failureRate,
-                    'utilization_rate' => round($utilizationRate, 2),
-                    'active_workers' => $activeWorkers,
+                    // Instantaneous queue state (current snapshot)
+                    'depth' => [
+                        'total' => $depth->totalJobs(),
+                        'pending' => $depth->pendingJobs,
+                        'scheduled' => $depth->delayedJobs,
+                        'reserved' => $depth->reservedJobs,
+                        'oldest_job_age_seconds' => $depth->secondsOldestPendingJob() ?? 0,
+                        'oldest_job_age_status' => $depth->oldestPendingJobAge?->toIso8601String() ?? 'unknown',
+                    ],
+                    // Windowed performance metrics (60-second window from CalculateQueueMetricsAction)
+                    'performance_60s' => [
+                        'throughput_per_minute' => $metrics->throughputPerMinute,
+                        'avg_duration_ms' => $metrics->avgDuration,
+                        'window_seconds' => 60,
+                    ],
+                    // Lifetime metrics (since first job)
+                    'lifetime' => [
+                        'failure_rate_percent' => $metrics->failureRate,
+                    ],
+                    // Worker metrics for this queue
+                    'workers' => [
+                        'active_count' => $activeWorkers,
+                        'current_busy_percent' => round($currentBusyPercent, 2),
+                        'lifetime_busy_percent' => round($lifetimeBusyPercent, 2),
+                    ],
                     'baseline' => $baseline ? $baseline->toArray() : null,
                     'trends' => $trends,
                     'timestamp' => now()->toIso8601String(),

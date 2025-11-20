@@ -134,15 +134,21 @@ final readonly class OverviewQueryService implements OverviewQueryInterface
     private function filterQueuesForDashboard(array $queues): array
     {
         return array_map(function ($queue) {
+            $depth = is_array($queue['depth'] ?? null) ? $queue['depth'] : [];
+            $performance60s = is_array($queue['performance_60s'] ?? null) ? $queue['performance_60s'] : [];
+            $lifetime = is_array($queue['lifetime'] ?? null) ? $queue['lifetime'] : [];
+            $workers = is_array($queue['workers'] ?? null) ? $queue['workers'] : [];
+
             return [
                 'connection' => $queue['connection'] ?? '',
                 'queue' => $queue['queue'] ?? '',
-                'depth' => $queue['depth'] ?? 0,
-                'pending' => $queue['pending'] ?? 0,
-                'active_workers' => $queue['active_workers'] ?? 0,
-                'throughput_per_minute' => $queue['throughput_per_minute'] ?? 0,
-                'failure_rate' => $queue['failure_rate'] ?? 0,
-                'utilization_rate' => $queue['utilization_rate'] ?? 0,
+                'depth' => $depth['total'] ?? 0,
+                'pending' => $depth['pending'] ?? 0,
+                'active_workers' => $workers['active_count'] ?? 0,
+                'throughput_per_minute' => $performance60s['throughput_per_minute'] ?? 0,
+                'failure_rate' => $lifetime['failure_rate_percent'] ?? 0,
+                'current_busy_percent' => $workers['current_busy_percent'] ?? 0,
+                'lifetime_busy_percent' => $workers['lifetime_busy_percent'] ?? 0,
             ];
         }, $queues);
     }
@@ -177,8 +183,12 @@ final readonly class OverviewQueryService implements OverviewQueryInterface
      * Filter server metrics to essential dashboard fields only.
      *
      * Returns simplified server data with clear separation between:
-     * - Worker metrics: Job counts, worker utilization (from queue workers)
-     * - System limits: CPU cores, total memory (physical server resources)
+     * - Worker metrics: Worker count, utilization (from queue workers)
+     * - Job metrics: Jobs processed (from queue workers)
+     * - System metrics: Actual server CPU/memory from SystemMetrics (physical server resources)
+     *
+     * Note: Worker process CPU/memory metrics are NOT included in dashboard as they're not
+     * useful for server-level overview. Use server_resources for actual server resource usage.
      *
      * @param  array<string, array<string, mixed>>  $servers
      * @return array<string, array<string, mixed>>
@@ -186,32 +196,35 @@ final readonly class OverviewQueryService implements OverviewQueryInterface
     private function filterServersForDashboard(array $servers): array
     {
         return array_map(function ($server) {
-            $workers = is_array($server['workers'] ?? null) ? $server['workers'] : [];
-            $utilization = is_array($server['utilization'] ?? null) ? $server['utilization'] : [];
-            $performance = is_array($server['performance'] ?? null) ? $server['performance'] : [];
-            $systemLimits = is_array($server['system_limits'] ?? null) ? $server['system_limits'] : null;
-
-            $serverUtilization = $utilization['server_utilization'] ?? 0;
-            $utilizationPercent = is_numeric($serverUtilization) ? round((float) $serverUtilization * 100, 2) : 0;
+            $queueWorkers = is_array($server['queue_workers'] ?? null) ? $server['queue_workers'] : [];
+            $workerCount = is_array($queueWorkers['count'] ?? null) ? $queueWorkers['count'] : [];
+            $workerUtilization = is_array($queueWorkers['utilization'] ?? null) ? $queueWorkers['utilization'] : [];
+            $jobProcessing = is_array($server['job_processing'] ?? null) ? $server['job_processing'] : [];
+            $jobLifetime = is_array($jobProcessing['lifetime'] ?? null) ? $jobProcessing['lifetime'] : [];
+            $serverResources = is_array($server['server_resources'] ?? null) ? $server['server_resources'] : null;
 
             $result = [
                 'hostname' => $server['hostname'] ?? '',
                 // Worker-level metrics (from queue workers)
                 'workers' => [
-                    'total' => $workers['total'] ?? 0,
-                    'active' => $workers['active'] ?? 0,
-                    'idle' => $workers['idle'] ?? 0,
-                    'utilization_percent' => $utilizationPercent,
+                    'total' => $workerCount['total'] ?? 0,
+                    'active' => $workerCount['active'] ?? 0,
+                    'idle' => $workerCount['idle'] ?? 0,
+                    'current_busy_percent' => $workerUtilization['current_busy_percent'] ?? 0.0,
+                    'lifetime_busy_percent' => $workerUtilization['lifetime_busy_percent'] ?? 0.0,
                 ],
                 // Job processing metrics (from queue workers)
                 'jobs' => [
-                    'processed' => $performance['total_jobs_processed'] ?? 0,
+                    'total_processed' => $jobLifetime['total_processed'] ?? 0,
+                    'total_failed' => $jobLifetime['total_failed'] ?? 0,
+                    'failure_rate_percent' => $jobLifetime['failure_rate_percent'] ?? 0.0,
                 ],
             ];
 
-            // System resource limits (physical server capacity)
-            if ($systemLimits !== null) {
-                $result['system_limits'] = $systemLimits;
+            // System resource metrics (actual server CPU/memory from SystemMetrics)
+            // This is the REAL server usage, not worker process usage
+            if ($serverResources !== null) {
+                $result['server_resources'] = $serverResources;
             }
 
             return $result;
@@ -226,11 +239,17 @@ final readonly class OverviewQueryService implements OverviewQueryInterface
      */
     private function filterWorkersForDashboard(array $workers): array
     {
+        $count = is_array($workers['count'] ?? null) ? $workers['count'] : [];
+        $utilization = is_array($workers['utilization'] ?? null) ? $workers['utilization'] : [];
+        $performance = is_array($workers['performance'] ?? null) ? $workers['performance'] : [];
+
         return [
-            'total' => $workers['total'] ?? 0,
-            'active' => $workers['active'] ?? 0,
-            'idle' => $workers['idle'] ?? 0,
-            'total_jobs_processed' => $workers['total_jobs_processed'] ?? 0,
+            'total' => $count['total'] ?? 0,
+            'active' => $count['active'] ?? 0,
+            'idle' => $count['idle'] ?? 0,
+            'current_busy_percent' => $utilization['current_busy_percent'] ?? 0.0,
+            'lifetime_busy_percent' => $utilization['lifetime_busy_percent'] ?? 0.0,
+            'total_jobs_processed' => $performance['total_jobs_processed'] ?? 0,
         ];
     }
 }
