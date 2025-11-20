@@ -28,9 +28,7 @@ final readonly class RecordJobStartAction
             return;
         }
 
-        // Mark queue as discovered for listQueues() to find it
-        $this->queueMetricsRepository->markQueueDiscovered($connection, $queue);
-
+        // Queue discovery now happens atomically inside recordStart()
         $this->repository->recordStart(
             jobId: $jobId,
             jobClass: $jobClass,

@@ -24,27 +24,48 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         string $queue,
         Carbon $startedAt,
     ): void {
-        $driver = $this->redis->driver();
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
         $jobKey = $this->redis->key('job', $jobId);
+        $jobDiscoveryKey = $this->redis->key('discovery', 'jobs');
+        $queueDiscoveryKey = $this->redis->key('discovery', 'queues');
         $ttl = $this->redis->getTtl('raw');
+        $discoveryTtl = $this->redis->getTtl('aggregated');
 
-        // Register job in discovery set (push-based tracking)
-        $this->markJobDiscovered($connection, $queue, $jobClass);
+        // Use transaction to ensure atomic registration of both discovery sets with metrics
+        $this->redis->transaction(function ($pipe) use (
+            $jobDiscoveryKey,
+            $queueDiscoveryKey,
+            $metricsKey,
+            $jobKey,
+            $connection,
+            $queue,
+            $jobClass,
+            $startedAt,
+            $ttl,
+            $discoveryTtl
+        ) {
+            // Register queue in discovery set (push-based tracking)
+            $pipe->addToSet($queueDiscoveryKey, ["{$connection}:{$queue}"]);
+            $pipe->expire($queueDiscoveryKey, $discoveryTtl);
 
-        // Increment total queued counter
-        $driver->incrementHashField($metricsKey, 'total_queued', 1);
+            // Register job in discovery set (push-based tracking)
+            $pipe->addToSet($jobDiscoveryKey, ["{$connection}:{$queue}:{$jobClass}"]);
+            $pipe->expire($jobDiscoveryKey, $discoveryTtl);
 
-        // Store job start time
-        $driver->setHash($jobKey, [
-            'job_class' => $jobClass,
-            'connection' => $connection,
-            'queue' => $queue,
-            'started_at' => $startedAt->timestamp,
-        ], $ttl);
+            // Increment total queued counter
+            $pipe->incrementHashField($metricsKey, 'total_queued', 1);
 
-        // Ensure TTL is set on metrics key
-        $driver->expire($metricsKey, $ttl);
+            // Store job start time
+            $pipe->setHash($jobKey, [
+                'job_class' => $jobClass,
+                'connection' => $connection,
+                'queue' => $queue,
+                'started_at' => $startedAt->timestamp,
+            ], $ttl);
+
+            // Ensure TTL is set on metrics key
+            $pipe->expire($metricsKey, $ttl);
+        });
     }
 
     public function recordCompletion(
@@ -132,35 +153,52 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         Carbon $failedAt,
         ?string $hostname = null,
     ): void {
-        $driver = $this->redis->driver();
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
+        $jobKey = $this->redis->key('job', $jobId);
         $ttl = $this->redis->getTtl('raw');
 
-        $driver->pipeline(function ($pipe) use ($metricsKey, $exception, $failedAt, $ttl) {
-            $pipe->incrementHashField($metricsKey, 'total_failed', 1);
-            $pipe->setHash($metricsKey, [
-                'last_failed_at' => $failedAt->timestamp,
-                'last_exception' => substr($exception, 0, 1000),
-            ]);
-            // Refresh TTL on metrics key
-            $pipe->expire($metricsKey, $ttl);
-        });
-
-        // Store hostname-scoped metrics if hostname is provided
         if ($hostname !== null) {
-            $this->recordHostnameMetrics(
-                $hostname,
-                $connection,
-                $queue,
-                $jobClass,
-                0.0,
-                false,
-                $failedAt
-            );
-        }
+            // Include hostname metrics in the same transaction
+            $serverKey = $this->redis->key('server_jobs', $hostname, $connection, $queue, $jobClass);
 
-        // Clean up job tracking key
-        $driver->delete($this->redis->key('job', $jobId));
+            $this->redis->transaction(function ($pipe) use (
+                $metricsKey,
+                $serverKey,
+                $jobKey,
+                $exception,
+                $failedAt,
+                $ttl
+            ) {
+                // Job-level failure metrics
+                $pipe->incrementHashField($metricsKey, 'total_failed', 1);
+                $pipe->setHash($metricsKey, [
+                    'last_failed_at' => $failedAt->timestamp,
+                    'last_exception' => substr($exception, 0, 1000),
+                ]);
+                $pipe->expire($metricsKey, $ttl);
+
+                // Hostname-level failure metrics
+                $pipe->incrementHashField($serverKey, 'total_failed', 1);
+                $pipe->setHash($serverKey, ['last_updated_at' => $failedAt->timestamp]);
+                $pipe->expire($serverKey, $ttl);
+
+                // Clean up job tracking key
+                $pipe->delete($jobKey);
+            });
+        } else {
+            // Transaction without hostname metrics
+            $this->redis->transaction(function ($pipe) use ($metricsKey, $jobKey, $exception, $failedAt, $ttl) {
+                $pipe->incrementHashField($metricsKey, 'total_failed', 1);
+                $pipe->setHash($metricsKey, [
+                    'last_failed_at' => $failedAt->timestamp,
+                    'last_exception' => substr($exception, 0, 1000),
+                ]);
+                $pipe->expire($metricsKey, $ttl);
+
+                // Clean up job tracking key
+                $pipe->delete($jobKey);
+            });
+        }
     }
 
     /**
@@ -178,7 +216,8 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $serverKey = $this->redis->key('server_jobs', $hostname, $connection, $queue, $jobClass);
         $ttl = $this->redis->getTtl('raw');
 
-        $this->redis->driver()->pipeline(function ($pipe) use ($serverKey, $durationMs, $success, $timestamp, $ttl) {
+        // Use transaction instead of pipeline to ensure atomicity
+        $this->redis->transaction(function ($pipe) use ($serverKey, $durationMs, $success, $timestamp, $ttl) {
             if ($success) {
                 $pipe->incrementHashField($serverKey, 'total_processed', 1);
                 $pipe->incrementHashField($serverKey, 'total_duration_ms', $durationMs);
@@ -256,7 +295,18 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     /**
-     * @return array<int, float>
+     * Get duration samples for job performance analysis.
+     *
+     * Returns the most recent duration measurements, with timestamps stored as
+     * sorted set scores in Redis. Samples are stored in timestamp order, so
+     * negative indices retrieve the most recent samples first.
+     *
+     * Sample Limit Behavior:
+     * - If fewer than $limit samples exist, returns all available samples
+     * - Samples are returned in chronological order (oldest to newest)
+     * - Default limit of 1000 provides sufficient data for statistical analysis
+     *
+     * @return array<int, float> Duration values in milliseconds, chronologically ordered
      */
     public function getDurationSamples(
         string $jobClass,
@@ -268,6 +318,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $driver = $this->redis->driver();
 
         // Get most recent samples (reverse order, so use negative indices)
+        // Timestamps are used as sorted set scores for time-based querying
         /** @var array<string> */
         $samples = $driver->getSortedSetByRank($key, -$limit, -1);
 
@@ -275,7 +326,17 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     /**
-     * @return array<int, float>
+     * Get memory usage samples for resource analysis.
+     *
+     * Returns the most recent memory measurements, with timestamps stored as
+     * sorted set scores in Redis. Samples are stored in timestamp order.
+     *
+     * Sample Limit Behavior:
+     * - If fewer than $limit samples exist, returns all available samples
+     * - Samples are returned in chronological order (oldest to newest)
+     * - Timestamps in sorted set scores enable time-based filtering
+     *
+     * @return array<int, float> Memory values in megabytes, chronologically ordered
      */
     public function getMemorySamples(
         string $jobClass,
@@ -286,6 +347,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $key = $this->redis->key('memory', $connection, $queue, $jobClass);
         $driver = $this->redis->driver();
 
+        // Timestamps are used as sorted set scores for time-based querying
         /** @var array<string> */
         $samples = $driver->getSortedSetByRank($key, -$limit, -1);
 
@@ -293,7 +355,17 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     /**
-     * @return array<int, float>
+     * Get CPU time samples for performance analysis.
+     *
+     * Returns the most recent CPU time measurements, with timestamps stored as
+     * sorted set scores in Redis. Samples are stored in timestamp order.
+     *
+     * Sample Limit Behavior:
+     * - If fewer than $limit samples exist, returns all available samples
+     * - Samples are returned in chronological order (oldest to newest)
+     * - Timestamps in sorted set scores enable time-based filtering
+     *
+     * @return array<int, float> CPU time values in milliseconds, chronologically ordered
      */
     public function getCpuTimeSamples(
         string $jobClass,
@@ -304,6 +376,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $key = $this->redis->key('cpu', $connection, $queue, $jobClass);
         $driver = $this->redis->driver();
 
+        // Timestamps are used as sorted set scores for time-based querying
         /** @var array<string> */
         $samples = $driver->getSortedSetByRank($key, -$limit, -1);
 
@@ -319,10 +392,18 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $key = $this->redis->key('durations', $connection, $queue, $jobClass);
         $driver = $this->redis->driver();
 
-        $cutoff = Carbon::now()->subSeconds($windowSeconds)->timestamp;
+        // Use Lua script to atomically calculate cutoff and count items
+        // This prevents race conditions where items could be added between
+        // calculating the cutoff timestamp and executing the count
+        $script = <<<'LUA'
+            local key = KEYS[1]
+            local windowSeconds = tonumber(ARGV[1])
+            local cutoff = redis.call('TIME')[1] - windowSeconds
+            return redis.call('ZCOUNT', key, cutoff, '+inf')
+        LUA;
 
-        // Count samples within time window
-        return $driver->countSortedSetByScore($key, (string) $cutoff, '+inf');
+        /** @var int */
+        return $driver->eval($script, 1, $key, $windowSeconds);
     }
 
     public function recordQueuedAt(
@@ -347,21 +428,30 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         Carbon $retryRequestedAt,
         int $attemptNumber,
     ): void {
-        $driver = $this->redis->driver();
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
         $retryKey = $this->redis->key('retries', $connection, $queue, $jobClass);
         $ttl = $this->redis->getTtl('raw');
+        $retryData = json_encode(['job_id' => $jobId, 'attempt' => $attemptNumber], JSON_THROW_ON_ERROR);
 
-        // Increment retry counter
-        $driver->incrementHashField($metricsKey, 'total_retries', 1);
+        // Use transaction to ensure atomic retry recording
+        $this->redis->transaction(function ($pipe) use (
+            $metricsKey,
+            $retryKey,
+            $retryData,
+            $retryRequestedAt,
+            $ttl
+        ) {
+            // Increment retry counter
+            $pipe->incrementHashField($metricsKey, 'total_retries', 1);
 
-        // Store retry event for pattern analysis
-        $driver->addToSortedSet($retryKey, [
-            json_encode(['job_id' => $jobId, 'attempt' => $attemptNumber], JSON_THROW_ON_ERROR) => (int) $retryRequestedAt->timestamp,
-        ], $ttl);
+            // Store retry event for pattern analysis
+            $pipe->addToSortedSet($retryKey, [
+                $retryData => (int) $retryRequestedAt->timestamp,
+            ], $ttl);
 
-        // Refresh TTL on metrics key
-        $driver->expire($metricsKey, $ttl);
+            // Refresh TTL on metrics key
+            $pipe->expire($metricsKey, $ttl);
+        });
     }
 
     public function recordTimeout(
@@ -371,16 +461,18 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         string $queue,
         Carbon $timedOutAt,
     ): void {
-        $driver = $this->redis->driver();
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
         $ttl = $this->redis->getTtl('raw');
 
-        // Increment timeout counter
-        $driver->incrementHashField($metricsKey, 'total_timeouts', 1);
-        $driver->setHash($metricsKey, ['last_timeout_at' => $timedOutAt->timestamp]);
+        // Use transaction to ensure atomic timeout recording
+        $this->redis->transaction(function ($pipe) use ($metricsKey, $timedOutAt, $ttl) {
+            // Increment timeout counter
+            $pipe->incrementHashField($metricsKey, 'total_timeouts', 1);
+            $pipe->setHash($metricsKey, ['last_timeout_at' => $timedOutAt->timestamp]);
 
-        // Refresh TTL on metrics key
-        $driver->expire($metricsKey, $ttl);
+            // Refresh TTL on metrics key
+            $pipe->expire($metricsKey, $ttl);
+        });
     }
 
     public function recordException(
@@ -392,20 +484,29 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         string $exceptionMessage,
         Carbon $occurredAt,
     ): void {
-        $driver = $this->redis->driver();
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
         $exceptionsKey = $this->redis->key('exceptions', $connection, $queue, $jobClass);
         $ttl = $this->redis->getTtl('raw');
+        $aggregatedTtl = $this->redis->getTtl('aggregated');
 
-        // Increment exception counter
-        $driver->incrementHashField($metricsKey, 'total_exceptions', 1);
+        // Use transaction to ensure atomic exception recording
+        $this->redis->transaction(function ($pipe) use (
+            $metricsKey,
+            $exceptionsKey,
+            $exceptionClass,
+            $ttl,
+            $aggregatedTtl
+        ) {
+            // Increment exception counter
+            $pipe->incrementHashField($metricsKey, 'total_exceptions', 1);
 
-        // Track exception types
-        $driver->incrementHashField($exceptionsKey, $exceptionClass, 1);
-        $driver->expire($exceptionsKey, $this->redis->getTtl('aggregated'));
+            // Track exception types
+            $pipe->incrementHashField($exceptionsKey, $exceptionClass, 1);
+            $pipe->expire($exceptionsKey, $aggregatedTtl);
 
-        // Refresh TTL on metrics key
-        $driver->expire($metricsKey, $ttl);
+            // Refresh TTL on metrics key
+            $pipe->expire($metricsKey, $ttl);
+        });
     }
 
     public function cleanup(int $olderThanSeconds): int
