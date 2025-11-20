@@ -95,7 +95,8 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $memoryMb,
             $cpuTimeMs,
             $completedAt,
-            $ttl
+            $ttl,
+            $jobId
         ) {
             $pipe->incrementHashField($metricsKey, 'total_processed', 1);
             $pipe->incrementHashField($metricsKey, 'total_duration_ms', $durationMs);
@@ -103,19 +104,24 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $pipe->incrementHashField($metricsKey, 'total_cpu_time_ms', $cpuTimeMs);
             $pipe->setHash($metricsKey, ['last_processed_at' => $completedAt->timestamp]);
 
-            // Store duration sample (sorted set with timestamp as score)
+            // Store samples in sorted sets with timestamp as score
+            // Use a unique member format: "jobId:value" to ensure each job gets a separate entry
+            // This allows multiple jobs with the same duration/memory/cpu to be stored
+            $durationMember = $jobId . ':' . $durationMs;
             /** @var array<string, int> $durationSample */
-            $durationSample = [(string) $durationMs => (int) $completedAt->timestamp];
+            $durationSample = [$durationMember => (int) $completedAt->timestamp];
             $pipe->addToSortedSet($durationKey, $durationSample, $ttl);
 
-            // Store memory sample
+            // Store memory sample with unique member
+            $memoryMember = $jobId . ':' . $memoryMb;
             /** @var array<string, int> $memorySample */
-            $memorySample = [(string) $memoryMb => (int) $completedAt->timestamp];
+            $memorySample = [$memoryMember => (int) $completedAt->timestamp];
             $pipe->addToSortedSet($memoryKey, $memorySample, $ttl);
 
-            // Store CPU time sample
+            // Store CPU time sample with unique member
+            $cpuMember = $jobId . ':' . $cpuTimeMs;
             /** @var array<string, int> $cpuSample */
-            $cpuSample = [(string) $cpuTimeMs => (int) $completedAt->timestamp];
+            $cpuSample = [$cpuMember => (int) $completedAt->timestamp];
             $pipe->addToSortedSet($cpuKey, $cpuSample, $ttl);
 
             // Refresh TTL on metrics key
@@ -404,6 +410,56 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
 
         /** @var int */
         return $driver->eval($script, 1, $key, $windowSeconds);
+    }
+
+    public function getAverageDurationInWindow(
+        string $jobClass,
+        string $connection,
+        string $queue,
+        int $windowSeconds,
+    ): float {
+        $key = $this->redis->key('durations', $connection, $queue, $jobClass);
+        $driver = $this->redis->driver();
+
+        // Use Lua script to atomically get samples within window and calculate average
+        // This ensures consistency between throughput and average duration calculations
+        $script = <<<'LUA'
+            local key = KEYS[1]
+            local windowSeconds = tonumber(ARGV[1])
+            local cutoff = redis.call('TIME')[1] - windowSeconds
+
+            -- Get all members in the window (members are "jobId:duration")
+            local samples = redis.call('ZRANGEBYSCORE', key, cutoff, '+inf')
+
+            if #samples == 0 then
+                return 0
+            end
+
+            -- Parse members to extract duration values and calculate average
+            -- Each member is formatted as "jobId:duration"
+            local sum = 0
+            local count = 0
+            for i = 1, #samples do
+                local member = samples[i]
+                local colonPos = string.find(member, ":")
+                if colonPos then
+                    local duration = string.sub(member, colonPos + 1)
+                    sum = sum + tonumber(duration)
+                    count = count + 1
+                end
+            end
+
+            if count == 0 then
+                return 0
+            end
+
+            return sum / count
+        LUA;
+
+        /** @var float */
+        $result = $driver->eval($script, 1, $key, $windowSeconds);
+
+        return (float) $result;
     }
 
     public function recordQueuedAt(

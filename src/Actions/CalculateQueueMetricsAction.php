@@ -40,21 +40,34 @@ final readonly class CalculateQueueMetricsAction
             return;
         }
 
-        // Aggregate metrics across all job classes
+        // Aggregate metrics across all job classes for CURRENT window (last 60 seconds)
+        // This ensures throughput and avg_duration are calculated from the same time window
+        $windowSeconds = 60;
+        $throughputPerMinute = 0;
+        $totalDurationMs = 0.0;
+        $totalJobsInWindow = 0;
+
+        // Aggregate lifetime metrics for failure rate
         $totalProcessed = 0;
         $totalFailed = 0;
-        $totalDurationMs = 0.0;
         $lastProcessedAt = null;
 
         foreach ($queueJobs as $job) {
             $jobClass = $job['jobClass'];
+
+            // Get current window metrics (last 60 seconds)
+            $jobThroughput = $this->jobRepository->getThroughput($jobClass, $connection, $queue, $windowSeconds);
+            $jobAvgDuration = $this->jobRepository->getAverageDurationInWindow($jobClass, $connection, $queue, $windowSeconds);
+
+            $throughputPerMinute += $jobThroughput;
+            $totalDurationMs += ($jobAvgDuration * $jobThroughput); // Weighted by job count
+            $totalJobsInWindow += $jobThroughput;
+
+            // Get lifetime metrics for failure rate and last_processed_at
             $metrics = $this->jobRepository->getMetrics($jobClass, $connection, $queue);
 
             $totalProcessed += is_int($metrics['total_processed']) ? $metrics['total_processed'] : 0;
             $totalFailed += is_int($metrics['total_failed']) ? $metrics['total_failed'] : 0;
-            $totalDurationMs += is_float($metrics['total_duration_ms']) || is_int($metrics['total_duration_ms'])
-                ? (float) $metrics['total_duration_ms']
-                : 0.0;
 
             if ($metrics['last_processed_at'] instanceof \Carbon\Carbon) {
                 if ($lastProcessedAt === null || $metrics['last_processed_at']->greaterThan($lastProcessedAt)) {
@@ -63,23 +76,13 @@ final readonly class CalculateQueueMetricsAction
             }
         }
 
-        // Calculate aggregated metrics
-        $avgDuration = $totalProcessed > 0 ? $totalDurationMs / $totalProcessed : 0.0;
+        // Calculate aggregated metrics for current window
+        $avgDuration = $totalJobsInWindow > 0 ? $totalDurationMs / $totalJobsInWindow : 0.0;
+
+        // Calculate failure rate from lifetime totals
         $failureRate = ($totalProcessed + $totalFailed) > 0
             ? ($totalFailed / ($totalProcessed + $totalFailed)) * 100.0
             : 0.0;
-
-        // Calculate throughput per minute (jobs completed in last 60 seconds)
-        $throughputPerMinute = 0.0;
-        foreach ($queueJobs as $job) {
-            $jobClass = $job['jobClass'];
-            $throughputPerMinute += $this->jobRepository->getThroughput(
-                $jobClass,
-                $connection,
-                $queue,
-                60 // last 60 seconds
-            );
-        }
 
         // Store aggregated metrics
         $this->queueRepository->recordSnapshot($connection, $queue, [

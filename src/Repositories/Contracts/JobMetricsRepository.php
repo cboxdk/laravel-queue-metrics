@@ -115,6 +115,18 @@ interface JobMetricsRepository
     ): int;
 
     /**
+     * Get average duration for jobs completed within a specific time window.
+     *
+     * @return float Average duration in milliseconds, 0.0 if no jobs in window
+     */
+    public function getAverageDurationInWindow(
+        string $jobClass,
+        string $connection,
+        string $queue,
+        int $windowSeconds,
+    ): float;
+
+    /**
      * Record when a job is queued for time-to-start tracking.
      */
     public function recordQueuedAt(
