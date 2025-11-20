@@ -175,8 +175,8 @@ final readonly class TrendAnalysisService
         $avg = array_sum($throughputs) / $count;
         $totalJobs = array_sum($throughputs);
 
-        // Calculate jobs per minute
-        $jobsPerMinute = ($totalJobs / $periodSeconds) * 60;
+        // Calculate jobs per minute (with defensive division by zero check)
+        $jobsPerMinute = $periodSeconds > 0 ? ($totalJobs / $periodSeconds) * 60 : 0.0;
 
         // Trend analysis
         $trend = $this->calculateLinearTrend($values);
