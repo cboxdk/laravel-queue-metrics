@@ -24,6 +24,7 @@ use PHPeek\LaravelQueueMetrics\Commands\CalculateBaselinesCommand;
 use PHPeek\LaravelQueueMetrics\Commands\CleanupStaleWorkersCommand;
 use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
+use PHPeek\LaravelQueueMetrics\Console\CalculateQueueMetricsCommand;
 use PHPeek\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
 use PHPeek\LaravelQueueMetrics\Console\RecordTrendDataCommand;
 use PHPeek\LaravelQueueMetrics\Contracts\QueueInspector;
@@ -69,6 +70,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             ->hasRoute('api')
             ->hasMigration('2024_01_01_000001_create_queue_metrics_storage_tables')
             ->hasCommand(CalculateBaselinesCommand::class)
+            ->hasCommand(CalculateQueueMetricsCommand::class)
             ->hasCommand(CleanupStaleWorkersCommand::class)
             ->hasCommand(DetectStaleWorkersCommand::class)
             ->hasCommand(RecordTrendDataCommand::class);
@@ -198,6 +200,11 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
 
             // Schedule adaptive baseline calculation
             $this->scheduleAdaptiveBaselineCalculation($scheduler);
+
+            // Schedule queue metrics calculation (aggregate job metrics into queue metrics)
+            $scheduler->command('queue-metrics:calculate')
+                ->everyMinute()
+                ->withoutOverlapping();
 
             // Schedule trend data recording (every minute for real-time trends)
             $scheduler->command('queue-metrics:record-trends')
