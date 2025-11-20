@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v1.2.0 - 2025-11-20
+
+### What's Changed
+
+* Fix race conditions and implement queue metrics aggregation by @sylvesterdamgaard in https://github.com/gophpeek/laravel-queue-metrics/pull/2
+
+**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.1.0...v1.2.0
+
 ## v1.1.0 - 2025-11-19
 
 ### What's Changed
