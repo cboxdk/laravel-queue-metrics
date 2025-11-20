@@ -6,7 +6,6 @@ namespace PHPeek\LaravelQueueMetrics\Actions;
 
 use Carbon\Carbon;
 use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 
 /**
  * Record when a job starts processing.
@@ -15,7 +14,6 @@ final readonly class RecordJobStartAction
 {
     public function __construct(
         private JobMetricsRepository $repository,
-        private QueueMetricsRepository $queueMetricsRepository,
     ) {}
 
     public function execute(

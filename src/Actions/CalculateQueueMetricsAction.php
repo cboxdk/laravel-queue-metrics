@@ -50,11 +50,13 @@ final readonly class CalculateQueueMetricsAction
             $jobClass = $job['jobClass'];
             $metrics = $this->jobRepository->getMetrics($jobClass, $connection, $queue);
 
-            $totalProcessed += $metrics['total_processed'];
-            $totalFailed += $metrics['total_failed'];
-            $totalDurationMs += $metrics['total_duration_ms'];
+            $totalProcessed += is_int($metrics['total_processed']) ? $metrics['total_processed'] : 0;
+            $totalFailed += is_int($metrics['total_failed']) ? $metrics['total_failed'] : 0;
+            $totalDurationMs += is_float($metrics['total_duration_ms']) || is_int($metrics['total_duration_ms'])
+                ? (float) $metrics['total_duration_ms']
+                : 0.0;
 
-            if ($metrics['last_processed_at'] !== null) {
+            if ($metrics['last_processed_at'] instanceof \Carbon\Carbon) {
                 if ($lastProcessedAt === null || $metrics['last_processed_at']->greaterThan($lastProcessedAt)) {
                     $lastProcessedAt = $metrics['last_processed_at'];
                 }
