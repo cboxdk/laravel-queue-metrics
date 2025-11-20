@@ -101,7 +101,7 @@ final class PipelineWrapper
     public function addToSet(string $key, array $members): void
     {
         if (! empty($members)) {
-            $this->pipe->sadd($key, $members);
+            $this->pipe->sadd($key, ...$members);
         }
     }
 
@@ -116,7 +116,7 @@ final class PipelineWrapper
     public function removeFromSet(string $key, array $members): void
     {
         if (! empty($members)) {
-            $this->pipe->srem($key, $members);
+            $this->pipe->srem($key, ...$members);
         }
     }
 

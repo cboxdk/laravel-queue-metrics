@@ -22,10 +22,7 @@ afterEach(function () {
 });
 
 it('records job start with all parameters', function () {
-    $this->queueRepository->shouldReceive('markQueueDiscovered')
-        ->once()
-        ->with('redis', 'default');
-
+    // Queue discovery now happens atomically inside recordStart()
     $this->repository->shouldReceive('recordStart')
         ->once()
         ->with(
@@ -58,10 +55,7 @@ it('does nothing when metrics are disabled', function () {
 })->group('functional');
 
 it('handles different queue connections', function () {
-    $this->queueRepository->shouldReceive('markQueueDiscovered')
-        ->once()
-        ->with('database', 'emails');
-
+    // Queue discovery now happens atomically inside recordStart()
     $this->repository->shouldReceive('recordStart')
         ->once()
         ->with(
@@ -83,10 +77,7 @@ it('handles different queue connections', function () {
 it('records start time at execution moment', function () {
     Carbon::setTestNow('2024-01-15 14:45:30');
 
-    $this->queueRepository->shouldReceive('markQueueDiscovered')
-        ->once()
-        ->with('redis', 'reports');
-
+    // Queue discovery now happens atomically inside recordStart()
     $this->repository->shouldReceive('recordStart')
         ->once()
         ->with(
@@ -106,10 +97,7 @@ it('records start time at execution moment', function () {
 })->group('functional');
 
 it('handles job IDs with special characters', function () {
-    $this->queueRepository->shouldReceive('markQueueDiscovered')
-        ->once()
-        ->with('redis', 'default');
-
+    // Queue discovery now happens atomically inside recordStart()
     $this->repository->shouldReceive('recordStart')
         ->once()
         ->with(
