@@ -107,19 +107,19 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             // Store samples in sorted sets with timestamp as score
             // Use a unique member format: "jobId:value" to ensure each job gets a separate entry
             // This allows multiple jobs with the same duration/memory/cpu to be stored
-            $durationMember = $jobId . ':' . $durationMs;
+            $durationMember = $jobId.':'.$durationMs;
             /** @var array<string, int> $durationSample */
             $durationSample = [$durationMember => (int) $completedAt->timestamp];
             $pipe->addToSortedSet($durationKey, $durationSample, $ttl);
 
             // Store memory sample with unique member
-            $memoryMember = $jobId . ':' . $memoryMb;
+            $memoryMember = $jobId.':'.$memoryMb;
             /** @var array<string, int> $memorySample */
             $memorySample = [$memoryMember => (int) $completedAt->timestamp];
             $pipe->addToSortedSet($memoryKey, $memorySample, $ttl);
 
             // Store CPU time sample with unique member
-            $cpuMember = $jobId . ':' . $cpuTimeMs;
+            $cpuMember = $jobId.':'.$cpuTimeMs;
             /** @var array<string, int> $cpuSample */
             $cpuSample = [$cpuMember => (int) $completedAt->timestamp];
             $pipe->addToSortedSet($cpuKey, $cpuSample, $ttl);
