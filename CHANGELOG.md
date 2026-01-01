@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v1.3.1 - 2026-01-01
+
+### What's Changed
+
+* fix: Achieve PHPStan Level 9 compliance with empty baseline
+  - Remove redundant type checks and operators
+  - Add proper type annotations and validation guards
+  - Fix Carbon timestamp casting for binary operations
+  - Clear baseline from 32 errors to 0
+
+**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.3.0...v1.3.1
+
 ## v1.3.0 - 2025-11-20
 
 ### What's Changed
