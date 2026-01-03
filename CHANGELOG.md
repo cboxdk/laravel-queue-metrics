@@ -2,6 +2,15 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v1.4.0 - 2026-01-02
+
+### What's Changed
+
+* feat: Add PHP 8.5 support
+* Update all dependencies to latest versions
+
+**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.3.1...v1.4.0
+
 ## v1.3.1 - 2026-01-01
 
 ### What's Changed
