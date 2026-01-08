@@ -2,6 +2,16 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v1.4.2 - 2026-01-08
+
+### What's Changed
+
+* fix: Cast job IDs to string in all listeners for consistency
+  - Ensures consistent string type for job IDs throughout listener logic
+  - Fixes potential type issues with database queue driver returning int IDs
+
+**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.4.1...v1.4.2
+
 ## v1.4.1 - 2026-01-08
 
 ### What's Changed
