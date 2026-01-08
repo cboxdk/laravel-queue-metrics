@@ -25,7 +25,7 @@ final readonly class JobProcessedListener
     {
         $job = $event->job;
         $payload = $job->payload();
-        $jobId = $job->getJobId();
+        $jobId = (string) $job->getJobId();
 
         // Calculate duration
         $startTime = $payload['pushedAt'] ?? microtime(true);

@@ -30,7 +30,7 @@ final readonly class JobFailedListener
         $hostname = gethostname() ?: 'unknown';
 
         $this->recordJobFailure->execute(
-            jobId: $job->getJobId(),
+            jobId: (string) $job->getJobId(),
             jobClass: $payload['displayName'] ?? 'UnknownJob',
             connection: $connection,
             queue: $queue,

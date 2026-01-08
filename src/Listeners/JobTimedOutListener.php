@@ -23,7 +23,7 @@ final readonly class JobTimedOutListener
         $job = $event->job;
         $payload = $job->payload();
 
-        $jobId = $job->getJobId();
+        $jobId = (string) $job->getJobId();
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
         $connection = $event->connectionName;
         $queue = $job->getQueue();

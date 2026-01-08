@@ -25,7 +25,7 @@ final readonly class JobProcessingListener
     {
         $job = $event->job;
         $payload = $job->payload();
-        $jobId = $job->getJobId();
+        $jobId = (string) $job->getJobId();
 
         // Start tracking process metrics for this job (including child processes)
         $pid = getmypid();
