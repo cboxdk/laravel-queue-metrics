@@ -22,7 +22,7 @@ final readonly class RecordWorkerHeartbeatAction
         string $connection,
         string $queue,
         WorkerState $state,
-        ?string $currentJobId = null,
+        string|int|null $currentJobId = null,
         ?string $currentJobClass = null,
     ): void {
         if (! config('queue-metrics.enabled', true)) {

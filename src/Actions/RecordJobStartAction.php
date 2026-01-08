@@ -17,7 +17,7 @@ final readonly class RecordJobStartAction
     ) {}
 
     public function execute(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,

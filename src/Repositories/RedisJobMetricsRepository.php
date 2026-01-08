@@ -18,14 +18,14 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     ) {}
 
     public function recordStart(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
         Carbon $startedAt,
     ): void {
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
-        $jobKey = $this->redis->key('job', $jobId);
+        $jobKey = $this->redis->key('job', (string) $jobId);
         $jobDiscoveryKey = $this->redis->key('discovery', 'jobs');
         $queueDiscoveryKey = $this->redis->key('discovery', 'queues');
         $ttl = $this->redis->getTtl('raw');
@@ -69,7 +69,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     public function recordCompletion(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -147,11 +147,11 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         }
 
         // Clean up job tracking key
-        $this->redis->driver()->delete($this->redis->key('job', $jobId));
+        $this->redis->driver()->delete($this->redis->key('job', (string) $jobId));
     }
 
     public function recordFailure(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -160,7 +160,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         ?string $hostname = null,
     ): void {
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
-        $jobKey = $this->redis->key('job', $jobId);
+        $jobKey = $this->redis->key('job', (string) $jobId);
         $ttl = $this->redis->getTtl('raw');
 
         if ($hostname !== null) {
@@ -477,7 +477,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     public function recordRetryRequested(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -511,7 +511,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     public function recordTimeout(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -532,7 +532,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     public function recordException(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,

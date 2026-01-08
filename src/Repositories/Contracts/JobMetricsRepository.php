@@ -15,7 +15,7 @@ interface JobMetricsRepository
      * Record a job start event.
      */
     public function recordStart(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -26,7 +26,7 @@ interface JobMetricsRepository
      * Record a job completion event.
      */
     public function recordCompletion(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -41,7 +41,7 @@ interface JobMetricsRepository
      * Record a job failure event.
      */
     public function recordFailure(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -140,7 +140,7 @@ interface JobMetricsRepository
      * Record a retry request for tracking retry patterns.
      */
     public function recordRetryRequested(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -152,7 +152,7 @@ interface JobMetricsRepository
      * Record a job timeout event.
      */
     public function recordTimeout(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
@@ -163,7 +163,7 @@ interface JobMetricsRepository
      * Record an exception occurrence during job execution.
      */
     public function recordException(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,

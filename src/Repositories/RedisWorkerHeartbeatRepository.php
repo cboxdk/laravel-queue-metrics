@@ -27,7 +27,7 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
         string $connection,
         string $queue,
         WorkerState $state,
-        ?string $currentJobId,
+        string|int|null $currentJobId,
         ?string $currentJobClass,
         int $pid,
         string $hostname,
@@ -52,7 +52,7 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
             $connection, // ARGV[2]
             $queue, // ARGV[3]
             $state->value, // ARGV[4]
-            $currentJobId ?? '', // ARGV[5]
+            $currentJobId !== null ? (string) $currentJobId : '', // ARGV[5]
             $currentJobClass ?? '', // ARGV[6]
             (string) $pid, // ARGV[7]
             $hostname, // ARGV[8]

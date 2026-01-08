@@ -22,7 +22,7 @@ interface WorkerHeartbeatRepository
         string $connection,
         string $queue,
         WorkerState $state,
-        ?string $currentJobId,
+        string|int|null $currentJobId,
         ?string $currentJobClass,
         int $pid,
         string $hostname,

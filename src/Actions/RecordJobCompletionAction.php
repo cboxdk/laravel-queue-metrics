@@ -17,7 +17,7 @@ final readonly class RecordJobCompletionAction
     ) {}
 
     public function execute(
-        string $jobId,
+        string|int $jobId,
         string $jobClass,
         string $connection,
         string $queue,
