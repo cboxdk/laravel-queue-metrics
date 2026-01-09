@@ -2,6 +2,17 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v1.5.0 - 2026-01-09
+
+### What's Changed
+
+* fix: Cast job IDs to string in all listeners for database queue driver compatibility
+  - Laravel's database queue driver returns int job IDs while Redis/SQS return strings
+  - All listeners now cast `$job->getJobId()` to string for consistent handling
+  - Repository interfaces accept `string|int` with internal string casting
+
+**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.4.0...v1.5.0
+
 ## v1.4.2 - 2026-01-08
 
 ### What's Changed
