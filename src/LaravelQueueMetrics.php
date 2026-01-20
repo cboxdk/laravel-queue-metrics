@@ -4,7 +4,6 @@ namespace Cbox\LaravelQueueMetrics;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class LaravelQueueMetrics
 {
@@ -18,7 +17,6 @@ class LaravelQueueMetrics
     /**
      * Determine if the given request can access the Queue Metrics dashboard.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return bool
      */
     public function check(Request $request)
@@ -31,7 +29,6 @@ class LaravelQueueMetrics
     /**
      * Set the callback that should be used to authenticate Queue Metrics users.
      *
-     * @param  \Closure  $callback
      * @return static
      */
     public static function auth(Closure $callback)
