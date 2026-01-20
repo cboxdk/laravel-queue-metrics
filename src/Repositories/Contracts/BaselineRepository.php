@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories\Contracts;
+namespace Cbox\LaravelQueueMetrics\Repositories\Contracts;
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
 
 /**
  * Repository contract for baseline metrics storage.

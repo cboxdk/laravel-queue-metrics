@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Service for scanning and parsing Redis keys to discover entities.

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 
 beforeEach(function () {
     $this->repository = Mockery::mock(JobMetricsRepository::class);

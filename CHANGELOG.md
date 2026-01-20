@@ -11,7 +11,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
   - All listeners now cast `$job->getJobId()` to string for consistent handling
   - Repository interfaces accept `string|int` with internal string casting
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.4.0...v1.5.0
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.0...v1.5.0
 
 ## v1.4.2 - 2026-01-08
 
@@ -21,7 +21,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
   - Ensures consistent string type for job IDs throughout listener logic
   - Fixes potential type issues with database queue driver returning int IDs
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.4.1...v1.4.2
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.1...v1.4.2
 
 ## v1.4.1 - 2026-01-08
 
@@ -31,7 +31,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
   - Laravel's database queue driver returns int job IDs while Redis/SQS drivers return string IDs
   - Changed `$jobId` parameter type from `string` to `string|int` in all actions and repository interfaces
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.4.0...v1.4.1
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.0...v1.4.1
 
 ## v1.4.0 - 2026-01-02
 
@@ -40,7 +40,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 * feat: Add PHP 8.5 support
 * Update all dependencies to latest versions
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.3.1...v1.4.0
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.3.1...v1.4.0
 
 ## v1.3.1 - 2026-01-01
 
@@ -52,36 +52,36 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
   - Fix Carbon timestamp casting for binary operations
   - Clear baseline from 32 errors to 0
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.3.0...v1.3.1
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.3.0...v1.3.1
 
 ## v1.3.0 - 2025-11-20
 
 ### What's Changed
 
-* refactor!: Restructure metrics response for clear abstraction separation by @sylvesterdamgaard in https://github.com/gophpeek/laravel-queue-metrics/pull/3
+* refactor!: Restructure metrics response for clear abstraction separation by @sylvesterdamgaard in https://github.com/cboxdk/laravel-queue-metrics/pull/3
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.2.0...v1.3.0
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.2.0...v1.3.0
 
 ## v1.2.0 - 2025-11-20
 
 ### What's Changed
 
-* Fix race conditions and implement queue metrics aggregation by @sylvesterdamgaard in https://github.com/gophpeek/laravel-queue-metrics/pull/2
+* Fix race conditions and implement queue metrics aggregation by @sylvesterdamgaard in https://github.com/cboxdk/laravel-queue-metrics/pull/2
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v1.1.0...v1.2.0
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.1.0...v1.2.0
 
 ## v1.1.0 - 2025-11-19
 
 ### What's Changed
 
-* fix(redis): use spread operator for variadic Redis set operations by @sylvesterdamgaard in https://github.com/gophpeek/laravel-queue-metrics/pull/1
+* fix(redis): use spread operator for variadic Redis set operations by @sylvesterdamgaard in https://github.com/cboxdk/laravel-queue-metrics/pull/1
 
 ### New Contributors
 
-* @sylvesterdamgaard made their first contribution in https://github.com/gophpeek/laravel-queue-metrics/pull/1
+* @sylvesterdamgaard made their first contribution in https://github.com/cboxdk/laravel-queue-metrics/pull/1
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/compare/v0.0.1...v1.1.0
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v0.0.1...v1.1.0
 
 ## v1.0.0 - 2025-11-19
 
-**Full Changelog**: https://github.com/gophpeek/laravel-queue-metrics/commits/v1.0.0
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/commits/v1.0.0

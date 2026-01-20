@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\MemoryStats;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\MemoryStats;
 
 describe('MemoryStats', function () {
     it('can be created with all properties', function () {

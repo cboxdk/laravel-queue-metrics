@@ -673,7 +673,7 @@ Get current server resource metrics.
 curl http://your-app.test/queue-metrics/server/metrics
 ```
 
-**Note**: Requires [gophpeek/system-metrics](https://github.com/gophpeek/system-metrics) package.
+**Note**: Requires [cboxdk/system-metrics](https://github.com/cboxdk/system-metrics) package.
 
 ---
 
@@ -884,7 +884,7 @@ curl -H "Accept: application/json" \
 While the package doesn't provide webhooks out of the box, you can build them using events:
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 Event::listen(HealthScoreChanged::class, function ($event) {
     if ($event->toStatus === 'critical') {

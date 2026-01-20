@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Commands;
+namespace Cbox\LaravelQueueMetrics\Commands;
 
 use Illuminate\Console\Command;
-use PHPeek\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
+use Cbox\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
 
 /**
  * Calculate baseline metrics for all queues.
@@ -180,7 +180,7 @@ final class CalculateBaselinesCommand extends Command
     /**
      * Display details for a specific baseline.
      */
-    private function displayBaselineDetails(\PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData $baseline): void
+    private function displayBaselineDetails(\Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData $baseline): void
     {
         $this->newLine();
         $this->line('  CPU per job: '.$baseline->cpuPercentPerJob.'%');

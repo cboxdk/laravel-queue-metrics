@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\JobExecutionData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\JobExecutionData;
 
 describe('JobExecutionData', function () {
     it('can be created with all properties', function () {

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPeek\LaravelQueueMetrics\Commands;
+namespace Cbox\LaravelQueueMetrics\Commands;
 
 use Illuminate\Console\Command;
 

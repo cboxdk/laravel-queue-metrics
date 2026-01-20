@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
+namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use PHPeek\LaravelQueueMetrics\Services\ServerMetricsService;
+use Cbox\LaravelQueueMetrics\Services\ServerMetricsService;
 
 /**
  * Exposes server-wide resource metrics.

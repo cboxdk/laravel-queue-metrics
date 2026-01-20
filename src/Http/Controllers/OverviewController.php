@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
+namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use PHPeek\LaravelQueueMetrics\Services\OverviewQueryService;
+use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
 
 /**
  * HTTP controller for overview endpoint.

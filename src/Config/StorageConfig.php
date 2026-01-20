@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Config;
+namespace Cbox\LaravelQueueMetrics\Config;
 
 /**
  * Storage configuration with type-safe accessors.

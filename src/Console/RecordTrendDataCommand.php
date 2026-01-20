@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Console;
+namespace Cbox\LaravelQueueMetrics\Console;
 
 use Illuminate\Console\Command;
-use PHPeek\LaravelQueueMetrics\Actions\RecordQueueDepthHistoryAction;
-use PHPeek\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Services\QueueMetricsQueryService;
-use PHPeek\LaravelQueueMetrics\Support\MetricsConstants;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Actions\RecordQueueDepthHistoryAction;
+use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Record historical trend data for analysis.

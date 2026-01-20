@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories\Contracts;
+namespace Cbox\LaravelQueueMetrics\Repositories\Contracts;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
 
 /**
  * Repository contract for worker tracking.

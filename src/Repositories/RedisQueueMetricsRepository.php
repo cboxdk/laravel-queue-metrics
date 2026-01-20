@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories;
+namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Queue;
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Support\MetricsConstants;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of queue metrics repository.

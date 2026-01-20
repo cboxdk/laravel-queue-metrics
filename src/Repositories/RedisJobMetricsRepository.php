@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories;
+namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of job metrics repository.

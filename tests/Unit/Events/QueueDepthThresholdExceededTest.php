@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
-use PHPeek\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
 
 beforeEach(function () {
     Event::fake([QueueDepthThresholdExceeded::class]);

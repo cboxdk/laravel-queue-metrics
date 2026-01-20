@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
-use PHPeek\SystemMetrics\SystemMetrics;
+use Cbox\SystemMetrics\SystemMetrics;
 
 /**
  * Service for collecting server-wide resource metrics.

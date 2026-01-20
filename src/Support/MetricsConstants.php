@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Support;
+namespace Cbox\LaravelQueueMetrics\Support;
 
 /**
  * Central constants for queue metrics system.

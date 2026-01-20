@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 
 beforeEach(function () {
     $this->repository = Mockery::mock(WorkerHeartbeatRepository::class);

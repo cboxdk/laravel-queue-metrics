@@ -37,7 +37,7 @@ Events follow Laravel's event system and are perfect for:
 **Purpose**: Real-time monitoring and alerting
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 Event::listen(MetricsRecorded::class, function (MetricsRecorded $event) {
     $metrics = $event->metrics; // JobMetricsData DTO
@@ -80,7 +80,7 @@ $event->metrics->lastFailure;       // ?FailureInfoDTO
 **Purpose**: Auto-scaling and capacity planning
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
+use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
 
 Event::listen(WorkerEfficiencyChanged::class, function (WorkerEfficiencyChanged $event) {
     $recommendation = $event->getScalingRecommendation();
@@ -130,7 +130,7 @@ $event->getScalingRecommendation(); // 'scale_up'|'scale_down'|'maintain'
 **Purpose**: System health monitoring and alerts
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 Event::listen(HealthScoreChanged::class, function (HealthScoreChanged $event) {
     // Detect status transitions
@@ -175,7 +175,7 @@ $event->severity;      // 'normal'|'info'|'warning'|'critical'
 **Purpose**: Performance regression detection
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\BaselineRecalculated;
+use Cbox\LaravelQueueMetrics\Events\BaselineRecalculated;
 
 Event::listen(BaselineRecalculated::class, function (BaselineRecalculated $event) {
     // Check if baseline changed significantly
@@ -214,7 +214,7 @@ $event->isSignificantChange(); // bool (>20% change)
 **Purpose**: Capacity alerts and scaling triggers
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
+use Cbox\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
 
 Event::listen(QueueDepthThresholdExceeded::class, function (QueueDepthThresholdExceeded $event) {
     // Calculate severity
@@ -265,7 +265,7 @@ $event->getPercentageOverThreshold(); // float
 Register listeners in `app/Providers/EventServiceProvider.php`:
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\{
+use Cbox\LaravelQueueMetrics\Events\{
     MetricsRecorded,
     WorkerEfficiencyChanged,
     HealthScoreChanged,
@@ -323,7 +323,7 @@ Make listeners asynchronous for non-critical processing:
 namespace App\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 class SendMetricsToDatadog implements ShouldQueue
 {
@@ -345,7 +345,7 @@ class SendMetricsToDatadog implements ShouldQueue
 ### Slack Notifications
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 Event::listen(HealthScoreChanged::class, function (HealthScoreChanged $event) {
     if ($event->severity === 'critical') {
@@ -361,7 +361,7 @@ Event::listen(HealthScoreChanged::class, function (HealthScoreChanged $event) {
 ### PagerDuty Integration
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
+use Cbox\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
 
 Event::listen(QueueDepthThresholdExceeded::class, function ($event) {
     if ($event->getPercentageOverThreshold() > 100) {
@@ -383,7 +383,7 @@ Event::listen(QueueDepthThresholdExceeded::class, function ($event) {
 ### Datadog Metrics
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 Event::listen(MetricsRecorded::class, function (MetricsRecorded $event) {
     $tags = [
@@ -402,7 +402,7 @@ Event::listen(MetricsRecorded::class, function (MetricsRecorded $event) {
 ### AWS CloudWatch
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
+use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
 use Aws\CloudWatch\CloudWatchClient;
 
 Event::listen(WorkerEfficiencyChanged::class, function ($event) {
@@ -429,7 +429,7 @@ Event::listen(WorkerEfficiencyChanged::class, function ($event) {
 ### Auto-Scaling with Kubernetes
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
+use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
 use Kubernetes\Client;
 
 Event::listen(WorkerEfficiencyChanged::class, function ($event) {
@@ -447,7 +447,7 @@ Event::listen(WorkerEfficiencyChanged::class, function ($event) {
 ### Custom Dashboard Updates
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 Event::listen(MetricsRecorded::class, function (MetricsRecorded $event) {
     // Broadcast to websocket for real-time dashboard
@@ -463,7 +463,7 @@ Event::listen(MetricsRecorded::class, function (MetricsRecorded $event) {
 ### Anomaly Detection
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 Event::listen(MetricsRecorded::class, function (MetricsRecorded $event) {
     $metrics = $event->metrics;
@@ -544,7 +544,7 @@ class BatchMetricsToDatadog implements ShouldQueue
 ### Testing Event Dispatch
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 test('health score change dispatches event', function () {
     Event::fake();
@@ -562,7 +562,7 @@ test('health score change dispatches event', function () {
 
 ```php
 use App\Listeners\SendHealthAlert;
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 test('alert is sent when health becomes critical', function () {
     Slack::fake();
@@ -591,7 +591,7 @@ Enable event logging to debug listener execution:
 // In AppServiceProvider::boot()
 
 Event::listen('*', function ($eventName, $data) {
-    if (str_starts_with($eventName, 'PHPeek\\LaravelQueueMetrics\\Events')) {
+    if (str_starts_with($eventName, 'Cbox\\LaravelQueueMetrics\\Events')) {
         Log::debug('Queue metrics event', [
             'event' => class_basename($eventName),
             'data' => $data,

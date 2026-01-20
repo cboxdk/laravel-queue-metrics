@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Exceptions;
+namespace Cbox\LaravelQueueMetrics\Exceptions;
 
 use RuntimeException;
 

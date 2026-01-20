@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories\Contracts;
+namespace Cbox\LaravelQueueMetrics\Repositories\Contracts;
 
 use Carbon\Carbon;
 

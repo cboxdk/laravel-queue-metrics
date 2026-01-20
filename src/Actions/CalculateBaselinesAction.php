@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Actions;
+namespace Cbox\LaravelQueueMetrics\Actions;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
-use PHPeek\LaravelQueueMetrics\Events\BaselineRecalculated;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Cbox\LaravelQueueMetrics\Events\BaselineRecalculated;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Calculate baseline metrics using sliding window with exponential decay.

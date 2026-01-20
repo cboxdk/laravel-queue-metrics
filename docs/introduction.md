@@ -61,7 +61,7 @@ Deep dive into advanced capabilities:
 
 - **Quick answers**: See the [Quick Start Guide](quickstart)
 - **Configuration issues**: Check the [Configuration Reference](configuration-reference)
-- **Found a bug?**: Report it on [GitHub Issues](https://github.com/gophpeek/laravel-queue-metrics/issues)
+- **Found a bug?**: Report it on [GitHub Issues](https://github.com/cboxdk/laravel-queue-metrics/issues)
 
 ## Package Requirements
 

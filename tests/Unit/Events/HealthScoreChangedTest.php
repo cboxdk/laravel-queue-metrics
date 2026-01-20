@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 beforeEach(function () {
     Event::fake([HealthScoreChanged::class]);

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
 use Illuminate\Support\Facades\Cache;
-use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
-use PHPeek\LaravelQueueMetrics\Services\Contracts\OverviewQueryInterface;
+use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
+use Cbox\LaravelQueueMetrics\Services\Contracts\OverviewQueryInterface;
 use Spatie\Prometheus\Facades\Prometheus;
 
 /**

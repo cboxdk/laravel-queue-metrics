@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Tests\Feature;
+namespace Cbox\LaravelQueueMetrics\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Tests\Feature\Support\TestJob;
-use PHPeek\LaravelQueueMetrics\Tests\TestCase;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Tests\Feature\Support\TestJob;
+use Cbox\LaravelQueueMetrics\Tests\TestCase;
 
 /**
  * @group redis

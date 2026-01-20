@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Queue\RedisQueue;
-use PHPeek\LaravelQueueMetrics\Contracts\QueueInspector;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 use ReflectionClass;
 use ReflectionException;
 

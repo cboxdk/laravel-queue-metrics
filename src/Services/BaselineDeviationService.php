@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Support\MetricsConstants;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Detect deviations from baseline metrics.

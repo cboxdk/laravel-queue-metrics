@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Actions;
+namespace Cbox\LaravelQueueMetrics\Actions;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
-use PHPeek\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
-use PHPeek\LaravelQueueMetrics\Support\MetricsConstants;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
+use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Record queue depth to historical time series for trend analysis.

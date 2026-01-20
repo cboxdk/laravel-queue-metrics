@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories;
+namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of baseline repository.

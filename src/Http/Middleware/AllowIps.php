@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Middleware;
+namespace Cbox\LaravelQueueMetrics\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;

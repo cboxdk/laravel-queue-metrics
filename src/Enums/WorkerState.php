@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Enums;
+namespace Cbox\LaravelQueueMetrics\Enums;
 
 /**
  * Worker state enum.

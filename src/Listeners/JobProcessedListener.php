@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Listeners;
+namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Illuminate\Queue\Events\JobProcessed;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
-use PHPeek\SystemMetrics\ProcessMetrics;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\SystemMetrics\ProcessMetrics;
 
 /**
  * Listen for successfully processed jobs.

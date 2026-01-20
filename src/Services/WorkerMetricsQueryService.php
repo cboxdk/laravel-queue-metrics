@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
 use Illuminate\Support\Collection;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
 
 /**
  * Service for querying worker-specific metrics.

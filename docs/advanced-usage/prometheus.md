@@ -154,7 +154,7 @@ worker_memory_mb{worker_id="worker-12345"} 128.5
 worker_cpu_percent{worker_id="worker-12345"} 45.2
 ```
 
-### Server Metrics (if gophpeek/system-metrics installed)
+### Server Metrics (if cboxdk/system-metrics installed)
 
 ```promql
 # TYPE server_cpu_percent gauge

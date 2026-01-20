@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
-use PHPeek\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobFailureAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobStartAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordQueueDepthHistoryAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordThroughputHistoryAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
-use PHPeek\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisBaselineRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerRepository;
+use Cbox\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
+use Cbox\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordQueueDepthHistoryAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordThroughputHistoryAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
+use Cbox\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisBaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisWorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisWorkerRepository;
 
-// config for PHPeek/LaravelQueueMetrics
+// config for Cbox/LaravelQueueMetrics
 return [
 
     /*

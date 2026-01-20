@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services\Contracts;
+namespace Cbox\LaravelQueueMetrics\Services\Contracts;
 
 interface OverviewQueryInterface
 {

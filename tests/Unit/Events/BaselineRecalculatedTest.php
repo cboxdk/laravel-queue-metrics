@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Event;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
-use PHPeek\LaravelQueueMetrics\Events\BaselineRecalculated;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Cbox\LaravelQueueMetrics\Events\BaselineRecalculated;
 
 beforeEach(function () {
     Event::fake([BaselineRecalculated::class]);

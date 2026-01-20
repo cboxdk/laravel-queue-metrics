@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Facades;
+namespace Cbox\LaravelQueueMetrics\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use PHPeek\LaravelQueueMetrics\Services\JobMetricsQueryService;
-use PHPeek\LaravelQueueMetrics\Services\OverviewQueryService;
-use PHPeek\LaravelQueueMetrics\Services\QueueMetricsQueryService;
-use PHPeek\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
+use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 
 /**
  * Facade providing convenient access to queue metrics services.
@@ -18,27 +18,27 @@ use PHPeek\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
  * @method static array<string, mixed> getOverview()
  *
  * Job metrics methods:
- * @method static \PHPeek\LaravelQueueMetrics\DataTransferObjects\JobMetricsData getJobMetrics(string $jobClass, string $connection = 'default', string $queue = 'default')
+ * @method static \Cbox\LaravelQueueMetrics\DataTransferObjects\JobMetricsData getJobMetrics(string $jobClass, string $connection = 'default', string $queue = 'default')
  * @method static array<string, array<string, mixed>> getAllJobsWithMetrics()
  *
  * Queue metrics methods:
- * @method static \PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueMetricsData getQueueMetrics(string $connection = 'default', string $queue = 'default')
- * @method static \PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueDepthData getQueueDepth(string $connection = 'default', string $queue = 'default')
+ * @method static \Cbox\LaravelQueueMetrics\DataTransferObjects\QueueMetricsData getQueueMetrics(string $connection = 'default', string $queue = 'default')
+ * @method static \Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData getQueueDepth(string $connection = 'default', string $queue = 'default')
  * @method static array<string, array<string, mixed>> getAllQueuesWithMetrics()
  * @method static array<string, mixed> healthCheck()
  *
  * Worker metrics methods:
- * @method static \Illuminate\Support\Collection<int, \PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat> getActiveWorkers(?string $connection = null, ?string $queue = null)
- * @method static \Illuminate\Support\Collection<int, \PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat> getWorkerHeartbeats(?string $connection = null, ?string $queue = null)
- * @method static ?\PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat getWorkerHeartbeat(string $workerId)
+ * @method static \Illuminate\Support\Collection<int, \Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat> getActiveWorkers(?string $connection = null, ?string $queue = null)
+ * @method static \Illuminate\Support\Collection<int, \Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat> getWorkerHeartbeats(?string $connection = null, ?string $queue = null)
+ * @method static ?\Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat getWorkerHeartbeat(string $workerId)
  * @method static int detectStaledWorkers(int $thresholdSeconds = 60)
  * @method static array<string, array<string, mixed>> getAllServersWithMetrics()
  * @method static array<string, mixed> getWorkersSummary()
  *
- * @see \PHPeek\LaravelQueueMetrics\Services\OverviewQueryService
- * @see \PHPeek\LaravelQueueMetrics\Services\JobMetricsQueryService
- * @see \PHPeek\LaravelQueueMetrics\Services\QueueMetricsQueryService
- * @see \PHPeek\LaravelQueueMetrics\Services\WorkerMetricsQueryService
+ * @see \Cbox\LaravelQueueMetrics\Services\OverviewQueryService
+ * @see \Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService
+ * @see \Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService
+ * @see \Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService
  */
 final class QueueMetrics extends Facade
 {

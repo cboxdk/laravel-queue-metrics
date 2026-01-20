@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Support;
+namespace Cbox\LaravelQueueMetrics\Support;
 
 /**
  * Helper for building Redis keys with consistent prefixing.

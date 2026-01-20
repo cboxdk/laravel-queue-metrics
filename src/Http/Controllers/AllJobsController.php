@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
+namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use PHPeek\LaravelQueueMetrics\Services\JobMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService;
 
 /**
  * HTTP controller for all jobs with comprehensive metrics.

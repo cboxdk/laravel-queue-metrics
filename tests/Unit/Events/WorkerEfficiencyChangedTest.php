@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
-use PHPeek\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
+use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
 
 beforeEach(function () {
     Event::fake([WorkerEfficiencyChanged::class]);

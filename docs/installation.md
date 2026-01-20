@@ -13,7 +13,7 @@ Get Laravel Queue Metrics up and running in your Laravel application.
 - **PHP**: 8.3 or higher
 - **Laravel**: 11.0+ or 12.0+
 - **Storage**: Redis (recommended) or Database
-- **Optional**: [gophpeek/system-metrics](https://github.com/gophpeek/system-metrics) for server monitoring
+- **Optional**: [cboxdk/system-metrics](https://github.com/cboxdk/system-metrics) for server monitoring
 
 ### Laravel Version Notes
 
@@ -26,7 +26,7 @@ Earlier versions use driver-specific implementations with reflection but work pe
 ### 1. Install via Composer
 
 ```bash
-composer require gophpeek/laravel-queue-metrics
+composer require cboxdk/laravel-queue-metrics
 ```
 
 The package will auto-register its service provider.
@@ -212,7 +212,7 @@ Or create a custom middleware:
 To react to metrics events, register listeners in `EventServiceProvider`:
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\{
+use Cbox\LaravelQueueMetrics\Events\{
     MetricsRecorded,
     WorkerEfficiencyChanged,
     HealthScoreChanged,
@@ -242,7 +242,7 @@ See [Events](advanced-usage/events) for detailed usage.
 For data enrichment, register hooks in `AppServiceProvider`:
 
 ```php
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 public function boot(): void
 {
@@ -386,7 +386,7 @@ If upgrading from a pre-1.0 version:
 Regular updates:
 
 ```bash
-composer update gophpeek/laravel-queue-metrics
+composer update cboxdk/laravel-queue-metrics
 ```
 
 Always check [CHANGELOG.md](../CHANGELOG.md) for breaking changes.
@@ -398,7 +398,7 @@ To remove the package:
 ### 1. Remove Package
 
 ```bash
-composer remove gophpeek/laravel-queue-metrics
+composer remove cboxdk/laravel-queue-metrics
 ```
 
 ### 2. Clean Up Data

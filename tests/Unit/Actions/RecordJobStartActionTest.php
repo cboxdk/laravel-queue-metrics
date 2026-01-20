@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobStartAction;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 
 beforeEach(function () {
     $this->repository = Mockery::mock(JobMetricsRepository::class);

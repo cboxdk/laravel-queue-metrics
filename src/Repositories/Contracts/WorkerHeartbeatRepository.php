@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories\Contracts;
+namespace Cbox\LaravelQueueMetrics\Repositories\Contracts;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 
 /**
  * Repository contract for worker heartbeat storage and retrieval.

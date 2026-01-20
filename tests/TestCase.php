@@ -1,10 +1,10 @@
 <?php
 
-namespace PHPeek\LaravelQueueMetrics\Tests;
+namespace Cbox\LaravelQueueMetrics\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use PHPeek\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider;
+use Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -13,7 +13,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'PHPeek\\LaravelQueueMetrics\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'Cbox\\LaravelQueueMetrics\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 

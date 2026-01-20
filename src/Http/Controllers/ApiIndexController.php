@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
+namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
@@ -19,7 +19,7 @@ final class ApiIndexController extends Controller
         return response()->json([
             'message' => 'Laravel Queue Metrics API',
             'version' => '1.0.0',
-            'documentation' => 'https://github.com/PHPeek/laravel-queue-metrics',
+            'documentation' => 'https://github.com/Cbox/laravel-queue-metrics',
             'endpoints' => [
                 'health' => [
                     'url' => "{$baseUrl}/health",

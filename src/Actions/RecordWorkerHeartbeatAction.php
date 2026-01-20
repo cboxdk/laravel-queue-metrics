@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Actions;
+namespace Cbox\LaravelQueueMetrics\Actions;
 
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\SystemMetrics\ProcessMetrics;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\SystemMetrics\ProcessMetrics;
 
 /**
  * Record worker heartbeat with current state.

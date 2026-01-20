@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Analyzes metrics trends over time for forecasting and insights.

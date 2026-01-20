@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Config;
+namespace Cbox\LaravelQueueMetrics\Config;
 
 /**
  * Main configuration class for queue metrics package.

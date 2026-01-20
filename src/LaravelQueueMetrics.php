@@ -1,5 +1,5 @@
 <?php
 
-namespace PHPeek\LaravelQueueMetrics;
+namespace Cbox\LaravelQueueMetrics;
 
 class LaravelQueueMetrics {}

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
+namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use PHPeek\LaravelQueueMetrics\Services\QueueMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
 
 /**
  * Queue depth monitoring controller.

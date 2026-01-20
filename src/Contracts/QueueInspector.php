@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Contracts;
+namespace Cbox\LaravelQueueMetrics\Contracts;
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 
 /**
  * Contract for inspecting queue depth and job statistics.

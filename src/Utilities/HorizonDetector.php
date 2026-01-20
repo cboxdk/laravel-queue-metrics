@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Utilities;
+namespace Cbox\LaravelQueueMetrics\Utilities;
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\HorizonContext;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\HorizonContext;
 
 /**
  * Detects if current process is running under Laravel Horizon.

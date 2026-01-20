@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Listeners;
+namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Carbon\Carbon;
 use Illuminate\Queue\Events\JobRetryRequested;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 
 /**
  * Listen for job retry requests.

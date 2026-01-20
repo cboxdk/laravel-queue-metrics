@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories;
+namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of worker repository.

@@ -1,5 +1,5 @@
 <?php
 
-use PHPeek\LaravelQueueMetrics\Tests\TestCase;
+use Cbox\LaravelQueueMetrics\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);

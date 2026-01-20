@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
-use PHPeek\LaravelQueueMetrics\Contracts\QueueInspector;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueMetricsData;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueMetricsData;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Service for querying queue-specific metrics.

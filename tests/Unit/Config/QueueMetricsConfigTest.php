@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
-use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
+use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
+use Cbox\LaravelQueueMetrics\Config\StorageConfig;
 
 beforeEach(function () {
     config()->set('queue-metrics', [

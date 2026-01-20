@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Actions;
+namespace Cbox\LaravelQueueMetrics\Actions;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Record throughput to historical time series for trend analysis.

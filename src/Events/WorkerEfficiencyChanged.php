@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Events;
+namespace Cbox\LaravelQueueMetrics\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 

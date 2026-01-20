@@ -17,7 +17,7 @@ Get up and running with Laravel Queue Metrics in 5 minutes.
 ## Install Package
 
 ```bash
-composer require gophpeek/laravel-queue-metrics
+composer require cboxdk/laravel-queue-metrics
 ```
 
 That's it! The package auto-registers and starts collecting metrics immediately.
@@ -43,7 +43,7 @@ curl http://your-app.test/queue-metrics/workers
 ### Via Facade
 
 ```php
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 // Get job metrics
 $metrics = QueueMetrics::getJobMetrics(\App\Jobs\ProcessOrder::class);
@@ -84,7 +84,7 @@ scrape_configs:
 ### Monitor Job Performance
 
 ```php
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 $metrics = QueueMetrics::getJobMetrics(\App\Jobs\ProcessOrder::class);
 
@@ -109,7 +109,7 @@ if ($metrics->throughput->perMinute < 10) { // < 10 jobs/min
 Register listeners in `EventServiceProvider`:
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 protected $listen = [
     HealthScoreChanged::class => [
@@ -122,7 +122,7 @@ protected $listen = [
 // app/Listeners/SendHealthAlert.php
 namespace App\Listeners;
 
-use PHPeek\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 
 class SendHealthAlert
 {
@@ -140,7 +140,7 @@ class SendHealthAlert
 Add custom data to all metrics in `AppServiceProvider`:
 
 ```php
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 public function boot(): void
 {
@@ -196,7 +196,7 @@ Route::get('/dashboard/queues', function () {
 ### Slack Notifications
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
+use Cbox\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
 
 Event::listen(QueueDepthThresholdExceeded::class, function ($event) {
     Slack::send(
@@ -209,7 +209,7 @@ Event::listen(QueueDepthThresholdExceeded::class, function ($event) {
 ### Auto-Scaling
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
+use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
 
 Event::listen(WorkerEfficiencyChanged::class, function ($event) {
     $recommendation = $event->getScalingRecommendation();

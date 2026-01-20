@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
+use Cbox\LaravelQueueMetrics\Config\StorageConfig;
 
 it('creates config from array with all values', function () {
     $config = StorageConfig::fromArray([

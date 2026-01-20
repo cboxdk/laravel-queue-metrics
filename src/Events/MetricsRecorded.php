@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Events;
+namespace Cbox\LaravelQueueMetrics\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
 
 /**
  * Fired when new metrics are recorded.

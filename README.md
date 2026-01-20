@@ -1,9 +1,9 @@
 # Laravel Queue Metrics
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/gophpeek/laravel-queue-metrics.svg?style=flat-square)](https://packagist.org/packages/gophpeek/laravel-queue-metrics)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/gophpeek/laravel-queue-metrics/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/gophpeek/laravel-queue-metrics/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/gophpeek/laravel-queue-metrics/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/gophpeek/laravel-queue-metrics/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/gophpeek/laravel-queue-metrics.svg?style=flat-square)](https://packagist.org/packages/gophpeek/laravel-queue-metrics)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/cboxdk/laravel-queue-metrics.svg?style=flat-square)](https://packagist.org/packages/cboxdk/laravel-queue-metrics)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/cboxdk/laravel-queue-metrics/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/cboxdk/laravel-queue-metrics/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/cboxdk/laravel-queue-metrics/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/cboxdk/laravel-queue-metrics/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/cboxdk/laravel-queue-metrics.svg?style=flat-square)](https://packagist.org/packages/cboxdk/laravel-queue-metrics)
 
 **Production-ready queue monitoring and metrics collection for Laravel applications.**
 
@@ -22,7 +22,7 @@ Laravel Queue Metrics provides deep observability into your Laravel queue system
 ## Quick Example
 
 ```php
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 // Get job performance metrics
 $metrics = QueueMetrics::getJobMetrics(ProcessOrder::class);
@@ -67,7 +67,7 @@ Event::listen(HealthScoreChanged::class, function ($event) {
 ## Installation
 
 ```bash
-composer require gophpeek/laravel-queue-metrics
+composer require cboxdk/laravel-queue-metrics
 ```
 
 That's it! The package auto-registers and starts collecting metrics immediately.
@@ -202,7 +202,7 @@ Event::listen(WorkerEfficiencyChanged::class, function ($event) {
 ### Multi-Tenancy Integration
 
 ```php
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 Event::listen(MetricsRecorded::class, function (MetricsRecorded $event) {
     // Log with tenant context

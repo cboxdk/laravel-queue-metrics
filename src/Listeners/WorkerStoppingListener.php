@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Listeners;
+namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Illuminate\Queue\Events\WorkerStopping;
-use PHPeek\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 
 /**
  * Listen for worker stopping events.

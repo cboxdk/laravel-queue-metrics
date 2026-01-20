@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPeek\LaravelQueueMetrics\Database\Factories;
+namespace Cbox\LaravelQueueMetrics\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 

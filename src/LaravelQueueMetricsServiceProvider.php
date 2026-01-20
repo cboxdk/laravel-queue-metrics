@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics;
+namespace Cbox\LaravelQueueMetrics;
 
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
@@ -14,49 +14,49 @@ use Illuminate\Queue\Events\JobTimedOut;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Support\Facades\Event;
-use PHPeek\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobFailureAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobStartAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
-use PHPeek\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
-use PHPeek\LaravelQueueMetrics\Commands\CalculateBaselinesCommand;
-use PHPeek\LaravelQueueMetrics\Commands\CleanupStaleWorkersCommand;
-use PHPeek\LaravelQueueMetrics\Config\QueueMetricsConfig;
-use PHPeek\LaravelQueueMetrics\Config\StorageConfig;
-use PHPeek\LaravelQueueMetrics\Console\CalculateQueueMetricsCommand;
-use PHPeek\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
-use PHPeek\LaravelQueueMetrics\Console\RecordTrendDataCommand;
-use PHPeek\LaravelQueueMetrics\Contracts\QueueInspector;
-use PHPeek\LaravelQueueMetrics\Exceptions\ConfigurationException;
-use PHPeek\LaravelQueueMetrics\Listeners\JobExceptionOccurredListener;
-use PHPeek\LaravelQueueMetrics\Listeners\JobFailedListener;
-use PHPeek\LaravelQueueMetrics\Listeners\JobProcessedListener;
-use PHPeek\LaravelQueueMetrics\Listeners\JobProcessingListener;
-use PHPeek\LaravelQueueMetrics\Listeners\JobQueuedListener;
-use PHPeek\LaravelQueueMetrics\Listeners\JobRetryRequestedListener;
-use PHPeek\LaravelQueueMetrics\Listeners\JobTimedOutListener;
-use PHPeek\LaravelQueueMetrics\Listeners\LoopingListener;
-use PHPeek\LaravelQueueMetrics\Listeners\WorkerStoppingListener;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisBaselineRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Repositories\RedisWorkerRepository;
-use PHPeek\LaravelQueueMetrics\Services\JobMetricsQueryService;
-use PHPeek\LaravelQueueMetrics\Services\LaravelQueueInspector;
-use PHPeek\LaravelQueueMetrics\Services\OverviewQueryService;
-use PHPeek\LaravelQueueMetrics\Services\QueueMetricsQueryService;
-use PHPeek\LaravelQueueMetrics\Services\RedisKeyScannerService;
-use PHPeek\LaravelQueueMetrics\Services\ServerMetricsService;
-use PHPeek\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
-use PHPeek\LaravelQueueMetrics\Utilities\PercentileCalculator;
+use Cbox\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
+use Cbox\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
+use Cbox\LaravelQueueMetrics\Commands\CalculateBaselinesCommand;
+use Cbox\LaravelQueueMetrics\Commands\CleanupStaleWorkersCommand;
+use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
+use Cbox\LaravelQueueMetrics\Config\StorageConfig;
+use Cbox\LaravelQueueMetrics\Console\CalculateQueueMetricsCommand;
+use Cbox\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
+use Cbox\LaravelQueueMetrics\Console\RecordTrendDataCommand;
+use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
+use Cbox\LaravelQueueMetrics\Exceptions\ConfigurationException;
+use Cbox\LaravelQueueMetrics\Listeners\JobExceptionOccurredListener;
+use Cbox\LaravelQueueMetrics\Listeners\JobFailedListener;
+use Cbox\LaravelQueueMetrics\Listeners\JobProcessedListener;
+use Cbox\LaravelQueueMetrics\Listeners\JobProcessingListener;
+use Cbox\LaravelQueueMetrics\Listeners\JobQueuedListener;
+use Cbox\LaravelQueueMetrics\Listeners\JobRetryRequestedListener;
+use Cbox\LaravelQueueMetrics\Listeners\JobTimedOutListener;
+use Cbox\LaravelQueueMetrics\Listeners\LoopingListener;
+use Cbox\LaravelQueueMetrics\Listeners\WorkerStoppingListener;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisBaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisWorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Repositories\RedisWorkerRepository;
+use Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\LaravelQueueInspector;
+use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
+use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\RedisKeyScannerService;
+use Cbox\LaravelQueueMetrics\Services\ServerMetricsService;
+use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -226,10 +226,10 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
                 // Check if we should skip based on baseline confidence
                 // This allows adaptive scheduling without multiple schedule entries
                 $baselineRepository = $this->app->make(
-                    \PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository::class
+                    \Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository::class
                 );
                 $queueRepository = $this->app->make(
-                    \PHPeek\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository::class
+                    \Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository::class
                 );
 
                 $queues = $queueRepository->listQueues();

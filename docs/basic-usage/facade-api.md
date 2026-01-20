@@ -11,7 +11,7 @@ The `QueueMetrics` facade provides a clean, developer-friendly interface for acc
 ## Overview
 
 ```php
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 // Get job metrics
 $metrics = QueueMetrics::getJobMetrics(
@@ -475,7 +475,7 @@ $summary = [
 ### Type Safety
 
 ```php
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
 
 function analyzeJob(string $jobClass): array
 {

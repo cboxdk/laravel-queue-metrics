@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\DataTransferObjects;
+namespace Cbox\LaravelQueueMetrics\DataTransferObjects;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 
 /**
  * Worker heartbeat data with state and timing information.

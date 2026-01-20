@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\FailureInfo;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\FailureInfo;
 
 describe('FailureInfo', function () {
     it('can be created with all properties', function () {

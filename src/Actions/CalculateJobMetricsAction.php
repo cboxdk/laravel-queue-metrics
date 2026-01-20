@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Actions;
+namespace Cbox\LaravelQueueMetrics\Actions;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\DurationStats;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\FailureInfo;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\JobExecutionData;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\MemoryStats;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\ThroughputStats;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\WindowStats;
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
-use PHPeek\LaravelQueueMetrics\Support\MetricsConstants;
-use PHPeek\LaravelQueueMetrics\Utilities\PercentileCalculator;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\DurationStats;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\FailureInfo;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\JobExecutionData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\MemoryStats;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\ThroughputStats;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\WindowStats;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
+use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
 
 /**
  * Calculate comprehensive metrics for a job class.

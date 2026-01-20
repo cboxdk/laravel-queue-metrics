@@ -1,8 +1,8 @@
 {
-    "name": "gophpeek/laravel-queue-metrics",
+    "name": "cboxdk/laravel-queue-metrics",
     "description": "Production-ready Laravel queue monitoring with metrics, analytics, and insights",
     "keywords": [
-        "PHPeek",
+        "Cbox",
         "laravel",
         "laravel-queue-metrics",
         "queue",
@@ -11,7 +11,7 @@
         "analytics",
         "performance"
     ],
-    "homepage": "https://github.com/gophpeek/laravel-queue-metrics",
+    "homepage": "https://github.com/cboxdk/laravel-queue-metrics",
     "license": "MIT",
     "authors": [
         {
@@ -22,7 +22,7 @@
     ],
     "require": {
         "php": "^8.3|^8.4|^8.5",
-        "gophpeek/system-metrics": "^1.2",
+        "cboxdk/system-metrics": "^2.0",
         "illuminate/contracts": "^11.0|^12.0",
         "spatie/laravel-package-tools": "^1.16",
         "spatie/laravel-prometheus": "^1.3"
@@ -41,13 +41,13 @@
     },
     "autoload": {
         "psr-4": {
-            "PHPeek\\LaravelQueueMetrics\\": "src/",
-            "PHPeek\\LaravelQueueMetrics\\Database\\Factories\\": "database/factories/"
+            "Cbox\\LaravelQueueMetrics\\": "src/",
+            "Cbox\\LaravelQueueMetrics\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "PHPeek\\LaravelQueueMetrics\\Tests\\": "tests/",
+            "Cbox\\LaravelQueueMetrics\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -69,10 +69,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "PHPeek\\LaravelQueueMetrics\\LaravelQueueMetricsServiceProvider"
+                "Cbox\\LaravelQueueMetrics\\LaravelQueueMetricsServiceProvider"
             ],
             "aliases": {
-                "QueueMetrics": "PHPeek\\LaravelQueueMetrics\\Facades\\QueueMetrics"
+                "QueueMetrics": "Cbox\\LaravelQueueMetrics\\Facades\\QueueMetrics"
             }
         }
     },

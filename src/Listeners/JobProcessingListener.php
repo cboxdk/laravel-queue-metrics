@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Listeners;
+namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Illuminate\Queue\Events\JobProcessing;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobStartAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
-use PHPeek\SystemMetrics\ProcessMetrics;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\SystemMetrics\ProcessMetrics;
 
 /**
  * Listen for jobs starting to process.

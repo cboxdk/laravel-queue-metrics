@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Support;
+namespace Cbox\LaravelQueueMetrics\Support;
 
 /**
  * Static cache for Lua script SHA1 hashes to avoid reloading scripts.

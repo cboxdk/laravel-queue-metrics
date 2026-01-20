@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Tests\Feature;
+namespace Cbox\LaravelQueueMetrics\Tests\Feature;
 
-use PHPeek\SystemMetrics\ProcessMetrics;
+use Cbox\SystemMetrics\ProcessMetrics;
 
 /**
  * Integration test demonstrating child process tracking in realistic scenarios.

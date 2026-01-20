@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Listeners;
+namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Illuminate\Queue\Events\JobFailed;
-use PHPeek\LaravelQueueMetrics\Actions\RecordJobFailureAction;
-use PHPeek\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 
 /**
  * Listen for failed jobs.

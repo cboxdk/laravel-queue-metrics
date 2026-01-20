@@ -211,9 +211,9 @@ protected function isAccessible(User $user, ?string $path = null): bool
 </laravel-boost-guidelines>
 
 
-=== phpeek documentation rules ===
+=== cbox documentation rules ===
 
-## PHPeek Documentation System
+## Cbox Documentation System
 
 This application automatically imports and displays documentation from GitHub releases. Understanding this system is critical for working with documentation packages.
 
@@ -234,7 +234,7 @@ This application automatically imports and displays documentation from GitHub re
 ### Files NOT Used on Website
 
 **README.md - GitHub Only**
-- README.md is NEVER displayed on the PHPeek website
+- README.md is NEVER displayed on the Cbox website
 - README.md is only for GitHub repository display
 - If documentation exists in a `/docs` folder, README.md is completely ignored
 - Do NOT reference README.md in documentation guides or examples
@@ -594,7 +594,7 @@ docs/
 - Supported languages: PHP, JavaScript, Bash, JSON, YAML, XML, HTML, Markdown, SQL, Dockerfile
 - Specify language after opening fence: \`\`\`php, \`\`\`bash, \`\`\`json
 - Code blocks automatically get copy button
-- Custom GitHub Dark theme with PHPeek brand colors
+- Custom GitHub Dark theme with Cbox brand colors
 
 **Best Practices**
 ```markdown
@@ -707,7 +707,7 @@ Monitor CPU usage and performance with real-time metrics.
 ## Getting CPU Statistics
 
 \`\`\`php
-use PHPeek\SystemMetrics\SystemMetrics;
+use Cbox\SystemMetrics\SystemMetrics;
 
 $cpu = SystemMetrics::cpu()->get();
 
@@ -790,17 +790,17 @@ URL:  /docs/system-metrics/v1/advanced/features/custom
 **SEO Metadata Generated**
 ```html
 <!-- From frontmatter -->
-<title>CPU Metrics - System Metrics v1 - PHPeek</title>
+<title>CPU Metrics - System Metrics v1 - Cbox</title>
 <meta name="description" content="Get raw CPU time counters and per-core metrics from the system">
 
 <!-- Auto-generated -->
 <meta property="og:title" content="CPU Metrics">
 <meta property="og:description" content="Get raw CPU time counters...">
-<meta property="og:url" content="https://phpeek.com/docs/system-metrics/v1/basic-usage/cpu-metrics">
+<meta property="og:url" content="https://cbox.com/docs/system-metrics/v1/basic-usage/cpu-metrics">
 <meta property="og:type" content="article">
 
 <!-- Canonical URL -->
-<link rel="canonical" href="https://phpeek.com/docs/system-metrics/v1/basic-usage/cpu-metrics">
+<link rel="canonical" href="https://cbox.com/docs/system-metrics/v1/basic-usage/cpu-metrics">
 ```
 
 **SEO Best Practices**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Utilities;
+namespace Cbox\LaravelQueueMetrics\Utilities;
 
 /**
  * Calculate percentiles from a dataset.

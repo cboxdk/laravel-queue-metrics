@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Support;
+namespace Cbox\LaravelQueueMetrics\Support;
 
 /**
  * Wrapper around Laravel Redis pipeline for batch operations.

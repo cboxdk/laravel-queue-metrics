@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Commands;
+namespace Cbox\LaravelQueueMetrics\Commands;
 
 use Illuminate\Console\Command;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
 
 /**
  * Clean up stale worker records from metrics storage.

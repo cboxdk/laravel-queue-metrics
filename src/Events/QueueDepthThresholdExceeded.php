@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Events;
+namespace Cbox\LaravelQueueMetrics\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 
 /**
  * Fired when queue depth exceeds configured threshold.

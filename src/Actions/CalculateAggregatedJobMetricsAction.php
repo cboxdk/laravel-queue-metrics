@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Actions;
+namespace Cbox\LaravelQueueMetrics\Actions;
 
 use Carbon\Carbon;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\AggregatedJobMetricsData;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\AggregatedJobMetricsData;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 
 /**
  * Calculate aggregated metrics for a job class across all queues.

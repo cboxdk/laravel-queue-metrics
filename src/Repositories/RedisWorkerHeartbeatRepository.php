@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Repositories;
+namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Collection;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
-use PHPeek\LaravelQueueMetrics\Enums\WorkerState;
-use PHPeek\LaravelQueueMetrics\Exceptions\LuaScriptException;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
+use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Exceptions\LuaScriptException;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Redis-based implementation of worker heartbeat repository.

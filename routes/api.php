@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\AllJobsController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\AllQueuesController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\AllServersController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\AllWorkersController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\ApiIndexController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\HealthCheckController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\JobMetricsController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\OverviewController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\PrometheusController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\QueueDepthController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\QueueMetricsController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\ServerMetricsController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerController;
-use PHPeek\LaravelQueueMetrics\Http\Controllers\WorkerStatusController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\AllJobsController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\AllQueuesController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\AllServersController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\AllWorkersController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\ApiIndexController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\HealthCheckController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\JobMetricsController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\OverviewController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\PrometheusController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\QueueDepthController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\QueueMetricsController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\ServerMetricsController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\WorkerController;
+use Cbox\LaravelQueueMetrics\Http\Controllers\WorkerStatusController;
 
 Route::prefix('queue-metrics')
     ->middleware(config('queue-metrics.middleware', ['api']))

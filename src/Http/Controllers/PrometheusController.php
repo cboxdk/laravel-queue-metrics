@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
+namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\Response;
-use PHPeek\LaravelQueueMetrics\Services\PrometheusService;
+use Cbox\LaravelQueueMetrics\Services\PrometheusService;
 use Spatie\Prometheus\Facades\Prometheus;
 
 /**

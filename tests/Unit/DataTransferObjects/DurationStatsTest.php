@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\DurationStats;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\DurationStats;
 
 describe('DurationStats', function () {
     it('can be created with all properties', function () {

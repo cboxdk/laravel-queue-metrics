@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Services;
+namespace Cbox\LaravelQueueMetrics\Services;
 
-use PHPeek\LaravelQueueMetrics\Actions\CalculateAggregatedJobMetricsAction;
-use PHPeek\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\AggregatedJobMetricsData;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\BaselineData;
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
-use PHPeek\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
-use PHPeek\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Cbox\LaravelQueueMetrics\Actions\CalculateAggregatedJobMetricsAction;
+use Cbox\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\AggregatedJobMetricsData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Service for querying job-specific metrics.

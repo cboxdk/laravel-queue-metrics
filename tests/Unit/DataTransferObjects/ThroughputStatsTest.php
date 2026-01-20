@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\DataTransferObjects\ThroughputStats;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\ThroughputStats;
 
 describe('ThroughputStats', function () {
     it('can be created with all properties', function () {

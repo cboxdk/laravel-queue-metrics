@@ -155,7 +155,7 @@ Cache frequently accessed metrics:
 
 ```php
 use Illuminate\Support\Facades\Cache;
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 // Cache dashboard overview
 $overview = Cache::remember('metrics:overview', 60, function () {
@@ -188,7 +188,7 @@ Process hooks and events asynchronously:
 
 ```php
 use Illuminate\Contracts\Queue\ShouldQueue;
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 class SendMetricsToDatadog implements ShouldQueue
 {
@@ -277,7 +277,7 @@ Turn off unused features:
 ```php
 // In a service provider
 use Illuminate\Support\Facades\Event;
-use PHPeek\LaravelQueueMetrics\Events\MetricsRecorded;
+use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
 
 Event::listen(MetricsRecorded::class, function ($event) {
     $overhead = $event->metrics->recordingDuration ?? 0;

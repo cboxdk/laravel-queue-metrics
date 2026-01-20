@@ -41,7 +41,7 @@ Command-line tools for metrics management, maintenance, and debugging during dev
 ### Get Job Metrics
 
 ```php
-use PHPeek\LaravelQueueMetrics\Facades\QueueMetrics;
+use Cbox\LaravelQueueMetrics\Facades\QueueMetrics;
 
 $metrics = QueueMetrics::getJobMetrics(\App\Jobs\ProcessOrder::class);
 echo "Success rate: {$metrics->successRate}%\n";

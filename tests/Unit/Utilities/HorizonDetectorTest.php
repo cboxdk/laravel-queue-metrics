@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use PHPeek\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 
 describe('HorizonDetector', function () {
     beforeEach(function () {

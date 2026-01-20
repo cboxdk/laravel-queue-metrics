@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Console;
+namespace Cbox\LaravelQueueMetrics\Console;
 
 use Illuminate\Console\Command;
-use PHPeek\LaravelQueueMetrics\Actions\CalculateQueueMetricsAction;
+use Cbox\LaravelQueueMetrics\Actions\CalculateQueueMetricsAction;
 
 /**
  * Calculate and update queue-level aggregated metrics.

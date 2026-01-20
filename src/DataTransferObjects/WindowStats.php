@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\DataTransferObjects;
+namespace Cbox\LaravelQueueMetrics\DataTransferObjects;
 
 /**
  * Statistics for a specific time window.

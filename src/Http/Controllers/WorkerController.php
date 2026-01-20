@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Http\Controllers;
+namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use PHPeek\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 
 /**
  * HTTP controller for worker endpoints.

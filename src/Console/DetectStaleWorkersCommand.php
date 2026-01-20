@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPeek\LaravelQueueMetrics\Console;
+namespace Cbox\LaravelQueueMetrics\Console;
 
 use Illuminate\Console\Command;
-use PHPeek\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 
 /**
  * Console command to detect and mark stale workers as crashed.
