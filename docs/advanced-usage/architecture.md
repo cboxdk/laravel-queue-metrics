@@ -210,8 +210,6 @@ Hook::handle($payload, $next) {
 - Can short-circuit pipeline
 - Statamic-inspired trait pattern
 
-See [Hooks](hooks.md) for detailed usage.
-
 ### 4. Repository Layer
 
 **Purpose**: Data access abstraction
@@ -637,7 +635,4 @@ The architecture provides several extension points:
 
 ## Next Steps
 
-- [Storage Drivers](storage-drivers.md) - Deep dive into storage
 - [Performance Tuning](performance.md) - Optimize for scale
-- [Custom Storage Drivers](custom-storage-drivers.md) - Build your own
-- [Data Flow](data-flow.md) - Detailed flow diagrams

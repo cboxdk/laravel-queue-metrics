@@ -602,5 +602,4 @@ Event::listen('*', function ($eventName, $data) {
 
 ## Next Steps
 
-- Explore [Hooks](hooks.md) for data transformation
-- See [API Documentation](api-endpoints.md) for querying metrics
+- See [API Documentation](../basic-usage/api-endpoints.md) for querying metrics

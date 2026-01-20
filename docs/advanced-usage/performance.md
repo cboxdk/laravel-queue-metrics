@@ -513,7 +513,6 @@ CREATE INDEX idx_completed_at ON queue_job_metrics(completed_at);
 
 ## Next Steps
 
-- [Configuration Reference](configuration-reference.md) - All config options
-- [Storage Drivers](storage-drivers.md) - Deep dive into storage
+- [Configuration Reference](../configuration-reference.md) - All config options
 - [Architecture](architecture.md) - Understanding package internals
 - [Prometheus](prometheus.md) - Efficient monitoring integration

@@ -153,25 +153,23 @@ public function boot(): void
 }
 ```
 
-### Schedule Maintenance Commands
+### Schedule Maintenance Commands (Optional)
 
-In `app/Console/Kernel.php`:
+The package automatically schedules maintenance commands if `scheduling.enabled` is `true` (default).
+
+If you disable automatic scheduling, add these to `routes/console.php`:
 
 ```php
-protected function schedule(Schedule $schedule)
-{
-    // Record trends for historical analysis
-    $schedule->command('queue-metrics:trends:record')
-        ->everyFiveMinutes();
+use Illuminate\Support\Facades\Schedule;
 
-    // Detect stale workers
-    $schedule->command('queue-metrics:workers:detect-stale')
-        ->everyMinute();
+// Record trends for historical analysis
+Schedule::command('queue-metrics:trends:record')->everyFiveMinutes();
 
-    // Calculate performance baselines
-    $schedule->command('queue-metrics:baseline:calculate')
-        ->daily();
-}
+// Detect stale workers
+Schedule::command('queue-metrics:workers:detect-stale')->everyMinute();
+
+// Calculate performance baselines
+Schedule::command('queue-metrics:baseline:calculate')->daily();
 ```
 
 ## Real-World Examples
@@ -358,10 +356,10 @@ DB::table('queue_job_metrics')->get();
 ## Next Steps
 
 📚 **Learn More:**
-- [Events](advanced-usage/events) - React to metrics changes
-- [Facade API](basic-usage/facade-api) - Complete API reference
-- [Configuration](configuration-reference) - All config options
+- [Events](advanced-usage/events.md) - React to metrics changes
+- [Facade API](basic-usage/facade-api.md) - Complete API reference
+- [Configuration](configuration-reference.md) - All config options
 
 🏗️ **Advanced:**
-- [Architecture](advanced-usage/architecture) - How it works
-- [Performance Tuning](advanced-usage/performance) - Optimize for scale
+- [Architecture](advanced-usage/architecture.md) - How it works
+- [Performance Tuning](advanced-usage/performance.md) - Optimize for scale

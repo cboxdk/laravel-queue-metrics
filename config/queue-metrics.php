@@ -51,6 +51,8 @@ return [
     |--------------------------------------------------------------------------
     */
 
+    'middleware' => ['api', \Cbox\LaravelQueueMetrics\Http\Middleware\Authorize::class],
+
     'allowed_ips' => env('QUEUE_METRICS_ALLOWED_IPS') ? explode(',', env('QUEUE_METRICS_ALLOWED_IPS')) : null,
 
     /*

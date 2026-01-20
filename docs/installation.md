@@ -102,7 +102,7 @@ This creates `config/queue-metrics.php` where you can customize:
 - Performance settings
 - Worker heartbeat intervals
 
-See [Configuration Reference](configuration-reference) for all options.
+See [Configuration Reference](configuration-reference.md) for all options.
 
 ## Verification
 
@@ -161,51 +161,50 @@ php artisan horizon
 
 ## Post-Installation Setup
 
-### 1. Configure Scheduled Commands (Recommended)
+### 1. Configure Scheduled Commands (Optional)
 
-Add these to `app/Console/Kernel.php`:
+The package automatically schedules necessary maintenance tasks (like calculating baselines and recording trends) if `scheduling.enabled` is set to `true` in the config (default).
 
-```php
-protected function schedule(Schedule $schedule)
-{
-    // Record trends every 5 minutes for historical analysis
-    $schedule->command('queue-metrics:trends:record')
-        ->everyFiveMinutes();
-
-    // Detect stale workers every minute
-    $schedule->command('queue-metrics:workers:detect-stale')
-        ->everyMinute();
-
-    // Calculate baselines daily
-    $schedule->command('queue-metrics:baseline:calculate')
-        ->daily();
-
-    // Cleanup old data (only needed for database storage)
-    $schedule->command('queue-metrics:cleanup --days=7')
-        ->dailyAt('02:00')
-        ->when(fn() => config('queue-metrics.storage.driver') === 'database');
-}
-```
-
-### 2. Configure API Middleware (Optional)
-
-By default, the API is accessible without authentication. To secure it:
-
-**In `config/queue-metrics.php`:**
+If you prefer to define schedules manually (e.g., to change frequencies), disable automatic scheduling in `config/queue-metrics.php`:
 
 ```php
-'api' => [
-    'enabled' => true,
-    'prefix' => 'queue-metrics',
-    'middleware' => ['api', 'auth:sanctum'], // Add authentication
+'scheduling' => [
+    'enabled' => false,
 ],
 ```
 
-Or create a custom middleware:
+Then add the commands to your `routes/console.php` (Laravel 11+) or `app/Console/Kernel.php`:
 
 ```php
-'middleware' => ['api', 'check.admin'],
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('queue-metrics:trends:record')->everyFiveMinutes();
+Schedule::command('queue-metrics:workers:detect-stale')->everyMinute();
+Schedule::command('queue-metrics:baseline:calculate')->daily();
+
+// Only needed for database storage
+Schedule::command('queue-metrics:cleanup --days=7')
+    ->dailyAt('02:00')
+    ->when(fn() => config('queue-metrics.storage.driver') === 'database');
 ```
+
+### 2. Configure API Middleware (Recommended)
+
+By default, the API is protected by a Gate that only allows access in the `local` environment. To allow access in production, you must define the authorization logic in your `AppServiceProvider` or `AuthServiceProvider`:
+
+```php
+use Cbox\LaravelQueueMetrics\LaravelQueueMetrics;
+
+public function boot(): void
+{
+    LaravelQueueMetrics::auth(function ($request) {
+        return app()->environment('local') ||
+               in_array($request->user()?->email, ['admin@example.com']);
+    });
+}
+```
+
+For more advanced configuration, see [Security](security.md).
 
 ### 3. Register Event Listeners (Optional)
 
@@ -235,7 +234,7 @@ protected $listen = [
 ];
 ```
 
-See [Events](advanced-usage/events) for detailed usage.
+See [Events](advanced-usage/events.md) for detailed usage.
 
 ### 4. Register Hooks (Optional)
 
@@ -432,7 +431,7 @@ php artisan route:clear
 
 ## Next Steps
 
-- [Quick Start Guide](quickstart) - Start using the package
-- [Configuration Reference](configuration-reference) - Customize behavior
-- [Facade API](basic-usage/facade-api) - Learn the developer interface
-- [Events](advanced-usage/events) - React to metrics events
+- [Quick Start Guide](quickstart.md) - Start using the package
+- [Configuration Reference](configuration-reference.md) - Customize behavior
+- [Facade API](basic-usage/facade-api.md) - Learn the developer interface
+- [Events](advanced-usage/events.md) - React to metrics events

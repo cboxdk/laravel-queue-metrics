@@ -492,5 +492,5 @@ function analyzeJob(string $jobClass): array
 
 ## Next Steps
 
-- See [HTTP API](api-endpoints) for REST endpoints
-- Learn about [Events](../advanced-usage/events) for reacting to metrics
+- See [HTTP API](api-endpoints.md) for REST endpoints
+- Learn about [Events](../advanced-usage/events.md) for reacting to metrics

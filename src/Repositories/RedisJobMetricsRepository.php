@@ -128,9 +128,12 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $pipe->expire($metricsKey, $ttl);
 
             // Keep only recent samples (limit to 10000)
-            $pipe->removeSortedSetByRank($durationKey, 0, -10001);
-            $pipe->removeSortedSetByRank($memoryKey, 0, -10001);
-            $pipe->removeSortedSetByRank($cpuKey, 0, -10001);
+            // Optimization: Only trim occasionally (2% chance) to reduce overhead
+            if (mt_rand(1, 100) <= 2) {
+                $pipe->removeSortedSetByRank($durationKey, 0, -10001);
+                $pipe->removeSortedSetByRank($memoryKey, 0, -10001);
+                $pipe->removeSortedSetByRank($cpuKey, 0, -10001);
+            }
         });
 
         // Store hostname-scoped metrics if hostname is provided
@@ -220,10 +223,14 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         Carbon $timestamp,
     ): void {
         $serverKey = $this->redis->key('server_jobs', $hostname, $connection, $queue, $jobClass);
+        $discoveryKey = $this->redis->key('discovery', 'server_jobs', $hostname);
         $ttl = $this->redis->getTtl('raw');
 
         // Use transaction instead of pipeline to ensure atomicity
-        $this->redis->transaction(function ($pipe) use ($serverKey, $durationMs, $success, $timestamp, $ttl) {
+        $this->redis->transaction(function ($pipe) use ($serverKey, $discoveryKey, $durationMs, $success, $timestamp, $ttl) {
+            $pipe->addToSet($discoveryKey, $serverKey);
+            $pipe->expire($discoveryKey, $ttl);
+
             if ($success) {
                 $pipe->incrementHashField($serverKey, 'total_processed', 1);
                 $pipe->incrementHashField($serverKey, 'total_duration_ms', $durationMs);
@@ -242,13 +249,26 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
      */
     public function getHostnameJobMetrics(string $hostname): array
     {
-        $pattern = $this->redis->key('server_jobs', $hostname, '*');
-        $keys = $this->redis->driver()->scanKeys($pattern);
+        // Optimization: Use discovery set instead of expensive SCAN
+        $discoveryKey = $this->redis->key('discovery', 'server_jobs', $hostname);
+        $keys = $this->redis->driver()->getSetMembers($discoveryKey);
+
+        // Fallback for legacy data or if discovery set is empty (optional, but good for transition)
+        if (empty($keys)) {
+            $pattern = $this->redis->key('server_jobs', $hostname, '*');
+            $keys = $this->scanKeys($pattern);
+        }
+
         $metrics = [];
 
         foreach ($keys as $key) {
             /** @var array<string, string> */
             $data = $this->redis->driver()->getHash($key) ?: [];
+
+            // Skip if key is empty (expired or deleted)
+            if (empty($data)) {
+                continue;
+            }
 
             $totalProcessed = (int) ($data['total_processed'] ?? 0);
             $totalFailed = (int) ($data['total_failed'] ?? 0);

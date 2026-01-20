@@ -44,6 +44,19 @@ Event::listen(HealthScoreChanged::class, function ($event) {
 
 📚 **[Full Documentation →](docs/introduction.md)**
 
+## 🚀 Need Deep Insight and Replay Capability?
+
+While this package provides a high-level overview of your queue's health and performance via aggregated metrics, **[Laravel Queue Monitor](https://github.com/cboxdk/laravel-queue-monitor)** allows you to dive into individual job executions.
+
+**We recommend installing it if you need:**
+
+*   **🕵️‍♂️ Debugging:** View exact arguments (payload) for failed jobs and read the full stack trace.
+*   **🔁 Job Replay:** Restart failed jobs directly from the database with a single click or command.
+*   **👤 Customer Support:** Look up jobs based on tags (e.g., find all jobs for a specific user).
+*   **📜 Audit Log:** Complete history of every job execution, including which server/PID processed it.
+
+The two packages are designed to work together: **Metrics** tells you *that* something is wrong, while **Monitor** tells you *what* is wrong and lets you fix it.
+
 ### Getting Started
 - **[Installation](docs/installation.md)** - Get up and running
 - **[Quick Start](docs/quickstart.md)** - 5-minute walkthrough

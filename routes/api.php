@@ -16,10 +16,11 @@ use Cbox\LaravelQueueMetrics\Http\Controllers\QueueMetricsController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\ServerMetricsController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\WorkerController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\WorkerStatusController;
+use Cbox\LaravelQueueMetrics\Http\Middleware\Authorize;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('queue-metrics')
-    ->middleware(config('queue-metrics.middleware', ['api']))
+    ->middleware(config('queue-metrics.middleware', ['api', Authorize::class]))
     ->group(function () {
         // API discovery index
         Route::get('/', ApiIndexController::class)

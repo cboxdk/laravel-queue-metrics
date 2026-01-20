@@ -899,6 +899,6 @@ Event::listen(HealthScoreChanged::class, function ($event) {
 
 ## Next Steps
 
-- [Prometheus Integration](prometheus.md) - Set up monitoring dashboards
+- [Prometheus Integration](../advanced-usage/prometheus.md) - Set up monitoring dashboards
 - [Facade API](facade-api.md) - Programmatic access
-- [Events](events.md) - React to metrics changes
+- [Events](../advanced-usage/events.md) - React to metrics changes

@@ -78,5 +78,5 @@ protected function schedule(Schedule $schedule)
 
 ## Next Steps
 
-- [Configuration Reference](configuration-reference.md) - Configure TTL and thresholds
+- [Configuration Reference](../configuration-reference.md) - Configure TTL and thresholds
 - [API Endpoints](api-endpoints.md) - HTTP access to metrics

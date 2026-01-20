@@ -108,6 +108,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scheduling
+    |--------------------------------------------------------------------------
+    |
+    | Automatically schedule maintenance and recording tasks.
+    |
+    */
+    'scheduling' => [
+        'enabled' => env('QUEUE_METRICS_SCHEDULING_ENABLED', true),
+        'tasks' => [
+            'cleanup_stale_workers' => true,
+            'calculate_baselines' => true,
+            'calculate_queue_metrics' => true,
+            'record_trends' => true,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Dependency Injection Bindings
     |--------------------------------------------------------------------------
     */
@@ -187,5 +205,5 @@ QUEUE_METRICS_BASELINE_DEVIATION_THRESHOLD=2.0
 
 ## Next Steps
 
-- [API Endpoints](basic-usage/api-endpoints) - HTTP access to metrics
-- [Prometheus](advanced-usage/prometheus) - Monitoring integration
+- [API Endpoints](basic-usage/api-endpoints.md) - HTTP access to metrics
+- [Prometheus](advanced-usage/prometheus.md) - Monitoring integration

@@ -601,5 +601,5 @@ Ensure labels are present in the metric:
 
 ## Next Steps
 
-- [API Endpoints](api-endpoints.md) - HTTP API reference
-- [Configuration Reference](configuration-reference.md) - All configuration options
+- [API Endpoints](../basic-usage/api-endpoints.md) - HTTP API reference
+- [Configuration Reference](../configuration-reference.md) - All configuration options
