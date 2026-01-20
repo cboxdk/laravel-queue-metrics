@@ -23,6 +23,8 @@ final class JobMetricsController extends Controller
 
         $metrics = $this->metricsQuery->getAggregatedJobMetrics($decodedJobClass);
 
+        abort_if($metrics->totalExecutions === 0, 404, "No metrics found for job class: {$decodedJobClass}");
+
         return response()->json([
             'data' => $metrics->toArray(),
         ]);

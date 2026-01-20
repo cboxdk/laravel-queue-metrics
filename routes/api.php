@@ -45,11 +45,13 @@ Route::prefix('queue-metrics')
 
         // Job metrics (single job)
         Route::get('/jobs/{jobClass}', [JobMetricsController::class, 'show'])
-            ->name('queue-metrics.jobs.show');
+            ->name('queue-metrics.jobs.show')
+            ->where('jobClass', '.*'); // Allow slashes and backslashes in class names
 
         // Queue metrics
         Route::get('/queues/{connection}/{queue}', [QueueMetricsController::class, 'show'])
-            ->name('queue-metrics.queues.show');
+            ->name('queue-metrics.queues.show')
+            ->where(['connection' => '[a-zA-Z0-9_-]+', 'queue' => '[a-zA-Z0-9_-]+']);
 
         // Workers
         Route::get('/workers', [WorkerController::class, 'index'])
@@ -59,7 +61,8 @@ Route::prefix('queue-metrics')
         Route::get('/workers/status', [WorkerStatusController::class, 'index'])
             ->name('queue-metrics.workers.status');
         Route::get('/workers/status/{workerId}', [WorkerStatusController::class, 'show'])
-            ->name('queue-metrics.workers.status.show');
+            ->name('queue-metrics.workers.status.show')
+            ->where('workerId', '[a-zA-Z0-9_-]+');
         Route::post('/workers/detect-stale', [WorkerStatusController::class, 'detectStale'])
             ->name('queue-metrics.workers.detect-stale');
 
@@ -67,7 +70,8 @@ Route::prefix('queue-metrics')
         Route::get('/queues', [QueueDepthController::class, 'index'])
             ->name('queue-metrics.queues.index');
         Route::get('/queues/{connection}/{queue}/depth', [QueueDepthController::class, 'show'])
-            ->name('queue-metrics.queues.depth');
+            ->name('queue-metrics.queues.depth')
+            ->where(['connection' => '[a-zA-Z0-9_-]+', 'queue' => '[a-zA-Z0-9_-]+']);
 
         // Server metrics
         Route::get('/server', [ServerMetricsController::class, 'index'])
