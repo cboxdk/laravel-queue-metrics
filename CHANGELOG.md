@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.0.0 - Rebranded to Cbox & Quality of Life Improvements - 2026-01-20
+
+### What's Changed
+
+* chore(deps): bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 by @dependabot[bot] in https://github.com/cboxdk/laravel-queue-metrics/pull/2
+
+### New Contributors
+
+* @dependabot[bot] made their first contribution in https://github.com/cboxdk/laravel-queue-metrics/pull/2
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/commits/v2.0.0
+
 ## v1.5.0 - 2026-01-09
 
 ### What's Changed
@@ -10,6 +22,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
   - Laravel's database queue driver returns int job IDs while Redis/SQS return strings
   - All listeners now cast `$job->getJobId()` to string for consistent handling
   - Repository interfaces accept `string|int` with internal string casting
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.0...v1.5.0
 
@@ -20,6 +33,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 * fix: Cast job IDs to string in all listeners for consistency
   - Ensures consistent string type for job IDs throughout listener logic
   - Fixes potential type issues with database queue driver returning int IDs
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.1...v1.4.2
 
@@ -30,6 +44,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 * fix: Accept both string and int job IDs from Laravel queue drivers
   - Laravel's database queue driver returns int job IDs while Redis/SQS drivers return string IDs
   - Changed `$jobId` parameter type from `string` to `string|int` in all actions and repository interfaces
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.0...v1.4.1
 
@@ -51,6 +66,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
   - Add proper type annotations and validation guards
   - Fix Carbon timestamp casting for binary operations
   - Clear baseline from 32 errors to 0
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.3.0...v1.3.1
 
