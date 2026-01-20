@@ -187,6 +187,10 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
      */
     protected function registerScheduledTasks(): void
     {
+        if (! config('queue-metrics.scheduling.enabled', true)) {
+            return;
+        }
+
         /** @var int $threshold */
         $threshold = config('queue-metrics.worker_heartbeat.stale_threshold', 60);
 
@@ -194,22 +198,30 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
         $this->app->booted(function () use ($threshold) {
             $scheduler = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
 
-            $scheduler->command('queue-metrics:cleanup-stale-workers', [
-                '--threshold' => $threshold,
-            ])->everyMinute();
+            if (config('queue-metrics.scheduling.tasks.cleanup_stale_workers', true)) {
+                $scheduler->command('queue-metrics:cleanup-stale-workers', [
+                    '--threshold' => $threshold,
+                ])->everyMinute();
+            }
 
-            // Schedule adaptive baseline calculation
-            $this->scheduleAdaptiveBaselineCalculation($scheduler);
+            if (config('queue-metrics.scheduling.tasks.calculate_baselines', true)) {
+                // Schedule adaptive baseline calculation
+                $this->scheduleAdaptiveBaselineCalculation($scheduler);
+            }
 
-            // Schedule queue metrics calculation (aggregate job metrics into queue metrics)
-            $scheduler->command('queue-metrics:calculate')
-                ->everyMinute()
-                ->withoutOverlapping();
+            if (config('queue-metrics.scheduling.tasks.calculate_queue_metrics', true)) {
+                // Schedule queue metrics calculation (aggregate job metrics into queue metrics)
+                $scheduler->command('queue-metrics:calculate')
+                    ->everyMinute()
+                    ->withoutOverlapping();
+            }
 
-            // Schedule trend data recording (every minute for real-time trends)
-            $scheduler->command('queue-metrics:record-trends')
-                ->everyMinute()
-                ->withoutOverlapping();
+            if (config('queue-metrics.scheduling.tasks.record_trends', true)) {
+                // Schedule trend data recording (every minute for real-time trends)
+                $scheduler->command('queue-metrics:record-trends')
+                    ->everyMinute()
+                    ->withoutOverlapping();
+            }
         });
     }
 

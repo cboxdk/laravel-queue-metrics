@@ -121,4 +121,25 @@ return [
         'calculate_baselines' => CalculateBaselinesAction::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | ⏰ SCHEDULING
+    |--------------------------------------------------------------------------
+    |
+    | The package can automatically schedule necessary maintenance and recording
+    | tasks. You can disable these if you prefer to schedule them manually
+    | in your application's console kernel.
+    |
+    */
+
+    'scheduling' => [
+        'enabled' => env('QUEUE_METRICS_SCHEDULING_ENABLED', true),
+        'tasks' => [
+            'cleanup_stale_workers' => true,
+            'calculate_baselines' => true,
+            'calculate_queue_metrics' => true,
+            'record_trends' => true,
+        ],
+    ],
+
 ];

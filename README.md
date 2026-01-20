@@ -145,15 +145,22 @@ QUEUE_METRICS_STORAGE=database
 
 ### Scheduled Commands
 
+The package automatically schedules necessary maintenance tasks. You can disable or configure this behavior in `config/queue-metrics.php`:
+
 ```php
-// app/Console/Kernel.php
-protected function schedule(Schedule $schedule)
-{
-    $schedule->command('queue-metrics:trends:record')->everyFiveMinutes();
-    $schedule->command('queue-metrics:workers:detect-stale')->everyMinute();
-    $schedule->command('queue-metrics:baseline:calculate')->daily();
-}
+// config/queue-metrics.php
+'scheduling' => [
+    'enabled' => true,
+    'tasks' => [
+        'cleanup_stale_workers' => true,
+        'calculate_baselines' => true,
+        'calculate_queue_metrics' => true,
+        'record_trends' => true,
+    ],
+],
 ```
+
+If you prefer to manually schedule commands in your `Console/Kernel.php` (or `routes/console.php`), simply set `'enabled' => false`.
 
 **[→ Complete configuration reference](docs/configuration-reference.md)**
 
