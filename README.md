@@ -42,7 +42,7 @@ Event::listen(HealthScoreChanged::class, function ($event) {
 
 ## Documentation
 
-📚 **[Full Documentation →](docs/README.md)**
+📚 **[Full Documentation →](docs/introduction.md)**
 
 ### Getting Started
 - **[Installation](docs/installation.md)** - Get up and running
@@ -50,19 +50,17 @@ Event::listen(HealthScoreChanged::class, function ($event) {
 - **[Configuration](docs/configuration-reference.md)** - Customize behavior
 
 ### Integration
-- **[Facade API](docs/facade-api.md)** - Developer interface
-- **[HTTP API](docs/api-endpoints.md)** - REST endpoints
-- **[Prometheus](docs/prometheus.md)** - Monitoring integration
+- **[Facade API](docs/basic-usage/facade-api.md)** - Developer interface
+- **[HTTP API](docs/basic-usage/api-endpoints.md)** - REST endpoints
+- **[Prometheus](docs/advanced-usage/prometheus.md)** - Monitoring integration
 
 ### Extensibility
-- **[Events](docs/events.md)** - React to metrics changes
-- **[Architecture](docs/architecture.md)** - How it works
+- **[Events](docs/advanced-usage/events.md)** - React to metrics changes
+- **[Architecture](docs/advanced-usage/architecture.md)** - How it works
 
 ### Real-World Examples
-- **[Multi-Tenancy](docs/examples/multi-tenancy.md)** - SaaS integration patterns
-- **[Auto-Scaling](docs/examples/auto-scaling.md)** - Cloud provider integration
-- **[Alert Systems](docs/examples/alert-systems.md)** - Monitoring and alerts
-- **[Custom Dashboards](docs/examples/custom-dashboards.md)** - Build UIs
+- **[Artisan Commands](docs/basic-usage/artisan-commands.md)** - CLI tools
+- **[Performance Tuning](docs/advanced-usage/performance.md)** - Optimizing for scale
 
 ## Installation
 
@@ -236,7 +234,7 @@ GET /queue-metrics/workers
 GET /queue-metrics/prometheus
 ```
 
-**[→ Complete API reference](docs/api-endpoints.md)**
+**[→ Complete API reference](docs/basic-usage/api-endpoints.md)**
 
 ## Prometheus Integration
 
@@ -263,7 +261,7 @@ job_duration_p95_ms{job_class="App\\Jobs\\ProcessOrder"}
 job_failure_rate > 5
 ```
 
-**[→ Prometheus setup guide](docs/prometheus.md)**
+**[→ Prometheus setup guide](docs/advanced-usage/prometheus.md)**
 
 ## Architecture
 
@@ -277,7 +275,7 @@ Laravel Queue Metrics uses a clean, layered architecture:
 - **DTOs** → Type-safe, immutable data structures
 - **Events** → Reactive monitoring and notifications
 
-**[→ Architecture deep dive](docs/architecture.md)**
+**[→ Architecture deep dive](docs/advanced-usage/architecture.md)**
 
 ## Performance
 
@@ -286,7 +284,7 @@ Laravel Queue Metrics uses a clean, layered architecture:
 - **Tested throughput**: 10,000+ jobs/minute
 - **Storage**: Auto-cleanup via TTL (Redis) or manual cleanup (Database)
 
-**[→ Performance tuning guide](docs/performance.md)**
+**[→ Performance tuning guide](docs/advanced-usage/performance.md)**
 
 ## Testing
 
@@ -315,4 +313,4 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 ---
 
-**[📚 Read the full documentation →](docs/README.md)**
+**[📚 Read the full documentation →](docs/introduction.md)**
