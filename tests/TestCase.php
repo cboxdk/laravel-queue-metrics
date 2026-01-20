@@ -2,9 +2,9 @@
 
 namespace Cbox\LaravelQueueMetrics\Tests;
 
+use Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider;
 
 class TestCase extends Orchestra
 {

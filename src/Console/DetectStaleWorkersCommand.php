@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Console;
 
-use Illuminate\Console\Command;
 use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Illuminate\Console\Command;
 
 /**
  * Console command to detect and mark stale workers as crashed.

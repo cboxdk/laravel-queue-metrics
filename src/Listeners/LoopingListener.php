@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Listeners;
 
-use Illuminate\Queue\Events\Looping;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Illuminate\Queue\Events\Looping;
 
 /**
  * Listen for worker loop iterations.

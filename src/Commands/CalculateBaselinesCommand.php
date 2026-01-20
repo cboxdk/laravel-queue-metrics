@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Commands;
 
-use Illuminate\Console\Command;
 use Cbox\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
+use Illuminate\Console\Command;
 
 /**
  * Calculate baseline metrics for all queues.

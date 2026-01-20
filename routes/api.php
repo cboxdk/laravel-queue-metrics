@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Route;
 use Cbox\LaravelQueueMetrics\Http\Controllers\AllJobsController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\AllQueuesController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\AllServersController;
@@ -17,6 +16,7 @@ use Cbox\LaravelQueueMetrics\Http\Controllers\QueueMetricsController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\ServerMetricsController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\WorkerController;
 use Cbox\LaravelQueueMetrics\Http\Controllers\WorkerStatusController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('queue-metrics')
     ->middleware(config('queue-metrics.middleware', ['api']))

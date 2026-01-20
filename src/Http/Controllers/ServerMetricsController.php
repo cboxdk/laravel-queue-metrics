@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
-use Illuminate\Http\JsonResponse;
 use Cbox\LaravelQueueMetrics\Services\ServerMetricsService;
+use Illuminate\Http\JsonResponse;
 
 /**
  * Exposes server-wide resource metrics.

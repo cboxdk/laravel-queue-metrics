@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Carbon\Carbon;
-use Illuminate\Queue\Events\JobQueued;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Illuminate\Queue\Events\JobQueued;
 
 /**
  * Listen for jobs being queued.

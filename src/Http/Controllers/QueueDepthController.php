@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
-use Illuminate\Http\JsonResponse;
 use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
+use Illuminate\Http\JsonResponse;
 
 /**
  * Queue depth monitoring controller.

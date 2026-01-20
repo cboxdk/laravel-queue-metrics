@@ -4,16 +4,6 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics;
 
-use Illuminate\Queue\Events\JobExceptionOccurred;
-use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Queue\Events\JobProcessing;
-use Illuminate\Queue\Events\JobQueued;
-use Illuminate\Queue\Events\JobRetryRequested;
-use Illuminate\Queue\Events\JobTimedOut;
-use Illuminate\Queue\Events\Looping;
-use Illuminate\Queue\Events\WorkerStopping;
-use Illuminate\Support\Facades\Event;
 use Cbox\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
@@ -57,6 +47,16 @@ use Cbox\LaravelQueueMetrics\Services\ServerMetricsService;
 use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Queue\Events\JobRetryRequested;
+use Illuminate\Queue\Events\JobTimedOut;
+use Illuminate\Queue\Events\Looping;
+use Illuminate\Queue\Events\WorkerStopping;
+use Illuminate\Support\Facades\Event;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 

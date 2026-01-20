@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
+use Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService;
 
 /**
  * HTTP controller for all jobs with comprehensive metrics.

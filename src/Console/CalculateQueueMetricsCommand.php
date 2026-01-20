@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Console;
 
-use Illuminate\Console\Command;
 use Cbox\LaravelQueueMetrics\Actions\CalculateQueueMetricsAction;
+use Illuminate\Console\Command;
 
 /**
  * Calculate and update queue-level aggregated metrics.

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
+use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 
 /**
  * Worker status and heartbeat controller.

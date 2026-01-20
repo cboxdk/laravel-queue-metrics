@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Listeners;
 
-use Illuminate\Queue\Events\JobProcessing;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
+use Illuminate\Queue\Events\JobProcessing;
 
 /**
  * Listen for jobs starting to process.

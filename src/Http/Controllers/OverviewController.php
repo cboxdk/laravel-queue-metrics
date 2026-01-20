@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
+use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
 
 /**
  * HTTP controller for overview endpoint.

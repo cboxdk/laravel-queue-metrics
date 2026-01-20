@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
-use Illuminate\Http\Response;
 use Cbox\LaravelQueueMetrics\Services\PrometheusService;
+use Illuminate\Http\Response;
 use Spatie\Prometheus\Facades\Prometheus;
 
 /**

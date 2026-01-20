@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Tests\Feature\Support\TestJob;
 use Cbox\LaravelQueueMetrics\Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * @group redis

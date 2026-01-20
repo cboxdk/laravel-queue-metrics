@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
+use Illuminate\Foundation\Events\Dispatchable;
 
 /**
  * Fired when baseline metrics are recalculated.

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Queue;
 use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * Redis-based implementation of queue metrics repository.

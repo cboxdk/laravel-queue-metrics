@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Listeners;
 
-use Illuminate\Queue\Events\WorkerStopping;
 use Cbox\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Illuminate\Queue\Events\WorkerStopping;
 
 /**
  * Listen for worker stopping events.

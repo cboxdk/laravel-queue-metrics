@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Services;
 
-use Illuminate\Support\Facades\Cache;
 use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use Cbox\LaravelQueueMetrics\Services\Contracts\OverviewQueryInterface;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Prometheus\Facades\Prometheus;
 
 /**

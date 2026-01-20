@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Event;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\DurationStats;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\FailureInfo;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\JobExecutionData;
@@ -11,6 +10,7 @@ use Cbox\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\MemoryStats;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\ThroughputStats;
 use Cbox\LaravelQueueMetrics\Events\MetricsRecorded;
+use Illuminate\Support\Facades\Event;
 
 beforeEach(function () {
     Event::fake([MetricsRecorded::class]);

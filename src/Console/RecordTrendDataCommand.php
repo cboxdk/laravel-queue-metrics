@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Console;
 
-use Illuminate\Console\Command;
 use Cbox\LaravelQueueMetrics\Actions\RecordQueueDepthHistoryAction;
 use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Illuminate\Console\Command;
 
 /**
  * Record historical trend data for analysis.

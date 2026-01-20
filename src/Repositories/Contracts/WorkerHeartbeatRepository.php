@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Repositories\Contracts;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Illuminate\Support\Collection;
 
 /**
  * Repository contract for worker heartbeat storage and retrieval.

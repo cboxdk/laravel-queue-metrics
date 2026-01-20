@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Services;
 
-use Illuminate\Support\Collection;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Illuminate\Support\Collection;
 
 /**
  * Service for querying worker-specific metrics.

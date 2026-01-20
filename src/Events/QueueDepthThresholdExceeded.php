@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Illuminate\Foundation\Events\Dispatchable;
 
 /**
  * Fired when queue depth exceeds configured threshold.

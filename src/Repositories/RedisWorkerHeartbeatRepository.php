@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
-use Illuminate\Redis\Connections\Connection;
-use Illuminate\Support\Collection;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Exceptions\LuaScriptException;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Illuminate\Redis\Connections\Connection;
+use Illuminate\Support\Collection;
 
 /**
  * Redis-based implementation of worker heartbeat repository.

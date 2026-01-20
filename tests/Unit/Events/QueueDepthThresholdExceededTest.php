@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Event;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 use Cbox\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
+use Illuminate\Support\Facades\Event;
 
 beforeEach(function () {
     Event::fake([QueueDepthThresholdExceeded::class]);

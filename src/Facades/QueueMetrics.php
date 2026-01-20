@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Facades;
 
-use Illuminate\Support\Facades\Facade;
 use Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
 use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * Facade providing convenient access to queue metrics services.

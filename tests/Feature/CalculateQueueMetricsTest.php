@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Artisan;
 use Cbox\LaravelQueueMetrics\Actions\CalculateQueueMetricsAction;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Illuminate\Support\Facades\Artisan;
 
 beforeEach(function () {
     // Skip tests if Redis is not available

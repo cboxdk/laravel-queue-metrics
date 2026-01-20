@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Commands;
 
-use Illuminate\Console\Command;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Illuminate\Console\Command;
 
 /**
  * Clean up stale worker records from metrics storage.
