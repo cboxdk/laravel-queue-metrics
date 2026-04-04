@@ -2,6 +2,16 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.1.0 - Fix type casting in artisan commands - 2026-04-04
+
+### What's Changed
+
+* fix: Cast CLI option and config values to int in `CleanupStaleWorkersCommand` — `$this->option()` returns `string|null`, but `cleanupStaleWorkers()` requires `int`
+* fix: Extract depth integer from nested array in `RecordTrendDataCommand` — `getAllQueuesWithMetrics()` returns depth as `['total' => ..., 'pending' => ...]`, but `execute()` expects `int`
+* tests: Add unit tests for both commands
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v2.0.0...v2.1.0
+
 ## v2.0.0 - Rebranded to Cbox & Quality of Life Improvements - 2026-01-20
 
 ### What's Changed
