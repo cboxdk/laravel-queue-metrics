@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 use Cbox\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
+use Cbox\LaravelQueueMetrics\Services\RedisKeyScannerService;
+use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
  * Performance benchmark tests for critical operations.
@@ -60,8 +64,8 @@ test('batch baseline fetching is faster than sequential', function () {
 })->group('performance', 'slow', 'redis', 'functional');
 
 test('key scanning performance is acceptable for large datasets', function () {
-    $keyScanner = app(\Cbox\LaravelQueueMetrics\Services\RedisKeyScannerService::class);
-    $redisStore = app(\Cbox\LaravelQueueMetrics\Support\RedisMetricsStore::class);
+    $keyScanner = app(RedisKeyScannerService::class);
+    $redisStore = app(RedisMetricsStore::class);
 
     // Simulate scanning for jobs across multiple queues
     $jobsPattern = $redisStore->key('jobs', '*', '*', '*');
@@ -84,7 +88,7 @@ test('key scanning performance is acceptable for large datasets', function () {
 })->group('performance', 'redis', 'functional');
 
 test('overview query aggregation completes within acceptable time', function () {
-    $overviewService = app(\Cbox\LaravelQueueMetrics\Services\OverviewQueryService::class);
+    $overviewService = app(OverviewQueryService::class);
 
     $startTime = microtime(true);
 
@@ -100,7 +104,7 @@ test('overview query aggregation completes within acceptable time', function () 
 })->group('performance', 'slow', 'redis', 'functional');
 
 test('redis transaction is faster or same speed as pipeline for critical mutations', function () {
-    $jobMetricsRepository = app(\Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository::class);
+    $jobMetricsRepository = app(JobMetricsRepository::class);
 
     $testData = [
         'jobId' => 'test-123',
@@ -136,7 +140,7 @@ test('redis transaction is faster or same speed as pipeline for critical mutatio
 })->group('performance', 'redis', 'functional');
 
 test('memory usage stays reasonable during large batch operations', function () {
-    $overviewService = app(\Cbox\LaravelQueueMetrics\Services\OverviewQueryService::class);
+    $overviewService = app(OverviewQueryService::class);
 
     $memoryBefore = memory_get_usage(true);
 

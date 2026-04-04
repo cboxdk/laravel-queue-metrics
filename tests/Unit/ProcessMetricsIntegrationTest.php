@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Tests\Unit;
 
+use Cbox\SystemMetrics\DTO\Metrics\Process\ProcessDelta;
+use Cbox\SystemMetrics\DTO\Metrics\Process\ProcessResourceUsage;
+use Cbox\SystemMetrics\DTO\Metrics\Process\ProcessSnapshot;
 use Cbox\SystemMetrics\ProcessMetrics;
 
 /**
@@ -53,12 +56,12 @@ it('tracks process metrics with child processes enabled', function () {
     expect($stats->totalDurationSeconds)->toBeGreaterThanOrEqual(0.0); // Can be 0 on very fast operations
 
     // Verify we have current, peak, and average metrics
-    expect($stats->current)->toBeInstanceOf(\Cbox\SystemMetrics\DTO\Metrics\Process\ProcessResourceUsage::class);
-    expect($stats->peak)->toBeInstanceOf(\Cbox\SystemMetrics\DTO\Metrics\Process\ProcessResourceUsage::class);
-    expect($stats->average)->toBeInstanceOf(\Cbox\SystemMetrics\DTO\Metrics\Process\ProcessResourceUsage::class);
+    expect($stats->current)->toBeInstanceOf(ProcessResourceUsage::class);
+    expect($stats->peak)->toBeInstanceOf(ProcessResourceUsage::class);
+    expect($stats->average)->toBeInstanceOf(ProcessResourceUsage::class);
 
     // Verify delta provides accurate measurements
-    expect($stats->delta)->toBeInstanceOf(\Cbox\SystemMetrics\DTO\Metrics\Process\ProcessDelta::class);
+    expect($stats->delta)->toBeInstanceOf(ProcessDelta::class);
     expect($stats->delta->durationSeconds)->toBeGreaterThanOrEqual(0.0); // Can be 0 on very fast systems
     expect($stats->delta->cpuUsagePercentage())->toBeGreaterThanOrEqual(0.0);
 
@@ -141,7 +144,7 @@ it('handles process group snapshots with children', function () {
         $group = $groupResult->getValue();
 
         expect($group->rootPid)->toBe($pid);
-        expect($group->root)->toBeInstanceOf(\Cbox\SystemMetrics\DTO\Metrics\Process\ProcessSnapshot::class);
+        expect($group->root)->toBeInstanceOf(ProcessSnapshot::class);
         expect($group->children)->toBeArray();
         expect($group->totalProcessCount())->toBeGreaterThanOrEqual(1);
 

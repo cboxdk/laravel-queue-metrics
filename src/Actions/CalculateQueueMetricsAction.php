@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Actions;
 
+use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 
@@ -69,7 +70,7 @@ final readonly class CalculateQueueMetricsAction
             $totalProcessed += is_int($metrics['total_processed']) ? $metrics['total_processed'] : 0;
             $totalFailed += is_int($metrics['total_failed']) ? $metrics['total_failed'] : 0;
 
-            if ($metrics['last_processed_at'] instanceof \Carbon\Carbon) {
+            if ($metrics['last_processed_at'] instanceof Carbon) {
                 if ($lastProcessedAt === null || $metrics['last_processed_at']->greaterThan($lastProcessedAt)) {
                     $lastProcessedAt = $metrics['last_processed_at'];
                 }

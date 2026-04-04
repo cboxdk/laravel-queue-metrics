@@ -10,7 +10,7 @@ class LaravelQueueMetrics
     /**
      * The callback that should be used to authenticate Queue Metrics users.
      *
-     * @var \Closure|null
+     * @var Closure|null
      */
     public static $authUsing;
 

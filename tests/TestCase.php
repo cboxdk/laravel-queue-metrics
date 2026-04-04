@@ -5,6 +5,7 @@ namespace Cbox\LaravelQueueMetrics\Tests;
 use Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\Prometheus\PrometheusServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -21,7 +22,7 @@ class TestCase extends Orchestra
     {
         return [
             LaravelQueueMetricsServiceProvider::class,
-            \Spatie\Prometheus\PrometheusServiceProvider::class,
+            PrometheusServiceProvider::class,
         ];
     }
 

@@ -34,8 +34,9 @@ final class CleanupStaleWorkersCommand extends Command
             return self::SUCCESS;
         }
 
-        /** @var int $threshold */
-        $threshold = $this->option('threshold') ?? config('queue-metrics.worker_heartbeat.stale_threshold', 60);
+        /** @var int|string $rawThreshold */
+        $rawThreshold = $this->option('threshold') ?? config('queue-metrics.worker_heartbeat.stale_threshold', 60);
+        $threshold = (int) $rawThreshold;
 
         $isDryRun = (bool) $this->option('dry-run');
 
