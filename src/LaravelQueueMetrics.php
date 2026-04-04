@@ -28,13 +28,11 @@ class LaravelQueueMetrics
 
     /**
      * Set the callback that should be used to authenticate Queue Metrics users.
-     *
-     * @return static
      */
-    public static function auth(Closure $callback)
+    public static function auth(Closure $callback): self
     {
         static::$authUsing = $callback;
 
-        return new static;
+        return new self;
     }
 }

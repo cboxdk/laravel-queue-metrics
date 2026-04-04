@@ -584,91 +584,89 @@ final readonly class PrometheusService
                     continue;
                 }
 
-                $connection = $queueDepth['connection'] ?? 'unknown';
-                $queue = $queueDepth['queue'] ?? 'unknown';
+                $connection = (string) ($queueDepth['connection'] ?? 'unknown');
+                $queue = (string) ($queueDepth['queue'] ?? 'unknown');
                 $labels = [$connection, $queue];
 
-                // Current queue depth
-                if (isset($queueDepth['statistics']['current'])) {
+                /** @var array<string, float|int> */
+                $statistics = is_array($queueDepth['statistics'] ?? null) ? $queueDepth['statistics'] : [];
+                /** @var array<string, float> */
+                $trend = is_array($queueDepth['trend'] ?? null) ? $queueDepth['trend'] : [];
+                /** @var array<string, float> */
+                $forecast = is_array($queueDepth['forecast'] ?? null) ? $queueDepth['forecast'] : [];
+
+                if (isset($statistics['current'])) {
                     Prometheus::addGauge('queue_depth_trend_current')
                         ->name('queue_depth_trend_current')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Current queue depth from trend analysis')
-                        ->value((float) $queueDepth['statistics']['current'], $labels);
+                        ->value((float) $statistics['current'], $labels);
                 }
 
-                // Average queue depth
-                if (isset($queueDepth['statistics']['average'])) {
+                if (isset($statistics['average'])) {
                     Prometheus::addGauge('queue_depth_trend_average')
                         ->name('queue_depth_trend_average')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Average queue depth over trend period')
-                        ->value((float) $queueDepth['statistics']['average'], $labels);
+                        ->value((float) $statistics['average'], $labels);
                 }
 
-                // Min queue depth
-                if (isset($queueDepth['statistics']['min'])) {
+                if (isset($statistics['min'])) {
                     Prometheus::addGauge('queue_depth_trend_min')
                         ->name('queue_depth_trend_min')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Minimum queue depth over trend period')
-                        ->value((float) $queueDepth['statistics']['min'], $labels);
+                        ->value((float) $statistics['min'], $labels);
                 }
 
-                // Max queue depth
-                if (isset($queueDepth['statistics']['max'])) {
+                if (isset($statistics['max'])) {
                     Prometheus::addGauge('queue_depth_trend_max')
                         ->name('queue_depth_trend_max')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Maximum queue depth over trend period')
-                        ->value((float) $queueDepth['statistics']['max'], $labels);
+                        ->value((float) $statistics['max'], $labels);
                 }
 
-                // Standard deviation
-                if (isset($queueDepth['statistics']['std_dev'])) {
+                if (isset($statistics['std_dev'])) {
                     Prometheus::addGauge('queue_depth_trend_stddev')
                         ->name('queue_depth_trend_stddev')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Standard deviation of queue depth')
-                        ->value((float) $queueDepth['statistics']['std_dev'], $labels);
+                        ->value((float) $statistics['std_dev'], $labels);
                 }
 
-                // Trend slope (rate of change)
-                if (isset($queueDepth['trend']['slope'])) {
+                if (isset($trend['slope'])) {
                     Prometheus::addGauge('queue_depth_trend_slope')
                         ->name('queue_depth_trend_slope')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Queue depth trend slope (rate of change)')
-                        ->value((float) $queueDepth['trend']['slope'], $labels);
+                        ->value((float) $trend['slope'], $labels);
                 }
 
-                // Trend confidence (R²)
-                if (isset($queueDepth['trend']['confidence'])) {
+                if (isset($trend['confidence'])) {
                     Prometheus::addGauge('queue_depth_trend_confidence')
                         ->name('queue_depth_trend_confidence')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Queue depth trend confidence score (R²)')
-                        ->value((float) $queueDepth['trend']['confidence'], $labels);
+                        ->value((float) $trend['confidence'], $labels);
                 }
 
-                // Forecasted next value
-                if (isset($queueDepth['forecast']['next_value'])) {
+                if (isset($forecast['next_value'])) {
                     Prometheus::addGauge('queue_depth_trend_forecast')
                         ->name('queue_depth_trend_forecast')
                         ->namespace($namespace)
                         ->labels(['connection', 'queue'])
                         ->helpText('Forecasted next queue depth value')
-                        ->value((float) $queueDepth['forecast']['next_value'], $labels);
+                        ->value((float) $forecast['next_value'], $labels);
                 }
 
-                // Data points count
                 if (isset($queueDepth['data_points'])) {
                     Prometheus::addGauge('queue_depth_trend_data_points')
                         ->name('queue_depth_trend_data_points')
@@ -685,61 +683,59 @@ final readonly class PrometheusService
             $efficiency = $trends['worker_efficiency'];
 
             if (($efficiency['available'] ?? false) === true) {
-                // Current efficiency
-                if (isset($efficiency['efficiency']['current'])) {
+                /** @var array<string, float|int> */
+                $efficiencyStats = is_array($efficiency['efficiency'] ?? null) ? $efficiency['efficiency'] : [];
+                /** @var array<string, float> */
+                $resourceUsage = is_array($efficiency['resource_usage'] ?? null) ? $efficiency['resource_usage'] : [];
+
+                if (isset($efficiencyStats['current'])) {
                     Prometheus::addGauge('worker_efficiency_trend_current')
                         ->name('worker_efficiency_trend_current')
                         ->namespace($namespace)
                         ->helpText('Current worker efficiency percentage')
-                        ->value((float) $efficiency['efficiency']['current']);
+                        ->value((float) $efficiencyStats['current']);
                 }
 
-                // Average efficiency
-                if (isset($efficiency['efficiency']['average'])) {
+                if (isset($efficiencyStats['average'])) {
                     Prometheus::addGauge('worker_efficiency_trend_average')
                         ->name('worker_efficiency_trend_average')
                         ->namespace($namespace)
                         ->helpText('Average worker efficiency over trend period')
-                        ->value((float) $efficiency['efficiency']['average']);
+                        ->value((float) $efficiencyStats['average']);
                 }
 
-                // Min efficiency
-                if (isset($efficiency['efficiency']['min'])) {
+                if (isset($efficiencyStats['min'])) {
                     Prometheus::addGauge('worker_efficiency_trend_min')
                         ->name('worker_efficiency_trend_min')
                         ->namespace($namespace)
                         ->helpText('Minimum worker efficiency over trend period')
-                        ->value((float) $efficiency['efficiency']['min']);
+                        ->value((float) $efficiencyStats['min']);
                 }
 
-                // Max efficiency
-                if (isset($efficiency['efficiency']['max'])) {
+                if (isset($efficiencyStats['max'])) {
                     Prometheus::addGauge('worker_efficiency_trend_max')
                         ->name('worker_efficiency_trend_max')
                         ->namespace($namespace)
                         ->helpText('Maximum worker efficiency over trend period')
-                        ->value((float) $efficiency['efficiency']['max']);
+                        ->value((float) $efficiencyStats['max']);
                 }
 
-                // Average memory usage
-                if (isset($efficiency['resource_usage']['avg_memory_mb'])) {
+                if (isset($resourceUsage['avg_memory_mb'])) {
                     Prometheus::addGauge('worker_efficiency_trend_memory_mb')
                         ->name('worker_efficiency_trend_memory_mb')
                         ->namespace($namespace)
                         ->helpText('Average worker memory usage in MB')
-                        ->value((float) $efficiency['resource_usage']['avg_memory_mb']);
+                        ->value((float) $resourceUsage['avg_memory_mb']);
                 }
 
-                // Average CPU usage
-                if (isset($efficiency['resource_usage']['avg_cpu_percent'])) {
+                if (isset($resourceUsage['avg_cpu_percent'])) {
                     Prometheus::addGauge('worker_efficiency_trend_cpu_percent')
                         ->name('worker_efficiency_trend_cpu_percent')
                         ->namespace($namespace)
                         ->helpText('Average worker CPU usage percentage')
-                        ->value((float) $efficiency['resource_usage']['avg_cpu_percent']);
+                        ->value((float) $resourceUsage['avg_cpu_percent']);
                 }
 
-                // Data points count
                 if (isset($efficiency['data_points'])) {
                     Prometheus::addGauge('worker_efficiency_trend_data_points')
                         ->name('worker_efficiency_trend_data_points')
