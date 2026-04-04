@@ -11,6 +11,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordQueueDepthHistoryAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordThroughputHistoryAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Actions\TransitionWorkerStateAction;
+use Cbox\LaravelQueueMetrics\Http\Middleware\Authorize;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
@@ -51,7 +52,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'middleware' => ['api', \Cbox\LaravelQueueMetrics\Http\Middleware\Authorize::class],
+    'middleware' => ['api', Authorize::class],
 
     'allowed_ips' => env('QUEUE_METRICS_ALLOWED_IPS') ? explode(',', env('QUEUE_METRICS_ALLOWED_IPS')) : null,
 

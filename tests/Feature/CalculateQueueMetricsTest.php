@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Actions\CalculateQueueMetricsAction;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Redis;
 
 beforeEach(function () {
     // Skip tests if Redis is not available
@@ -18,7 +20,7 @@ beforeEach(function () {
     config()->set('queue-metrics.storage.connection', 'default');
 
     // Flush Redis before each test to ensure clean state
-    \Illuminate\Support\Facades\Redis::connection('default')->flushdb();
+    Redis::connection('default')->flushdb();
 });
 
 it('calculates queue metrics from job metrics', function () {
@@ -38,7 +40,7 @@ it('calculates queue metrics from job metrics', function () {
     // Note: recordStart() now handles job discovery atomically
     for ($i = 0; $i < 10; $i++) {
         $jobId = "job-1-{$i}";
-        $jobRepo->recordStart($jobId, $jobClass1, $connection, $queue, \Carbon\Carbon::now());
+        $jobRepo->recordStart($jobId, $jobClass1, $connection, $queue, Carbon::now());
         $jobRepo->recordCompletion(
             jobId: $jobId,
             jobClass: $jobClass1,
@@ -47,14 +49,14 @@ it('calculates queue metrics from job metrics', function () {
             durationMs: 100.0,
             memoryMb: 10.0,
             cpuTimeMs: 50.0,
-            completedAt: \Carbon\Carbon::now(),
+            completedAt: Carbon::now(),
         );
     }
 
     // Record job completions for job 2: 5 jobs, 200ms avg duration
     for ($i = 0; $i < 5; $i++) {
         $jobId = "job-2-{$i}";
-        $jobRepo->recordStart($jobId, $jobClass2, $connection, $queue, \Carbon\Carbon::now());
+        $jobRepo->recordStart($jobId, $jobClass2, $connection, $queue, Carbon::now());
         $jobRepo->recordCompletion(
             jobId: $jobId,
             jobClass: $jobClass2,
@@ -63,7 +65,7 @@ it('calculates queue metrics from job metrics', function () {
             durationMs: 200.0,
             memoryMb: 15.0,
             cpuTimeMs: 75.0,
-            completedAt: \Carbon\Carbon::now(),
+            completedAt: Carbon::now(),
         );
     }
 
@@ -121,7 +123,7 @@ it('calculates failure rate correctly', function () {
     // Note: recordStart() now handles job discovery atomically
     for ($i = 0; $i < 7; $i++) {
         $jobId = "job-success-{$i}";
-        $jobRepo->recordStart($jobId, $jobClass, $connection, $queue, \Carbon\Carbon::now());
+        $jobRepo->recordStart($jobId, $jobClass, $connection, $queue, Carbon::now());
         $jobRepo->recordCompletion(
             jobId: $jobId,
             jobClass: $jobClass,
@@ -130,7 +132,7 @@ it('calculates failure rate correctly', function () {
             durationMs: 100.0,
             memoryMb: 10.0,
             cpuTimeMs: 50.0,
-            completedAt: \Carbon\Carbon::now(),
+            completedAt: Carbon::now(),
         );
     }
 
@@ -142,7 +144,7 @@ it('calculates failure rate correctly', function () {
             connection: $connection,
             queue: $queue,
             exception: 'Test exception',
-            failedAt: \Carbon\Carbon::now(),
+            failedAt: Carbon::now(),
         );
     }
 
@@ -173,7 +175,7 @@ it('command calculates all queues', function () {
         // Record some completions
         // Note: recordStart() now handles job discovery atomically
         $jobId = "job-{$q['queue']}-1";
-        $jobRepo->recordStart($jobId, $jobClass, $q['connection'], $q['queue'], \Carbon\Carbon::now());
+        $jobRepo->recordStart($jobId, $jobClass, $q['connection'], $q['queue'], Carbon::now());
         $jobRepo->recordCompletion(
             jobId: $jobId,
             jobClass: $jobClass,
@@ -182,7 +184,7 @@ it('command calculates all queues', function () {
             durationMs: 150.0,
             memoryMb: 12.0,
             cpuTimeMs: 60.0,
-            completedAt: \Carbon\Carbon::now(),
+            completedAt: Carbon::now(),
         );
     }
 
@@ -212,7 +214,7 @@ it('command calculates specific queue', function () {
     // Record job completion
     // Note: recordStart() now handles job discovery atomically
     $jobId = 'job-specific-1';
-    $jobRepo->recordStart($jobId, $jobClass, $connection, $queue, \Carbon\Carbon::now());
+    $jobRepo->recordStart($jobId, $jobClass, $connection, $queue, Carbon::now());
     $jobRepo->recordCompletion(
         jobId: $jobId,
         jobClass: $jobClass,
@@ -221,7 +223,7 @@ it('command calculates specific queue', function () {
         durationMs: 250.0,
         memoryMb: 20.0,
         cpuTimeMs: 100.0,
-        completedAt: \Carbon\Carbon::now(),
+        completedAt: Carbon::now(),
     );
 
     // Execute command for specific queue

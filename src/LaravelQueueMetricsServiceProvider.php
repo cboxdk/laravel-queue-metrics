@@ -47,6 +47,7 @@ use Cbox\LaravelQueueMetrics\Services\ServerMetricsService;
 use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -196,7 +197,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
 
         // Schedule stale worker cleanup
         $this->app->booted(function () use ($threshold) {
-            $scheduler = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
+            $scheduler = $this->app->make(Schedule::class);
 
             if (config('queue-metrics.scheduling.tasks.cleanup_stale_workers', true)) {
                 $scheduler->command('queue-metrics:cleanup-stale-workers', [
@@ -228,7 +229,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
     /**
      * Schedule baseline calculation with adaptive intervals.
      */
-    protected function scheduleAdaptiveBaselineCalculation(\Illuminate\Console\Scheduling\Schedule $scheduler): void
+    protected function scheduleAdaptiveBaselineCalculation(Schedule $scheduler): void
     {
         // Start with most frequent interval (1 minute)
         // The command itself will determine if it should actually run
@@ -238,10 +239,10 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
                 // Check if we should skip based on baseline confidence
                 // This allows adaptive scheduling without multiple schedule entries
                 $baselineRepository = $this->app->make(
-                    \Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository::class
+                    BaselineRepository::class
                 );
                 $queueRepository = $this->app->make(
-                    \Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository::class
+                    QueueMetricsRepository::class
                 );
 
                 $queues = $queueRepository->listQueues();

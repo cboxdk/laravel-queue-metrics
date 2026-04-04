@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 final readonly class ThrottlePrometheus
 {
     /**
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, int $maxAttempts = 60, int $decayMinutes = 1): Response
     {

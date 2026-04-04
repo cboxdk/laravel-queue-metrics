@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Http\Controllers;
 
 use Cbox\LaravelQueueMetrics\Services\OverviewQueryService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
 /**
@@ -17,7 +18,7 @@ final class OverviewController extends Controller
         private readonly OverviewQueryService $metricsQuery,
     ) {}
 
-    public function __invoke(\Illuminate\Http\Request $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
         // Slim view by default, full view with ?full=1
         $slim = ! $request->query('full');

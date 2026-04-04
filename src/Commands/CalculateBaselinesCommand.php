@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Commands;
 
 use Cbox\LaravelQueueMetrics\Actions\CalculateBaselinesAction;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
 use Illuminate\Console\Command;
 
 /**
@@ -180,7 +181,7 @@ final class CalculateBaselinesCommand extends Command
     /**
      * Display details for a specific baseline.
      */
-    private function displayBaselineDetails(\Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData $baseline): void
+    private function displayBaselineDetails(BaselineData $baseline): void
     {
         $this->newLine();
         $this->line('  CPU per job: '.$baseline->cpuPercentPerJob.'%');

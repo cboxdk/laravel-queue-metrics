@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Http\Middleware;
 
-use Closure;
 use Cbox\LaravelQueueMetrics\LaravelQueueMetrics;
+use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 class Authorize

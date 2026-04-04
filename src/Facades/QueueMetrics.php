@@ -35,10 +35,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static array<string, array<string, mixed>> getAllServersWithMetrics()
  * @method static array<string, mixed> getWorkersSummary()
  *
- * @see \Cbox\LaravelQueueMetrics\Services\OverviewQueryService
- * @see \Cbox\LaravelQueueMetrics\Services\JobMetricsQueryService
- * @see \Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService
- * @see \Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService
+ * @see OverviewQueryService
+ * @see JobMetricsQueryService
+ * @see QueueMetricsQueryService
+ * @see WorkerMetricsQueryService
  */
 final class QueueMetrics extends Facade
 {
