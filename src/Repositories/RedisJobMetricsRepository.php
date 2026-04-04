@@ -228,7 +228,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
 
         // Use transaction instead of pipeline to ensure atomicity
         $this->redis->transaction(function ($pipe) use ($serverKey, $discoveryKey, $durationMs, $success, $timestamp, $ttl) {
-            $pipe->addToSet($discoveryKey, $serverKey);
+            $pipe->addToSet($discoveryKey, [$serverKey]);
             $pipe->expire($discoveryKey, $ttl);
 
             if ($success) {
