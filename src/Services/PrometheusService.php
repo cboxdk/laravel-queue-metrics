@@ -584,8 +584,8 @@ final readonly class PrometheusService
                     continue;
                 }
 
-                $connection = (string) ($queueDepth['connection'] ?? 'unknown');
-                $queue = (string) ($queueDepth['queue'] ?? 'unknown');
+                $connection = is_string($queueDepth['connection'] ?? null) ? $queueDepth['connection'] : 'unknown';
+                $queue = is_string($queueDepth['queue'] ?? null) ? $queueDepth['queue'] : 'unknown';
                 $labels = [$connection, $queue];
 
                 /** @var array<string, float|int> */
@@ -667,7 +667,7 @@ final readonly class PrometheusService
                         ->value((float) $forecast['next_value'], $labels);
                 }
 
-                if (isset($queueDepth['data_points'])) {
+                if (isset($queueDepth['data_points']) && is_numeric($queueDepth['data_points'])) {
                     Prometheus::addGauge('queue_depth_trend_data_points')
                         ->name('queue_depth_trend_data_points')
                         ->namespace($namespace)
@@ -736,7 +736,7 @@ final readonly class PrometheusService
                         ->value((float) $resourceUsage['avg_cpu_percent']);
                 }
 
-                if (isset($efficiency['data_points'])) {
+                if (isset($efficiency['data_points']) && is_numeric($efficiency['data_points'])) {
                     Prometheus::addGauge('worker_efficiency_trend_data_points')
                         ->name('worker_efficiency_trend_data_points')
                         ->namespace($namespace)
