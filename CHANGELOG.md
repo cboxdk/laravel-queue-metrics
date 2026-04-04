@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.1.1 - Fix addToSet type error & CI hardening - 2026-04-04
+
+### What's Changed
+
+* fix: Wrap `$serverKey` in array for `PipelineWrapper::addToSet()` in `recordHostnameMetrics()` — caused `TypeError` in production
+* fix: Resolve PHPStan level 9 errors (`new static` → `new self`, typed array extraction in `PrometheusService`)
+* ci: Add `pull_request` triggers to PHPStan, Pint, and test workflows so they gate PRs
+* ci: Limit `push` triggers to `main` branch to prevent duplicate CI runs
+* ci: Add concurrency groups to cancel stale workflow runs
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v2.1.0...v2.1.1
+
 ## v2.1.0 - Fix type casting in artisan commands - 2026-04-04
 
 ### What's Changed
