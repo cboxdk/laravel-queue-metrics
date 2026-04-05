@@ -7,6 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobProcessed;
@@ -56,15 +57,29 @@ final readonly class JobProcessedListener
         $queue = $job->getQueue();
         $hostname = gethostname() ?: 'unknown';
 
+        $jobClass = $payload['displayName'] ?? 'UnknownJob';
+
         $this->recordJobCompletion->execute(
             jobId: $jobId,
-            jobClass: $payload['displayName'] ?? 'UnknownJob',
+            jobClass: $jobClass,
             connection: $connection,
             queue: $queue,
             durationMs: $durationMs,
             memoryMb: $memoryMb,
             cpuTimeMs: $cpuTimeMs,
             hostname: $hostname,
+        );
+
+        // Fire per-job metrics event for downstream consumers (e.g., queue-monitor)
+        JobMetricsCompleted::dispatch(
+            $jobId,
+            $jobClass,
+            $connection,
+            $queue,
+            $durationMs,
+            $memoryMb,
+            $cpuTimeMs,
+            $hostname,
         );
 
         // Record worker heartbeat with IDLE state (job completed)
