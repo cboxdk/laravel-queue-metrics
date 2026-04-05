@@ -11,7 +11,7 @@ Get Laravel Queue Metrics up and running in your Laravel application.
 ## Requirements
 
 - **PHP**: 8.3 or higher
-- **Laravel**: 11.0+ or 12.0+
+- **Laravel**: 11.0, 12.0, or 13.0+
 - **Storage**: Redis (recommended) or Database
 - **Optional**: [cboxdk/system-metrics](https://github.com/cboxdk/system-metrics) for server monitoring
 

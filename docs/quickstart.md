@@ -10,7 +10,7 @@ Get up and running with Laravel Queue Metrics in 5 minutes.
 
 ## Prerequisites
 
-✅ Laravel 11.0+ or 12.0+ installed
+✅ Laravel 11.0, 12.0, or 13.0+ installed
 ✅ Redis or database configured
 ✅ Queue worker running
 

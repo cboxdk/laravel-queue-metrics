@@ -79,7 +79,7 @@ Deep dive into advanced capabilities:
 ## Package Requirements
 
 - **PHP**: 8.3 or higher
-- **Laravel**: 11.0 or higher (12.0+ recommended)
+- **Laravel**: 11.0 or higher (12.0+ recommended, 13.0 supported)
 - **Storage**: Redis (recommended) or Database
 
 ## License
