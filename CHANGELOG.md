@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.3.0 - Add JobMetricsFailed event and fix ProcessMetrics leak - 2026-04-05
+
+### What's Changed
+
+* feat: Add `JobMetricsFailed` event with per-job metrics (duration, memory, CPU, exception) for downstream consumers like queue-monitor
+* feat: Add `JobMetricsCompleted` event (existed but was never committed)
+* fix: Stop ProcessMetrics tracker on job failure — `ProcessMetrics::start()` was called in `JobProcessingListener` but `ProcessMetrics::stop()` was only called on success, leaking trackers on failure
+* fix: Resolve 17 pre-existing PHPStan errors from named args in `Dispatchable::dispatch()` calls
+* docs: Document `JobMetricsCompleted` and `JobMetricsFailed` events
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v2.2.0...v2.3.0
+
 ## v2.2.0 - Add Laravel 13 support - 2026-04-05
 
 ### What's Changed
