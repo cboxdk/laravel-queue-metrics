@@ -124,7 +124,7 @@ Extensible architecture with events for reactive monitoring and notifications.
 ## Requirements
 
 - PHP 8.3+
-- Laravel 11.0+ or 12.0+
+- Laravel 11.0, 12.0, or 13.0+
 - Redis or Database for metrics storage
 
 **Note**: Laravel 12.19+ is recommended for most accurate queue metrics ([Laravel PR #56010](https://github.com/laravel/framework/pull/56010)). Earlier versions use driver-specific implementations.
