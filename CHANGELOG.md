@@ -2,6 +2,16 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.2.0 - Add Laravel 13 support - 2026-04-05
+
+### What's Changed
+
+* feat: Add Laravel 13 support with orchestra/testbench ^11.0
+* ci: Add Laravel 13 to test matrix (unit + Redis integration)
+* docs: Update version references in README and documentation
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v2.1.1...v2.2.0
+
 ## v2.1.1 - Fix addToSet type error & CI hardening - 2026-04-04
 
 ### What's Changed
