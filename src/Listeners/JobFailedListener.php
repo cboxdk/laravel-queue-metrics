@@ -7,7 +7,9 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Events\JobMetricsFailed;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobFailed;
 
 /**
@@ -24,18 +26,56 @@ final readonly class JobFailedListener
     {
         $job = $event->job;
         $payload = $job->payload();
+        $jobId = (string) $job->getJobId();
+
+        // Calculate duration
+        $startTime = $payload['pushedAt'] ?? microtime(true);
+        $durationMs = (microtime(true) - $startTime) * 1000;
+
+        // Stop process metrics tracker (started in JobProcessingListener)
+        $trackerId = "job_{$jobId}";
+        $metricsResult = ProcessMetrics::stop($trackerId);
+
+        $memoryMb = memory_get_peak_usage(true) / 1024 / 1024;
+        $cpuTimeMs = 0.0;
+
+        if ($metricsResult->isSuccess()) {
+            $metrics = $metricsResult->getValue();
+
+            $memoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
+
+            $cpuUsagePercent = $metrics->delta->cpuUsagePercentage();
+            $durationSeconds = $metrics->delta->durationSeconds;
+            $cpuTimeMs = ($cpuUsagePercent / 100.0) * $durationSeconds * 1000.0;
+        }
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
         $hostname = gethostname() ?: 'unknown';
+        $jobClass = $payload['displayName'] ?? 'UnknownJob';
 
         $this->recordJobFailure->execute(
-            jobId: (string) $job->getJobId(),
-            jobClass: $payload['displayName'] ?? 'UnknownJob',
+            jobId: $jobId,
+            jobClass: $jobClass,
             connection: $connection,
             queue: $queue,
             exception: $event->exception,
             hostname: $hostname,
+        );
+
+        // Fire per-job metrics event for downstream consumers (e.g., queue-monitor)
+        $exceptionMessage = $event->exception->getMessage().' in '.$event->exception->getFile().':'.$event->exception->getLine();
+
+        JobMetricsFailed::dispatch(
+            $jobId,
+            $jobClass,
+            $connection,
+            $queue,
+            $durationMs,
+            $memoryMb,
+            $cpuTimeMs,
+            $exceptionMessage,
+            $hostname,
         );
 
         // Record worker heartbeat with IDLE state (job failed, worker ready for next job)

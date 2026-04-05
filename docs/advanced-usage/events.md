@@ -73,6 +73,74 @@ $event->metrics->throughput;        // ThroughputStatsDTO
 $event->metrics->lastFailure;       // ?FailureInfoDTO
 ```
 
+### JobMetricsCompleted
+
+**Dispatched**: When a job completes successfully with process-level metrics
+**Frequency**: High (every successful job)
+**Purpose**: Per-job metrics for downstream consumers (e.g., [Queue Monitor](https://github.com/cboxdk/laravel-queue-monitor))
+
+```php
+use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
+
+Event::listen(JobMetricsCompleted::class, function (JobMetricsCompleted $event) {
+    Log::info('Job completed', [
+        'job_id' => $event->jobId,
+        'job_class' => $event->jobClass,
+        'duration_ms' => $event->durationMs,
+        'memory_mb' => $event->memoryMb,
+        'cpu_time_ms' => $event->cpuTimeMs,
+    ]);
+});
+```
+
+**Available data:**
+
+```php
+$event->jobId;       // string
+$event->jobClass;    // string
+$event->connection;  // string
+$event->queue;       // string
+$event->durationMs;  // float
+$event->memoryMb;    // float
+$event->cpuTimeMs;   // float
+$event->hostname;    // ?string
+```
+
+### JobMetricsFailed
+
+**Dispatched**: When a job fails with process-level metrics
+**Frequency**: Low (only on failures)
+**Purpose**: Per-job failure metrics for downstream consumers (e.g., [Queue Monitor](https://github.com/cboxdk/laravel-queue-monitor))
+
+```php
+use Cbox\LaravelQueueMetrics\Events\JobMetricsFailed;
+
+Event::listen(JobMetricsFailed::class, function (JobMetricsFailed $event) {
+    Log::error('Job failed', [
+        'job_id' => $event->jobId,
+        'job_class' => $event->jobClass,
+        'duration_ms' => $event->durationMs,
+        'memory_mb' => $event->memoryMb,
+        'cpu_time_ms' => $event->cpuTimeMs,
+        'exception' => $event->exceptionMessage,
+    ]);
+});
+```
+
+**Available data:**
+
+```php
+$event->jobId;             // string
+$event->jobClass;          // string
+$event->connection;        // string
+$event->queue;             // string
+$event->durationMs;        // float
+$event->memoryMb;          // float
+$event->cpuTimeMs;         // float
+$event->exceptionMessage;  // string
+$event->hostname;          // ?string
+```
+
 ### WorkerEfficiencyChanged
 
 **Dispatched**: When worker efficiency changes significantly
@@ -267,6 +335,8 @@ Register listeners in `app/Providers/EventServiceProvider.php`:
 ```php
 use Cbox\LaravelQueueMetrics\Events\{
     MetricsRecorded,
+    JobMetricsCompleted,
+    JobMetricsFailed,
     WorkerEfficiencyChanged,
     HealthScoreChanged,
     BaselineRecalculated,
@@ -277,6 +347,15 @@ protected $listen = [
     MetricsRecorded::class => [
         SendMetricsToDatadog::class,
         UpdateRealtimeDashboard::class,
+    ],
+
+    JobMetricsCompleted::class => [
+        RecordJobCompletionToMonitor::class,
+    ],
+
+    JobMetricsFailed::class => [
+        RecordJobFailureToMonitor::class,
+        AlertOnJobFailure::class,
     ],
 
     WorkerEfficiencyChanged::class => [
