@@ -2,6 +2,19 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.4.0 - Expose worker memory limit in metrics events - 2026-04-07
+
+### What's Changed
+
+* feat: Add `workerMemoryLimitMb` to `JobMetricsCompleted` and `JobMetricsFailed` events — enables downstream consumers to calculate memory utilization percentage (e.g. 256/512 MB = 50%)
+* refactor: Extract duplicated `getWorkerMemoryLimitMb()` into shared `MemoryLimitParser` utility
+* fix: Resolve PHPStan level 9 errors — `ini_get()` never returns `false` for known settings
+* tests: Add comprehensive `MemoryLimitParser` tests (M/G/K/bytes/lowercase/unlimited)
+* tests: Update event tests to cover `workerMemoryLimitMb` property
+* docs: Document `workerMemoryLimitMb` in events reference
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v2.3.0...v2.4.0
+
 ## v2.3.0 - Add JobMetricsFailed event and fix ProcessMetrics leak - 2026-04-05
 
 ### What's Changed
