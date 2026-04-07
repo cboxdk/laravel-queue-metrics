@@ -20,6 +20,7 @@ it('can be dispatched with job failure metrics', function () {
         12.4,
         'Division by zero in App/Jobs/ProcessOrder.php:42',
         'worker-01',
+        512.0,
     );
 
     Event::assertDispatched(JobMetricsFailed::class, function ($event) {
@@ -31,7 +32,8 @@ it('can be dispatched with job failure metrics', function () {
             && $event->memoryMb === 25.3
             && $event->cpuTimeMs === 12.4
             && $event->exceptionMessage === 'Division by zero in App/Jobs/ProcessOrder.php:42'
-            && $event->hostname === 'worker-01';
+            && $event->hostname === 'worker-01'
+            && $event->workerMemoryLimitMb === 512.0;
     });
 })->group('functional');
 
@@ -46,6 +48,7 @@ it('contains all per-job failure metrics data', function () {
         cpuTimeMs: 18.7,
         exceptionMessage: 'Connection refused in App/Services/Mailer.php:15',
         hostname: 'worker-02',
+        workerMemoryLimitMb: 256.0,
     );
 
     expect($event->jobId)->toBe('job-456')
@@ -56,10 +59,11 @@ it('contains all per-job failure metrics data', function () {
         ->and($event->memoryMb)->toBe(32.5)
         ->and($event->cpuTimeMs)->toBe(18.7)
         ->and($event->exceptionMessage)->toBe('Connection refused in App/Services/Mailer.php:15')
-        ->and($event->hostname)->toBe('worker-02');
+        ->and($event->hostname)->toBe('worker-02')
+        ->and($event->workerMemoryLimitMb)->toBe(256.0);
 })->group('functional');
 
-it('allows null hostname', function () {
+it('allows null hostname and memory limit', function () {
     $event = new JobMetricsFailed(
         jobId: 'job-789',
         jobClass: 'App\Jobs\TestJob',
@@ -71,7 +75,8 @@ it('allows null hostname', function () {
         exceptionMessage: 'Test exception',
     );
 
-    expect($event->hostname)->toBeNull();
+    expect($event->hostname)->toBeNull()
+        ->and($event->workerMemoryLimitMb)->toBeNull();
 })->group('functional');
 
 it('is dispatchable using trait', function () {

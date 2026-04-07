@@ -96,14 +96,15 @@ Event::listen(JobMetricsCompleted::class, function (JobMetricsCompleted $event) 
 **Available data:**
 
 ```php
-$event->jobId;       // string
-$event->jobClass;    // string
-$event->connection;  // string
-$event->queue;       // string
-$event->durationMs;  // float
-$event->memoryMb;    // float
-$event->cpuTimeMs;   // float
-$event->hostname;    // ?string
+$event->jobId;                 // string
+$event->jobClass;              // string
+$event->connection;            // string
+$event->queue;                 // string
+$event->durationMs;            // float
+$event->memoryMb;              // float
+$event->cpuTimeMs;             // float
+$event->hostname;              // ?string
+$event->workerMemoryLimitMb;   // ?float (PHP memory_limit in MB, null if unlimited)
 ```
 
 ### JobMetricsFailed
@@ -130,15 +131,16 @@ Event::listen(JobMetricsFailed::class, function (JobMetricsFailed $event) {
 **Available data:**
 
 ```php
-$event->jobId;             // string
-$event->jobClass;          // string
-$event->connection;        // string
-$event->queue;             // string
-$event->durationMs;        // float
-$event->memoryMb;          // float
-$event->cpuTimeMs;         // float
-$event->exceptionMessage;  // string
-$event->hostname;          // ?string
+$event->jobId;                 // string
+$event->jobClass;              // string
+$event->connection;            // string
+$event->queue;                 // string
+$event->durationMs;            // float
+$event->memoryMb;              // float
+$event->cpuTimeMs;             // float
+$event->exceptionMessage;      // string
+$event->hostname;              // ?string
+$event->workerMemoryLimitMb;   // ?float (PHP memory_limit in MB, null if unlimited)
 ```
 
 ### WorkerEfficiencyChanged

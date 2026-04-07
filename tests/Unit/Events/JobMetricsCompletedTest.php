@@ -19,6 +19,7 @@ it('can be dispatched with job completion metrics', function () {
         25.3,
         12.4,
         'worker-01',
+        512.0,
     );
 
     Event::assertDispatched(JobMetricsCompleted::class, function ($event) {
@@ -29,7 +30,8 @@ it('can be dispatched with job completion metrics', function () {
             && $event->durationMs === 150.5
             && $event->memoryMb === 25.3
             && $event->cpuTimeMs === 12.4
-            && $event->hostname === 'worker-01';
+            && $event->hostname === 'worker-01'
+            && $event->workerMemoryLimitMb === 512.0;
     });
 })->group('functional');
 
@@ -43,6 +45,7 @@ it('contains all per-job metrics data', function () {
         memoryMb: 32.5,
         cpuTimeMs: 18.7,
         hostname: 'worker-02',
+        workerMemoryLimitMb: 1024.0,
     );
 
     expect($event->jobId)->toBe('job-456')
@@ -52,10 +55,11 @@ it('contains all per-job metrics data', function () {
         ->and($event->durationMs)->toBe(200.0)
         ->and($event->memoryMb)->toBe(32.5)
         ->and($event->cpuTimeMs)->toBe(18.7)
-        ->and($event->hostname)->toBe('worker-02');
+        ->and($event->hostname)->toBe('worker-02')
+        ->and($event->workerMemoryLimitMb)->toBe(1024.0);
 })->group('functional');
 
-it('allows null hostname', function () {
+it('allows null hostname and memory limit', function () {
     $event = new JobMetricsCompleted(
         jobId: 'job-789',
         jobClass: 'App\Jobs\TestJob',
@@ -66,7 +70,8 @@ it('allows null hostname', function () {
         cpuTimeMs: 5.0,
     );
 
-    expect($event->hostname)->toBeNull();
+    expect($event->hostname)->toBeNull()
+        ->and($event->workerMemoryLimitMb)->toBeNull();
 })->group('functional');
 
 it('is dispatchable using trait', function () {
