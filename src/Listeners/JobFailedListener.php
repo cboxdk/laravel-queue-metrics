@@ -76,6 +76,7 @@ final readonly class JobFailedListener
             $cpuTimeMs,
             $exceptionMessage,
             $hostname,
+            self::getWorkerMemoryLimitMb(),
         );
 
         // Record worker heartbeat with IDLE state (job failed, worker ready for next job)
@@ -93,5 +94,22 @@ final readonly class JobFailedListener
     private function getWorkerId(): string
     {
         return HorizonDetector::generateWorkerId();
+    }
+
+    private static function getWorkerMemoryLimitMb(): ?float
+    {
+        $limit = ini_get('memory_limit');
+        if ($limit === false || $limit === '' || $limit === '-1') {
+            return null;
+        }
+
+        $value = (int) $limit;
+
+        return match (strtoupper(substr($limit, -1))) {
+            'G' => $value * 1024.0,
+            'M' => (float) $value,
+            'K' => $value / 1024.0,
+            default => $value / 1024.0 / 1024.0,
+        };
     }
 }
