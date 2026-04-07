@@ -9,6 +9,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobProcessed;
 
@@ -80,7 +81,7 @@ final readonly class JobProcessedListener
             $memoryMb,
             $cpuTimeMs,
             $hostname,
-            self::getWorkerMemoryLimitMb(),
+            MemoryLimitParser::getCurrentLimitMb(),
         );
 
         // Record worker heartbeat with IDLE state (job completed)
@@ -98,22 +99,5 @@ final readonly class JobProcessedListener
     private function getWorkerId(): string
     {
         return HorizonDetector::generateWorkerId();
-    }
-
-    private static function getWorkerMemoryLimitMb(): ?float
-    {
-        $limit = ini_get('memory_limit');
-        if ($limit === false || $limit === '' || $limit === '-1') {
-            return null;
-        }
-
-        $value = (int) $limit;
-
-        return match (strtoupper(substr($limit, -1))) {
-            'G' => $value * 1024.0,
-            'M' => (float) $value,
-            'K' => $value / 1024.0,
-            default => $value / 1024.0 / 1024.0,
-        };
     }
 }
