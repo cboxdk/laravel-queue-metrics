@@ -254,6 +254,7 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
         $sqlPattern = str_replace(['%'], ['\\%'], $pattern);
         $sqlPattern = str_replace(['*', '?'], ['%', '_'], $sqlPattern);
 
+        /** @var array<int, string> */
         return MetricsHash::notExpired()
             ->where('key', 'like', $sqlPattern)
             ->pluck('key')

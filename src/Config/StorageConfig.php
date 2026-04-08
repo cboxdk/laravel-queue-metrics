@@ -38,8 +38,8 @@ final readonly class StorageConfig
             connection: is_string($config['connection'] ?? null) ? $config['connection'] : 'default',
             prefix: is_string($config['prefix'] ?? null) ? $config['prefix'] : 'queue_metrics',
             ttls: $ttls,
-            maxSamplesPerKey: (int) ($config['max_samples_per_key'] ?? 1000),
-            cleanupChunkSize: (int) ($config['cleanup_chunk_size'] ?? 1000),
+            maxSamplesPerKey: is_numeric($config['max_samples_per_key'] ?? null) ? (int) $config['max_samples_per_key'] : 1000,
+            cleanupChunkSize: is_numeric($config['cleanup_chunk_size'] ?? null) ? (int) $config['cleanup_chunk_size'] : 1000,
         );
     }
 

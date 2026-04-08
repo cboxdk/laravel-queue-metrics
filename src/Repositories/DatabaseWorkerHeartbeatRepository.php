@@ -40,8 +40,9 @@ final readonly class DatabaseWorkerHeartbeatRepository implements WorkerHeartbea
             $existing = $this->store->getHash($key);
 
             $now = Carbon::now();
+            /** @var array<string, string> $existing */
             $previousState = $existing['state'] ?? null;
-            $lastHeartbeat = isset($existing['last_heartbeat']) ? (int) $existing['last_heartbeat'] : $now->timestamp;
+            $lastHeartbeat = isset($existing['last_heartbeat']) ? (int) $existing['last_heartbeat'] : $now->getTimestamp();
             $idleTime = (float) ($existing['idle_time_seconds'] ?? 0.0);
             $busyTime = (float) ($existing['busy_time_seconds'] ?? 0.0);
             $jobsProcessed = (int) ($existing['jobs_processed'] ?? 0);
@@ -49,7 +50,7 @@ final readonly class DatabaseWorkerHeartbeatRepository implements WorkerHeartbea
             $lastStateChange = isset($existing['last_state_change']) ? (int) $existing['last_state_change'] : $now->timestamp;
 
             // Time since last heartbeat
-            $timeSinceLastHeartbeat = $now->timestamp - $lastHeartbeat;
+            $timeSinceLastHeartbeat = $now->getTimestamp() - $lastHeartbeat;
 
             // Update time in previous state
             if ($previousState === 'idle') {
@@ -94,7 +95,7 @@ final readonly class DatabaseWorkerHeartbeatRepository implements WorkerHeartbea
 
             $this->store->addToSortedSet(
                 $this->store->key('workers', 'all'),
-                [$workerId => $now->timestamp]
+                [$workerId => (int) $now->timestamp]
             );
         });
     }

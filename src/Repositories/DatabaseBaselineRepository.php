@@ -46,7 +46,7 @@ final readonly class DatabaseBaselineRepository implements BaselineRepository
         $key = $this->store->key('baseline', $connection, $queue, '_aggregate');
         $driver = $this->store->driver();
 
-        /** @var array<string, mixed> */
+        /** @var array<string, string> $data */
         $data = $driver->getHash($key);
 
         if (empty($data)) {
@@ -95,7 +95,7 @@ final readonly class DatabaseBaselineRepository implements BaselineRepository
         $key = $this->store->key('baseline', $connection, $queue, $jobClass);
         $driver = $this->store->driver();
 
-        /** @var array<string, mixed> */
+        /** @var array<string, string> $data */
         $data = $driver->getHash($key);
 
         if (empty($data)) {
@@ -134,7 +134,7 @@ final readonly class DatabaseBaselineRepository implements BaselineRepository
                 continue;
             }
 
-            /** @var array<string, mixed> */
+            /** @var array<string, string> $data */
             $data = $driver->getHash($key);
 
             if (empty($data)) {
@@ -224,6 +224,7 @@ final readonly class DatabaseBaselineRepository implements BaselineRepository
         $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $pattern);
         $sqlPattern = str_replace(['*', '?'], ['%', '_'], $escaped);
 
+        /** @var array<int, string> */
         return MetricsHash::notExpired()
             ->where('key', 'like', $sqlPattern)
             ->pluck('key')

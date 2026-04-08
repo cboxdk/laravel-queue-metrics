@@ -6,6 +6,11 @@ namespace Cbox\LaravelQueueMetrics\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $key
+ * @property string $member
+ * @property \Illuminate\Support\Carbon|null $created_at
+ */
 class MetricsSet extends Model
 {
     public $timestamps = false;
@@ -23,7 +28,7 @@ class MetricsSet extends Model
 
     public function getTable(): string
     {
-        $prefix = config('queue-metrics.storage.prefix', 'queue_metrics');
+        $prefix = is_string($raw = config('queue-metrics.storage.prefix', 'queue_metrics')) ? $raw : 'queue_metrics';
 
         return $prefix.'_sets';
     }

@@ -16,22 +16,6 @@ use Illuminate\Support\Facades\DB;
  */
 final class DatabaseMetricsStore
 {
-    private ?string $prefix = null;
-
-    /**
-     * Get prefix (lazy loaded).
-     */
-    private function getPrefix(): string
-    {
-        if ($this->prefix === null) {
-            /** @var string $prefix */
-            $prefix = config('queue-metrics.storage.prefix', 'queue_metrics');
-            $this->prefix = $prefix;
-        }
-
-        return $this->prefix;
-    }
-
     /**
      * Build a key from segments.
      * The database driver does not prepend a prefix to keys because the table
@@ -104,11 +88,15 @@ final class DatabaseMetricsStore
             return 0;
         }
 
-        $count = 0;
-        $count += MetricsKey::whereIn('key', $keys)->delete();
-        $count += MetricsHash::whereIn('key', $keys)->delete();
-        $count += MetricsSet::whereIn('key', $keys)->delete();
-        $count += MetricsSortedSet::whereIn('key', $keys)->delete();
+        /** @var int $a */
+        $a = MetricsKey::whereIn('key', $keys)->delete();
+        /** @var int $b */
+        $b = MetricsHash::whereIn('key', $keys)->delete();
+        /** @var int $c */
+        $c = MetricsSet::whereIn('key', $keys)->delete();
+        /** @var int $d */
+        $d = MetricsSortedSet::whereIn('key', $keys)->delete();
+        $count = $a + $b + $c + $d;
 
         return $count;
     }
@@ -152,9 +140,10 @@ final class DatabaseMetricsStore
      */
     public function getHash(string $key): array
     {
+        /** @var MetricsHash|null $record */
         $record = MetricsHash::notExpired()->find($key);
 
-        return $record?->data ?? [];
+        return $record !== null ? $record->data : [];
     }
 
     public function getHashField(string $key, string $field): mixed
@@ -167,10 +156,11 @@ final class DatabaseMetricsStore
     public function incrementHashField(string $key, string $field, int|float $value): void
     {
         DB::transaction(function () use ($key, $field, $value) {
+            /** @var MetricsHash|null $record */
             $record = MetricsHash::lockForUpdate()->find($key);
 
-            $data = $record?->data ?? [];
-            $current = $data[$field] ?? 0;
+            $data = $record !== null ? $record->data : [];
+            $current = is_numeric($data[$field] ?? null) ? $data[$field] : 0;
             $data[$field] = is_float($value) ? (float) $current + $value : (int) $current + $value;
 
             MetricsHash::updateOrCreate(
@@ -223,6 +213,7 @@ final class DatabaseMetricsStore
             $query->where('score', '<=', (float) $max);
         }
 
+        /** @var array<int, string> */
         return $query->pluck('member')->all();
     }
 
@@ -249,6 +240,7 @@ final class DatabaseMetricsStore
 
         $limit = $stop - $start + 1;
 
+        /** @var array<int, string> */
         return $query->offset($start)->limit($limit)->pluck('member')->all();
     }
 
@@ -279,6 +271,7 @@ final class DatabaseMetricsStore
             $query->where('score', '<=', (float) $max);
         }
 
+        /** @var int */
         return $query->delete();
     }
 
@@ -310,6 +303,7 @@ final class DatabaseMetricsStore
             return 0;
         }
 
+        /** @var int */
         return MetricsSortedSet::where('key', $key)
             ->whereIn('member', $members)
             ->delete();
@@ -340,6 +334,7 @@ final class DatabaseMetricsStore
      */
     public function getSetMembers(string $key): array
     {
+        /** @var array<int, string> */
         return MetricsSet::where('key', $key)->pluck('member')->all();
     }
 
@@ -363,6 +358,7 @@ final class DatabaseMetricsStore
         $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $pattern);
         $sqlPattern = str_replace(['*', '?'], ['%', '_'], $escaped);
 
+        /** @var array<int, string> */
         return MetricsKey::notExpired()
             ->where('key', 'like', $sqlPattern)
             ->pluck('key')
@@ -381,14 +377,15 @@ final class DatabaseMetricsStore
     /**
      * Execute operations in a database transaction.
      *
-     * @param  callable(self): void  $callback
+     * @param  callable(self): mixed  $callback
      * @return array<int, mixed>
      */
     public function transaction(callable $callback): array
     {
         $result = [];
         DB::transaction(function () use ($callback, &$result) {
-            $result = (array) $callback($this);
+            $callbackResult = $callback($this);
+            $result = is_array($callbackResult) ? $callbackResult : [];
         });
 
         return $result;

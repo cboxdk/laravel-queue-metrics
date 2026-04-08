@@ -231,7 +231,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         $metrics = [];
 
         foreach ($keys as $key) {
-            /** @var array<string, mixed> */
+            /** @var array<string, string> $data */
             $data = $driver->getHash($key);
 
             if (empty($data)) {
@@ -269,7 +269,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         $key = $this->store->key('jobs', $connection, $queue, $jobClass);
         $driver = $this->store->driver();
 
-        /** @var array<string, mixed> */
+        /** @var array<string, string> $data */
         $data = $driver->getHash($key);
 
         return [
@@ -626,6 +626,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $pattern);
         $sqlPattern = str_replace(['*', '?'], ['%', '_'], $escaped);
 
+        /** @var array<int, string> */
         return MetricsHash::notExpired()
             ->where('key', 'like', $sqlPattern)
             ->pluck('key')

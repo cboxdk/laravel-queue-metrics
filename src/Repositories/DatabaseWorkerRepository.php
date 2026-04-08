@@ -46,7 +46,7 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
 
         // Add to workers:all sorted set (score = spawned_at timestamp)
         $indexKey = $this->store->key('workers', 'all');
-        $driver->addToSortedSet($indexKey, [$hostname.':'.$pid => $spawnedAt->timestamp]);
+        $driver->addToSortedSet($indexKey, [$hostname.':'.$pid => (int) $spawnedAt->timestamp]);
 
         // Set TTL on keys
         $driver->expire($key, $ttl);
@@ -86,7 +86,7 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
 
         // Update the sorted set score to current time for activity tracking
         $indexKey = $this->store->key('workers', 'all');
-        $driver->addToSortedSet($indexKey, [$hostname.':'.$pid => Carbon::now()->timestamp]);
+        $driver->addToSortedSet($indexKey, [$hostname.':'.$pid => (int) Carbon::now()->timestamp]);
 
         // Refresh TTL on update
         $driver->expire($key, $ttl);
@@ -105,6 +105,7 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
     public function getWorkerStats(int $pid, string $hostname): ?WorkerStatsData
     {
         $key = $this->store->key('worker', $hostname, (string) $pid);
+        /** @var array<string, string> $data */
         $data = $this->store->driver()->getHash($key);
 
         if (empty($data)) {
@@ -135,7 +136,7 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
             [$memberHostname, $memberPid] = $parts;
             $workerKey = $this->store->key('worker', $memberHostname, $memberPid);
 
-            /** @var array<string, mixed> $data */
+            /** @var array<string, string> $data */
             $data = $driver->getHash($workerKey);
 
             if (empty($data)) {
@@ -213,7 +214,7 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
     /**
      * Build a WorkerStatsData from raw hash data.
      *
-     * @param  array<string, mixed>  $data
+     * @param  array<string, string>  $data
      */
     private function buildWorkerStats(array $data): WorkerStatsData
     {

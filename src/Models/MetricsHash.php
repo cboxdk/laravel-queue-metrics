@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $key
+ * @property array<string, mixed> $data
+ * @property \Illuminate\Support\Carbon|null $expires_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class MetricsHash extends Model
 {
     public $timestamps = false;
@@ -29,7 +36,7 @@ class MetricsHash extends Model
 
     public function getTable(): string
     {
-        $prefix = config('queue-metrics.storage.prefix', 'queue_metrics');
+        $prefix = is_string($raw = config('queue-metrics.storage.prefix', 'queue_metrics')) ? $raw : 'queue_metrics';
 
         return $prefix.'_hashes';
     }
@@ -41,14 +48,22 @@ class MetricsHash extends Model
         return is_string($connection) ? $connection : parent::getConnectionName();
     }
 
-    public function scopeNotExpired($query)
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeNotExpired(Builder $query): Builder
     {
-        return $query->where(function ($q) {
+        return $query->where(function (Builder $q) {
             $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
         });
     }
 
-    public function scopeExpired($query)
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeExpired(Builder $query): Builder
     {
         return $query->where('expires_at', '<', now());
     }

@@ -132,7 +132,6 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
     {
         $driver = config('queue-metrics.storage.driver', 'redis');
 
-        /** @var array<class-string, class-string> */
         $driverDefaults = match ($driver) {
             'database' => [
                 JobMetricsRepository::class => \Cbox\LaravelQueueMetrics\Repositories\DatabaseJobMetricsRepository::class,
