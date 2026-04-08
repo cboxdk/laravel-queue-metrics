@@ -46,6 +46,7 @@ test('update worker activity changes status and metadata', function () {
     expect($stats)->not->toBeNull();
     expect($stats->status)->toBe('busy');
     expect($stats->currentJob)->toBe('App\\Jobs\\SendEmail');
+    expect($stats->jobsProcessed)->toBe(5);
     expect($stats->idlePercentage)->toBe(25.0);
 });
 

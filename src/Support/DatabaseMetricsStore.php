@@ -206,12 +206,19 @@ final class DatabaseMetricsStore
      */
     public function getSortedSetByScore(string $key, string $min, string $max): array
     {
-        return MetricsSortedSet::notExpired()
+        $query = MetricsSortedSet::notExpired()
             ->where('key', $key)
-            ->whereBetween('score', [(float) $min, (float) $max])
-            ->orderBy('score')
-            ->pluck('member')
-            ->all();
+            ->orderBy('score');
+
+        if ($min !== '-inf') {
+            $query->where('score', '>=', (float) $min);
+        }
+
+        if ($max !== '+inf' && $max !== 'inf') {
+            $query->where('score', '<=', (float) $max);
+        }
+
+        return $query->pluck('member')->all();
     }
 
     /**
@@ -242,17 +249,32 @@ final class DatabaseMetricsStore
 
     public function countSortedSetByScore(string $key, string $min, string $max): int
     {
-        return MetricsSortedSet::notExpired()
-            ->where('key', $key)
-            ->whereBetween('score', [(float) $min, (float) $max])
-            ->count();
+        $query = MetricsSortedSet::notExpired()->where('key', $key);
+
+        if ($min !== '-inf') {
+            $query->where('score', '>=', (float) $min);
+        }
+
+        if ($max !== '+inf' && $max !== 'inf') {
+            $query->where('score', '<=', (float) $max);
+        }
+
+        return $query->count();
     }
 
     public function removeSortedSetByScore(string $key, string $min, string $max): int
     {
-        return MetricsSortedSet::where('key', $key)
-            ->whereBetween('score', [(float) $min, (float) $max])
-            ->delete();
+        $query = MetricsSortedSet::where('key', $key);
+
+        if ($min !== '-inf') {
+            $query->where('score', '>=', (float) $min);
+        }
+
+        if ($max !== '+inf' && $max !== 'inf') {
+            $query->where('score', '<=', (float) $max);
+        }
+
+        return $query->delete();
     }
 
     public function removeSortedSetByRank(string $key, int $start, int $stop): int
