@@ -17,11 +17,6 @@ use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
-use Cbox\LaravelQueueMetrics\Repositories\RedisBaselineRepository;
-use Cbox\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
-use Cbox\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
-use Cbox\LaravelQueueMetrics\Repositories\RedisWorkerHeartbeatRepository;
-use Cbox\LaravelQueueMetrics\Repositories\RedisWorkerRepository;
 
 // config for Cbox/LaravelQueueMetrics
 return [
@@ -38,6 +33,11 @@ return [
         'driver' => env('QUEUE_METRICS_STORAGE', 'redis'),
         'connection' => env('QUEUE_METRICS_CONNECTION', 'default'),
         'prefix' => 'queue_metrics',
+
+        // Maximum retained samples per metric key.
+        // Recommended: 1000 for Redis, 500 for database driver.
+        'max_samples_per_key' => env('QUEUE_METRICS_MAX_SAMPLES', 1000),
+        'cleanup_chunk_size' => 1000,
 
         'ttl' => [
             'raw' => 3600,
@@ -105,11 +105,11 @@ return [
     */
 
     'repositories' => [
-        JobMetricsRepository::class => RedisJobMetricsRepository::class,
-        QueueMetricsRepository::class => RedisQueueMetricsRepository::class,
-        WorkerRepository::class => RedisWorkerRepository::class,
-        BaselineRepository::class => RedisBaselineRepository::class,
-        WorkerHeartbeatRepository::class => RedisWorkerHeartbeatRepository::class,
+        JobMetricsRepository::class => null,
+        QueueMetricsRepository::class => null,
+        WorkerRepository::class => null,
+        BaselineRepository::class => null,
+        WorkerHeartbeatRepository::class => null,
     ],
 
     'actions' => [

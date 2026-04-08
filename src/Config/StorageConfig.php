@@ -17,6 +17,8 @@ final readonly class StorageConfig
         public string $connection,
         public string $prefix,
         public array $ttls,
+        public int $maxSamplesPerKey,
+        public int $cleanupChunkSize,
     ) {}
 
     /**
@@ -36,6 +38,8 @@ final readonly class StorageConfig
             connection: is_string($config['connection'] ?? null) ? $config['connection'] : 'default',
             prefix: is_string($config['prefix'] ?? null) ? $config['prefix'] : 'queue_metrics',
             ttls: $ttls,
+            maxSamplesPerKey: (int) ($config['max_samples_per_key'] ?? 1000),
+            cleanupChunkSize: (int) ($config['cleanup_chunk_size'] ?? 1000),
         );
     }
 

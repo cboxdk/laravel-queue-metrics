@@ -23,7 +23,9 @@ it('creates config from array with all values', function () {
             'raw' => 1800,
             'aggregated' => 86400,
             'baseline' => 604800,
-        ]);
+        ])
+        ->and($config->maxSamplesPerKey)->toBe(1000)
+        ->and($config->cleanupChunkSize)->toBe(1000);
 })->group('functional');
 
 it('creates config with defaults when values missing', function () {
@@ -36,7 +38,9 @@ it('creates config with defaults when values missing', function () {
             'raw' => 3600,
             'aggregated' => 604800,
             'baseline' => 2592000,
-        ]);
+        ])
+        ->and($config->maxSamplesPerKey)->toBe(1000)
+        ->and($config->cleanupChunkSize)->toBe(1000);
 })->group('functional');
 
 it('gets ttl for known type', function () {
@@ -71,6 +75,16 @@ it('handles database driver', function () {
 
     expect($config->driver)->toBe('database')
         ->and($config->connection)->toBe('mysql');
+})->group('functional');
+
+it('creates config with custom max_samples_per_key and cleanup_chunk_size', function () {
+    $config = StorageConfig::fromArray([
+        'max_samples_per_key' => 500,
+        'cleanup_chunk_size' => 2000,
+    ]);
+
+    expect($config->maxSamplesPerKey)->toBe(500)
+        ->and($config->cleanupChunkSize)->toBe(2000);
 })->group('functional');
 
 it('is readonly', function () {
