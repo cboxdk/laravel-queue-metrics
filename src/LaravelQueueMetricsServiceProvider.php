@@ -15,6 +15,7 @@ use Cbox\LaravelQueueMetrics\Commands\CleanupStaleWorkersCommand;
 use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use Cbox\LaravelQueueMetrics\Config\StorageConfig;
 use Cbox\LaravelQueueMetrics\Console\CalculateQueueMetricsCommand;
+use Cbox\LaravelQueueMetrics\Console\CleanupDatabaseCommand;
 use Cbox\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
 use Cbox\LaravelQueueMetrics\Console\RecordTrendDataCommand;
 use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
@@ -72,6 +73,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             ->hasMigration('2024_01_01_000001_create_queue_metrics_storage_tables')
             ->hasCommand(CalculateBaselinesCommand::class)
             ->hasCommand(CalculateQueueMetricsCommand::class)
+            ->hasCommand(CleanupDatabaseCommand::class)
             ->hasCommand(CleanupStaleWorkersCommand::class)
             ->hasCommand(DetectStaleWorkersCommand::class)
             ->hasCommand(RecordTrendDataCommand::class);
