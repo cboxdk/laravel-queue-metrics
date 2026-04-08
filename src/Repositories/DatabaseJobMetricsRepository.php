@@ -103,10 +103,12 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             $ttl,
             $jobId
         ) {
-            $driver->incrementHashField($metricsKey, 'total_processed', 1);
-            $driver->incrementHashField($metricsKey, 'total_duration_ms', $durationMs);
-            $driver->incrementHashField($metricsKey, 'total_memory_mb', $memoryMb);
-            $driver->incrementHashField($metricsKey, 'total_cpu_time_ms', $cpuTimeMs);
+            $driver->incrementHashFields($metricsKey, [
+                'total_processed' => 1,
+                'total_duration_ms' => $durationMs,
+                'total_memory_mb' => $memoryMb,
+                'total_cpu_time_ms' => $cpuTimeMs,
+            ]);
             $driver->setHash($metricsKey, ['last_processed_at' => $completedAt->timestamp]);
 
             // Store samples in sorted sets with timestamp as score
@@ -177,8 +179,8 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
                 $failedAt,
                 $ttl
             ) {
-                // Job-level failure metrics
-                $driver->incrementHashField($metricsKey, 'total_failed', 1);
+                // Job-level failure metrics (combine increment + setHash into one transaction)
+                $driver->incrementHashFields($metricsKey, ['total_failed' => 1]);
                 $driver->setHash($metricsKey, [
                     'last_failed_at' => $failedAt->timestamp,
                     'last_exception' => substr($exception, 0, 1000),
@@ -189,8 +191,8 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
                 $driver->addToSet($discoveryKey, [$serverKey]);
                 $driver->expire($discoveryKey, $ttl);
 
-                // Hostname-level failure metrics
-                $driver->incrementHashField($serverKey, 'total_failed', 1);
+                // Hostname-level failure metrics (combine increment + setHash into one transaction)
+                $driver->incrementHashFields($serverKey, ['total_failed' => 1]);
                 $driver->setHash($serverKey, ['last_updated_at' => $failedAt->timestamp]);
                 $driver->expire($serverKey, $ttl);
 
@@ -199,7 +201,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             });
         } else {
             $this->store->transaction(function () use ($driver, $metricsKey, $jobKey, $exception, $failedAt, $ttl) {
-                $driver->incrementHashField($metricsKey, 'total_failed', 1);
+                $driver->incrementHashFields($metricsKey, ['total_failed' => 1]);
                 $driver->setHash($metricsKey, [
                     'last_failed_at' => $failedAt->timestamp,
                     'last_exception' => substr($exception, 0, 1000),
@@ -577,10 +579,12 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             $driver->expire($discoveryKey, $ttl);
 
             if ($success) {
-                $driver->incrementHashField($serverKey, 'total_processed', 1);
-                $driver->incrementHashField($serverKey, 'total_duration_ms', $durationMs);
+                $driver->incrementHashFields($serverKey, [
+                    'total_processed' => 1,
+                    'total_duration_ms' => $durationMs,
+                ]);
             } else {
-                $driver->incrementHashField($serverKey, 'total_failed', 1);
+                $driver->incrementHashFields($serverKey, ['total_failed' => 1]);
             }
             $driver->setHash($serverKey, ['last_updated_at' => $timestamp->timestamp]);
             $driver->expire($serverKey, $ttl);

@@ -170,6 +170,31 @@ final class DatabaseMetricsStore
         });
     }
 
+    /**
+     * Increment multiple hash fields atomically in a single transaction.
+     *
+     * @param  array<string, int|float>  $increments  Field => increment value pairs
+     */
+    public function incrementHashFields(string $key, array $increments): void
+    {
+        DB::transaction(function () use ($key, $increments) {
+            /** @var MetricsHash|null $record */
+            $record = MetricsHash::lockForUpdate()->find($key);
+
+            $data = $record !== null ? $record->data : [];
+
+            foreach ($increments as $field => $value) {
+                $current = is_numeric($data[$field] ?? null) ? $data[$field] : 0;
+                $data[$field] = is_float($value) ? (float) $current + $value : (int) $current + $value;
+            }
+
+            MetricsHash::updateOrCreate(
+                ['key' => $key],
+                ['data' => $data, 'updated_at' => now()]
+            );
+        });
+    }
+
     // --- Sorted set operations ---
 
     /**

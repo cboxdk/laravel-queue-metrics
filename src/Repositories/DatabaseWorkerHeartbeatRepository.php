@@ -9,6 +9,7 @@ use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerHeartbeat;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
+use Cbox\LaravelQueueMetrics\Support\HeartbeatThrottleCache;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,14 @@ final readonly class DatabaseWorkerHeartbeatRepository implements WorkerHeartbea
         float $memoryUsageMb = 0.0,
         float $cpuUsagePercent = 0.0,
     ): void {
+        $currentTimestamp = Carbon::now()->getTimestamp();
+
+        // Throttle non-state-change heartbeats for the database driver.
+        // State changes always write immediately; identical states skip if written recently.
+        if (HeartbeatThrottleCache::shouldSkip($workerId, $state->value, $currentTimestamp)) {
+            return;
+        }
+
         DB::transaction(function () use ($workerId, $connection, $queue, $state, $currentJobId, $currentJobClass, $pid, $hostname, $memoryUsageMb, $cpuUsagePercent) {
             $key = $this->store->key('worker', $workerId);
             $existing = $this->store->getHash($key);
@@ -98,6 +107,9 @@ final readonly class DatabaseWorkerHeartbeatRepository implements WorkerHeartbea
                 [$workerId => (int) $now->timestamp]
             );
         });
+
+        // Update throttle tracking after successful write
+        HeartbeatThrottleCache::record($workerId, $state->value, $currentTimestamp);
     }
 
     public function transitionState(

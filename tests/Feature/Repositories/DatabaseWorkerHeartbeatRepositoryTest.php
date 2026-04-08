@@ -6,12 +6,15 @@ use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Repositories\DatabaseWorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
+use Cbox\LaravelQueueMetrics\Support\HeartbeatThrottleCache;
 
 beforeEach(function () {
     config()->set('queue-metrics.storage.connection', null);
 
     $migration = include __DIR__.'/../../../database/migrations/2024_01_01_000001_create_queue_metrics_storage_tables.php';
     $migration->up();
+
+    HeartbeatThrottleCache::reset();
 
     $this->store = new DatabaseMetricsStore;
     $this->repo = new DatabaseWorkerHeartbeatRepository($this->store);
@@ -143,6 +146,8 @@ test('recordHeartbeat increments jobs_processed on busy to idle transition', fun
 });
 
 test('recordHeartbeat tracks peak memory usage', function () {
+    Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
+
     $this->repo->recordHeartbeat(
         workerId: 'worker-1',
         connection: 'redis',
@@ -157,6 +162,9 @@ test('recordHeartbeat tracks peak memory usage', function () {
 
     $worker = $this->repo->getWorker('worker-1');
     expect($worker->peakMemoryUsageMb)->toBe(50.0);
+
+    // Advance time to exceed heartbeat throttle window
+    Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:11'));
 
     // Higher memory
     $this->repo->recordHeartbeat(
@@ -174,6 +182,9 @@ test('recordHeartbeat tracks peak memory usage', function () {
     $worker = $this->repo->getWorker('worker-1');
     expect($worker->peakMemoryUsageMb)->toBe(120.0);
 
+    // Advance time again
+    Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:22'));
+
     // Lower memory - peak should not decrease
     $this->repo->recordHeartbeat(
         workerId: 'worker-1',
@@ -190,6 +201,8 @@ test('recordHeartbeat tracks peak memory usage', function () {
     $worker = $this->repo->getWorker('worker-1');
     expect($worker->peakMemoryUsageMb)->toBe(120.0);
     expect($worker->memoryUsageMb)->toBe(30.0);
+
+    Carbon::setTestNow();
 });
 
 test('recordHeartbeat accumulates idle and busy time', function () {
