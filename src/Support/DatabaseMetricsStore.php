@@ -188,16 +188,21 @@ final class DatabaseMetricsStore
     public function addToSortedSet(string $key, array $membersWithScores, ?int $ttl = null): void
     {
         $expiresAt = $ttl !== null ? now()->addSeconds($ttl) : null;
+        $now = now();
 
+        $rows = [];
         foreach ($membersWithScores as $member => $score) {
-            MetricsSortedSet::updateOrCreate(
-                ['key' => $key, 'member' => (string) $member],
-                [
-                    'score' => $score,
-                    'expires_at' => $expiresAt,
-                    'updated_at' => now(),
-                ]
-            );
+            $rows[] = [
+                'key' => $key,
+                'member' => (string) $member,
+                'score' => $score,
+                'expires_at' => $expiresAt,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (! empty($rows)) {
+            MetricsSortedSet::upsert($rows, ['key', 'member'], ['score', 'expires_at', 'updated_at']);
         }
     }
 
