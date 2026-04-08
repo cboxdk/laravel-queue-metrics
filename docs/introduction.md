@@ -4,13 +4,13 @@ description: "Comprehensive queue monitoring and metrics collection for Laravel 
 weight: 1
 ---
 
-# Laravel Queue Metrics
+# Queue Metrics for Laravel
 
-Welcome to Laravel Queue Metrics - a comprehensive package for queue monitoring and metrics collection in Laravel applications.
+Welcome to Queue Metrics for Laravel - a comprehensive package for queue monitoring and metrics collection in Laravel applications.
 
-## What is Laravel Queue Metrics?
+## What is Queue Metrics for Laravel?
 
-Laravel Queue Metrics provides deep visibility into your Laravel queue operations, helping you monitor performance, identify bottlenecks, and optimize your background job processing.
+Queue Metrics for Laravel provides deep visibility into your Laravel queue operations, helping you monitor performance, identify bottlenecks, and optimize your background job processing.
 
 ### Key Features
 
@@ -24,7 +24,7 @@ Laravel Queue Metrics provides deep visibility into your Laravel queue operation
 
 ## 🚀 Need Deep Insight and Replay Capability?
 
-While this package provides a high-level overview of your queue's health and performance via aggregated metrics, **[Laravel Queue Monitor](https://github.com/cboxdk/laravel-queue-monitor)** allows you to dive into individual job executions.
+While this package provides a high-level overview of your queue's health and performance via aggregated metrics, **[Queue Monitor for Laravel](https://github.com/cboxdk/laravel-queue-monitor)** allows you to dive into individual job executions.
 
 **We recommend installing it if you need:**
 
@@ -84,4 +84,4 @@ Deep dive into advanced capabilities:
 
 ## License
 
-Laravel Queue Metrics is open-source software licensed under the MIT license.
+Queue Metrics for Laravel is open-source software licensed under the MIT license.

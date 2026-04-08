@@ -6,7 +6,7 @@ weight: 12
 
 # Artisan Commands
 
-Laravel Queue Metrics provides Artisan commands for maintenance and monitoring.
+Queue Metrics for Laravel provides Artisan commands for maintenance and monitoring.
 
 ## Available Commands
 

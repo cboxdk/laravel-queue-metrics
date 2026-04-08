@@ -6,7 +6,7 @@ weight: 32
 
 # Events System
 
-Laravel Queue Metrics dispatches domain events that allow you to react to significant occurrences in your queue system. Events are notifications that enable integrations, alerts, and side-effects.
+Queue Metrics for Laravel dispatches domain events that allow you to react to significant occurrences in your queue system. Events are notifications that enable integrations, alerts, and side-effects.
 
 ## Overview
 

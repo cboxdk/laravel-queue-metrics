@@ -1,12 +1,12 @@
 ---
 title: "Installation"
-description: "Complete installation guide for Laravel Queue Metrics with Redis and database storage options"
+description: "Complete Queue Metrics for Laravel installation guide with Redis and database storage options"
 weight: 2
 ---
 
 # Installation
 
-Get Laravel Queue Metrics up and running in your Laravel application.
+Get Queue Metrics for Laravel up and running in your application.
 
 ## Requirements
 

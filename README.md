@@ -1,4 +1,4 @@
-# Laravel Queue Metrics
+# Queue Metrics for Laravel
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/cboxdk/laravel-queue-metrics.svg?style=flat-square)](https://packagist.org/packages/cboxdk/laravel-queue-metrics)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/cboxdk/laravel-queue-metrics/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/cboxdk/laravel-queue-metrics/actions?query=workflow%3Arun-tests+branch%3Amain)
@@ -7,9 +7,9 @@
 
 **Production-ready queue monitoring and metrics collection for Laravel applications.**
 
-Laravel Queue Metrics provides deep observability into your Laravel queue system with minimal overhead. Track job execution, monitor worker performance, analyze trends, and export to Prometheus—all with zero configuration required.
+Queue Metrics for Laravel provides deep observability into your Laravel queue system with minimal overhead. Track job execution, monitor worker performance, analyze trends, and export to Prometheus—all with zero configuration required.
 
-## Why Laravel Queue Metrics?
+## Why Queue Metrics for Laravel?
 
 - 🚀 **Zero Configuration** - Works out-of-the-box
 - ⚡ **Minimal Overhead** - ~1-2ms per job
@@ -46,7 +46,7 @@ Event::listen(HealthScoreChanged::class, function ($event) {
 
 ## 🚀 Need Deep Insight and Replay Capability?
 
-While this package provides a high-level overview of your queue's health and performance via aggregated metrics, **[Laravel Queue Monitor](https://github.com/cboxdk/laravel-queue-monitor)** allows you to dive into individual job executions.
+While this package provides a high-level overview of your queue's health and performance via aggregated metrics, **[Queue Monitor for Laravel](https://github.com/cboxdk/laravel-queue-monitor)** allows you to dive into individual job executions.
 
 **We recommend installing it if you need:**
 
@@ -285,7 +285,7 @@ job_failure_rate > 5
 
 ## Architecture
 
-Laravel Queue Metrics uses a clean, layered architecture:
+Queue Metrics for Laravel uses a clean, layered architecture:
 
 - **Event Listeners** → Capture Laravel queue events
 - **Actions** → Business logic for recording metrics

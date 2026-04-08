@@ -6,11 +6,11 @@ weight: 10
 
 # Basic Usage
 
-This section covers the fundamental ways to access and work with Laravel Queue Metrics in your application.
+This section covers the fundamental ways to access and work with Queue Metrics for Laravel in your application.
 
 ## Available Interfaces
 
-Laravel Queue Metrics provides three primary interfaces for accessing metrics:
+Queue Metrics for Laravel provides three primary interfaces for accessing metrics:
 
 ### Facade API
 

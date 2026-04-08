@@ -1,12 +1,12 @@
 ---
 title: "Quick Start"
-description: "Get up and running with Laravel Queue Metrics in 5 minutes"
+description: "Get up and running with Queue Metrics for Laravel in 5 minutes"
 weight: 3
 ---
 
 # Quick Start
 
-Get up and running with Laravel Queue Metrics in 5 minutes.
+Get up and running with Queue Metrics for Laravel in 5 minutes.
 
 ## Prerequisites
 

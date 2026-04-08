@@ -6,13 +6,13 @@ weight: 30
 
 # Advanced Usage
 
-This section covers advanced features, internal architecture, and optimization strategies for Laravel Queue Metrics.
+This section covers advanced features, internal architecture, and optimization strategies for Queue Metrics for Laravel.
 
 ## Advanced Topics
 
 ### Architecture & Internals
 
-Understand how Laravel Queue Metrics works under the hood, including the event-driven architecture, data storage patterns, and internal components.
+Understand how Queue Metrics for Laravel works under the hood, including the event-driven architecture, data storage patterns, and internal components.
 
 **Learn more:** [Architecture Overview](architecture)
 
@@ -30,7 +30,7 @@ Export queue metrics to Prometheus for centralized monitoring with Grafana dashb
 
 ### Performance Tuning
 
-Optimize Laravel Queue Metrics for your specific workload, including storage configuration, batch processing, and resource management.
+Optimize queue metrics collection for your specific workload, including storage configuration, batch processing, and resource management.
 
 **Learn more:** [Performance Tuning](performance)
 

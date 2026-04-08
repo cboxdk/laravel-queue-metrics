@@ -6,7 +6,7 @@ weight: 11
 
 # HTTP API Endpoints
 
-Complete HTTP API reference for Laravel Queue Metrics.
+Complete HTTP API reference for Queue Metrics for Laravel.
 
 ## Base URL
 

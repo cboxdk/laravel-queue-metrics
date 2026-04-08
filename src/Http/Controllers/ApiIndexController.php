@@ -17,7 +17,7 @@ final class ApiIndexController extends Controller
         $baseUrl = url('/queue-metrics');
 
         return response()->json([
-            'message' => 'Laravel Queue Metrics API',
+            'message' => 'Queue Metrics for Laravel API',
             'version' => '1.0.0',
             'documentation' => 'https://github.com/Cbox/laravel-queue-metrics',
             'endpoints' => [

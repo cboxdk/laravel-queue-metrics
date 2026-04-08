@@ -1,6 +1,6 @@
 # Security
 
-The Laravel Queue Metrics dashboard exposes sensitive information about your job queues. It is crucial to secure these endpoints in production environments.
+The Queue Metrics for Laravel dashboard exposes sensitive information about your job queues. It is crucial to secure these endpoints in production environments.
 
 ## Dashboard Authorization
 

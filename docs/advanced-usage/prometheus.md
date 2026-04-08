@@ -6,7 +6,7 @@ weight: 33
 
 # Prometheus Integration
 
-Laravel Queue Metrics provides native Prometheus metrics export for monitoring and alerting.
+Queue Metrics for Laravel provides native Prometheus metrics export for monitoring and alerting.
 
 ## Quick Start
 
@@ -179,7 +179,7 @@ Use this JSON or build your own:
 ```json
 {
   "dashboard": {
-    "title": "Laravel Queue Metrics",
+    "title": "Queue Metrics for Laravel",
     "panels": [
       {
         "title": "Queue Depth",

@@ -1,12 +1,12 @@
 ---
 title: "Architecture Overview"
-description: "Deep dive into how Laravel Queue Metrics works internally"
+description: "Deep dive into how Queue Metrics for Laravel works internally"
 weight: 31
 ---
 
 # Architecture Overview
 
-Understanding how Laravel Queue Metrics works under the hood.
+Understanding how Queue Metrics for Laravel works under the hood.
 
 ## High-Level Architecture
 
