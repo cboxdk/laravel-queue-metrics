@@ -2,6 +2,16 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.6.0 - Persistence toggle - 2026-04-09
+
+### What's Changed
+
+* feat: Add `persistence.enabled` config option (`QUEUE_METRICS_PERSISTENCE` env) — when `false`, listeners still instrument jobs and fire `JobMetricsCompleted`/`JobMetricsFailed` events but skip all repository writes; scheduled tasks are not registered; no Redis or database connection is required
+* tests: Add 11 tests covering persistence-disabled behavior (events fire, no repository calls, no scheduled tasks)
+* docs: Document `persistence.enabled` in configuration reference and events docs
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v2.5.0...v2.6.0
+
 ## v2.5.0 - Database storage driver - 2026-04-09
 
 ### What's Changed

@@ -20,6 +20,10 @@ final readonly class JobExceptionOccurredListener
 
     public function handle(JobExceptionOccurred $event): void
     {
+        if (! config('queue-metrics.persistence.enabled', true)) {
+            return;
+        }
+
         $job = $event->job;
         $payload = $job->payload();
 

@@ -29,6 +29,10 @@ return [
 
     'enabled' => env('QUEUE_METRICS_ENABLED', true),
 
+    'persistence' => [
+        'enabled' => env('QUEUE_METRICS_PERSISTENCE', true),
+    ],
+
     'storage' => [
         'driver' => env('QUEUE_METRICS_STORAGE', 'redis'),
         'connection' => env('QUEUE_METRICS_CONNECTION', 'default'),

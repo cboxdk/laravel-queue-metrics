@@ -22,6 +22,10 @@ final readonly class WorkerStoppingListener
 
     public function handle(WorkerStopping $event): void
     {
+        if (! config('queue-metrics.persistence.enabled', true)) {
+            return;
+        }
+
         $workerId = $this->getWorkerId();
 
         // Transition worker to STOPPED state

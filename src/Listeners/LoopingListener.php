@@ -22,6 +22,10 @@ final readonly class LoopingListener
 
     public function handle(Looping $event): void
     {
+        if (! config('queue-metrics.persistence.enabled', true)) {
+            return;
+        }
+
         $workerId = $this->getWorkerId();
         $connection = $event->connectionName;
         $queue = $event->queue; // Property is always set (string type)

@@ -78,6 +78,7 @@ $event->metrics->lastFailure;       // ?FailureInfoDTO
 **Dispatched**: When a job completes successfully with process-level metrics
 **Frequency**: High (every successful job)
 **Purpose**: Per-job metrics for downstream consumers (e.g., [Queue Monitor](https://github.com/cboxdk/laravel-queue-monitor))
+**Persistence**: Fires even when `persistence.enabled` is `false` — no storage driver required
 
 ```php
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
@@ -112,6 +113,7 @@ $event->workerMemoryLimitMb;   // ?float (PHP memory_limit in MB, null if unlimi
 **Dispatched**: When a job fails with process-level metrics
 **Frequency**: Low (only on failures)
 **Purpose**: Per-job failure metrics for downstream consumers (e.g., [Queue Monitor](https://github.com/cboxdk/laravel-queue-monitor))
+**Persistence**: Fires even when `persistence.enabled` is `false` — no storage driver required
 
 ```php
 use Cbox\LaravelQueueMetrics\Events\JobMetricsFailed;

@@ -55,14 +55,16 @@ final readonly class JobFailedListener
         $hostname = gethostname() ?: 'unknown';
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
 
-        $this->recordJobFailure->execute(
-            jobId: $jobId,
-            jobClass: $jobClass,
-            connection: $connection,
-            queue: $queue,
-            exception: $event->exception,
-            hostname: $hostname,
-        );
+        if (config('queue-metrics.persistence.enabled', true)) {
+            $this->recordJobFailure->execute(
+                jobId: $jobId,
+                jobClass: $jobClass,
+                connection: $connection,
+                queue: $queue,
+                exception: $event->exception,
+                hostname: $hostname,
+            );
+        }
 
         // Fire per-job metrics event for downstream consumers (e.g., queue-monitor)
         $exceptionMessage = $event->exception->getMessage().' in '.$event->exception->getFile().':'.$event->exception->getLine();
@@ -81,15 +83,17 @@ final readonly class JobFailedListener
         );
 
         // Record worker heartbeat with IDLE state (job failed, worker ready for next job)
-        $workerId = $this->getWorkerId();
-        $this->recordWorkerHeartbeat->execute(
-            workerId: $workerId,
-            connection: $connection,
-            queue: $queue,
-            state: WorkerState::IDLE,
-            currentJobId: null,
-            currentJobClass: null,
-        );
+        if (config('queue-metrics.persistence.enabled', true)) {
+            $workerId = $this->getWorkerId();
+            $this->recordWorkerHeartbeat->execute(
+                workerId: $workerId,
+                connection: $connection,
+                queue: $queue,
+                state: WorkerState::IDLE,
+                currentJobId: null,
+                currentJobClass: null,
+            );
+        }
     }
 
     private function getWorkerId(): string

@@ -222,6 +222,10 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             return;
         }
 
+        if (! config('queue-metrics.persistence.enabled', true)) {
+            return;
+        }
+
         /** @var int $threshold */
         $threshold = config('queue-metrics.worker_heartbeat.stale_threshold', 60);
 

@@ -41,23 +41,25 @@ final readonly class JobProcessingListener
         $connection = $event->connectionName;
         $queue = $job->getQueue();
 
-        $this->recordJobStart->execute(
-            jobId: $jobId,
-            jobClass: $jobClass,
-            connection: $connection,
-            queue: $queue,
-        );
+        if (config('queue-metrics.persistence.enabled', true)) {
+            $this->recordJobStart->execute(
+                jobId: $jobId,
+                jobClass: $jobClass,
+                connection: $connection,
+                queue: $queue,
+            );
 
-        // Record worker heartbeat with BUSY state
-        $workerId = $this->getWorkerId();
-        $this->recordWorkerHeartbeat->execute(
-            workerId: $workerId,
-            connection: $connection,
-            queue: $queue,
-            state: WorkerState::BUSY,
-            currentJobId: $jobId,
-            currentJobClass: $jobClass,
-        );
+            // Record worker heartbeat with BUSY state
+            $workerId = $this->getWorkerId();
+            $this->recordWorkerHeartbeat->execute(
+                workerId: $workerId,
+                connection: $connection,
+                queue: $queue,
+                state: WorkerState::BUSY,
+                currentJobId: $jobId,
+                currentJobClass: $jobClass,
+            );
+        }
     }
 
     private function getWorkerId(): string
