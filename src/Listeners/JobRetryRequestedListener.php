@@ -20,6 +20,10 @@ final readonly class JobRetryRequestedListener
 
     public function handle(JobRetryRequested $event): void
     {
+        if (! config('queue-metrics.persistence.enabled', true)) {
+            return;
+        }
+
         // $event->job is stdClass - contains raw job data from Laravel queue
         $jobStdClass = $event->job;
 

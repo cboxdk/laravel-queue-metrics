@@ -20,6 +20,10 @@ final readonly class JobQueuedListener
 
     public function handle(JobQueued $event): void
     {
+        if (! config('queue-metrics.persistence.enabled', true)) {
+            return;
+        }
+
         $connection = $event->connectionName;
         $queue = $event->job->queue ?? 'default';
 

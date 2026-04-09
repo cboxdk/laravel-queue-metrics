@@ -60,16 +60,18 @@ final readonly class JobProcessedListener
 
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
 
-        $this->recordJobCompletion->execute(
-            jobId: $jobId,
-            jobClass: $jobClass,
-            connection: $connection,
-            queue: $queue,
-            durationMs: $durationMs,
-            memoryMb: $memoryMb,
-            cpuTimeMs: $cpuTimeMs,
-            hostname: $hostname,
-        );
+        if (config('queue-metrics.persistence.enabled', true)) {
+            $this->recordJobCompletion->execute(
+                jobId: $jobId,
+                jobClass: $jobClass,
+                connection: $connection,
+                queue: $queue,
+                durationMs: $durationMs,
+                memoryMb: $memoryMb,
+                cpuTimeMs: $cpuTimeMs,
+                hostname: $hostname,
+            );
+        }
 
         // Fire per-job metrics event for downstream consumers (e.g., queue-monitor)
         JobMetricsCompleted::dispatch(
@@ -85,15 +87,17 @@ final readonly class JobProcessedListener
         );
 
         // Record worker heartbeat with IDLE state (job completed)
-        $workerId = $this->getWorkerId();
-        $this->recordWorkerHeartbeat->execute(
-            workerId: $workerId,
-            connection: $connection,
-            queue: $queue,
-            state: WorkerState::IDLE,
-            currentJobId: null,
-            currentJobClass: null,
-        );
+        if (config('queue-metrics.persistence.enabled', true)) {
+            $workerId = $this->getWorkerId();
+            $this->recordWorkerHeartbeat->execute(
+                workerId: $workerId,
+                connection: $connection,
+                queue: $queue,
+                state: WorkerState::IDLE,
+                currentJobId: null,
+                currentJobClass: null,
+            );
+        }
     }
 
     private function getWorkerId(): string

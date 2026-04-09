@@ -31,6 +31,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Persistence
+    |--------------------------------------------------------------------------
+    |
+    | When disabled, listeners still instrument jobs and fire
+    | JobMetricsCompleted / JobMetricsFailed events, but skip all
+    | repository writes (Redis/database). Scheduled tasks are not
+    | registered. No storage driver is required.
+    |
+    */
+    'persistence' => [
+        'enabled' => env('QUEUE_METRICS_PERSISTENCE', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Storage Configuration
     |--------------------------------------------------------------------------
     |
@@ -145,6 +160,10 @@ return [
 # Enable/disable metrics collection
 QUEUE_METRICS_ENABLED=true
 
+# Enable/disable persistence (storage writes and scheduled tasks)
+# When false, events still fire but no Redis/database is needed
+QUEUE_METRICS_PERSISTENCE=true
+
 # Storage configuration
 QUEUE_METRICS_STORAGE=redis
 QUEUE_METRICS_CONNECTION=default
@@ -169,6 +188,16 @@ QUEUE_METRICS_BASELINE_DEVIATION_THRESHOLD=2.0
 ```
 
 ## Configuration Examples
+
+### Event-Only Mode (No Storage)
+
+Use this when you only need `JobMetricsCompleted` / `JobMetricsFailed` events (e.g., forwarding to an external monitoring system) without storing metrics locally:
+
+```env
+QUEUE_METRICS_PERSISTENCE=false
+```
+
+No Redis or database connection is required. Listeners still instrument jobs (duration, memory, CPU) and dispatch events. Scheduled tasks (baselines, trends, cleanup) are skipped entirely.
 
 ### Production Redis Setup
 

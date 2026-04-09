@@ -20,6 +20,10 @@ final readonly class JobTimedOutListener
 
     public function handle(JobTimedOut $event): void
     {
+        if (! config('queue-metrics.persistence.enabled', true)) {
+            return;
+        }
+
         $job = $event->job;
         $payload = $job->payload();
 
