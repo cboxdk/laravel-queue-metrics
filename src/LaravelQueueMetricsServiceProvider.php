@@ -34,6 +34,11 @@ use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseBaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseJobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseQueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseWorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseWorkerRepository;
 use Cbox\LaravelQueueMetrics\Repositories\RedisBaselineRepository;
 use Cbox\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
@@ -46,6 +51,7 @@ use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Services\RedisKeyScannerService;
 use Cbox\LaravelQueueMetrics\Services\ServerMetricsService;
 use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
 use Illuminate\Console\Scheduling\Schedule;
@@ -93,7 +99,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
         // Register the appropriate metrics store
         $driver = config('queue-metrics.storage.driver', 'redis');
         if ($driver === 'database') {
-            $this->app->singleton(\Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore::class);
+            $this->app->singleton(DatabaseMetricsStore::class);
         } else {
             $this->app->singleton(RedisMetricsStore::class, function () {
                 return new RedisMetricsStore;
@@ -134,11 +140,11 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
 
         $driverDefaults = match ($driver) {
             'database' => [
-                JobMetricsRepository::class => \Cbox\LaravelQueueMetrics\Repositories\DatabaseJobMetricsRepository::class,
-                QueueMetricsRepository::class => \Cbox\LaravelQueueMetrics\Repositories\DatabaseQueueMetricsRepository::class,
-                WorkerRepository::class => \Cbox\LaravelQueueMetrics\Repositories\DatabaseWorkerRepository::class,
-                BaselineRepository::class => \Cbox\LaravelQueueMetrics\Repositories\DatabaseBaselineRepository::class,
-                WorkerHeartbeatRepository::class => \Cbox\LaravelQueueMetrics\Repositories\DatabaseWorkerHeartbeatRepository::class,
+                JobMetricsRepository::class => DatabaseJobMetricsRepository::class,
+                QueueMetricsRepository::class => DatabaseQueueMetricsRepository::class,
+                WorkerRepository::class => DatabaseWorkerRepository::class,
+                BaselineRepository::class => DatabaseBaselineRepository::class,
+                WorkerHeartbeatRepository::class => DatabaseWorkerHeartbeatRepository::class,
             ],
             default => [
                 JobMetricsRepository::class => RedisJobMetricsRepository::class,

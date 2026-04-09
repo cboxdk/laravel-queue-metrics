@@ -8,6 +8,7 @@ use Cbox\LaravelQueueMetrics\Models\MetricsHash;
 use Cbox\LaravelQueueMetrics\Models\MetricsKey;
 use Cbox\LaravelQueueMetrics\Models\MetricsSortedSet;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 class CleanupDatabaseCommand extends Command
 {
@@ -24,7 +25,7 @@ class CleanupDatabaseCommand extends Command
         MetricsHash::whereIn('key', MetricsHash::expired()->limit($chunkSize)->pluck('key'))->delete();
 
         // MetricsSortedSet has a composite unique key (key, member) — delete via member
-        /** @var \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, MetricsSortedSet>> $grouped */
+        /** @var Collection<string, Collection<int, MetricsSortedSet>> $grouped */
         $grouped = MetricsSortedSet::expired()
             ->orderBy('key')
             ->orderBy('member')

@@ -6,13 +6,14 @@ namespace Cbox\LaravelQueueMetrics\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $key
  * @property string $member
  * @property string $score
- * @property \Illuminate\Support\Carbon|null $expires_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $updated_at
  */
 class MetricsSortedSet extends Model
 {

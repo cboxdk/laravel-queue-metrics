@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $key
  * @property string $member
- * @property \Illuminate\Support\Carbon|null $created_at
+ * @property Carbon|null $created_at
  */
 class MetricsSet extends Model
 {

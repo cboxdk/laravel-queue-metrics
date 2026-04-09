@@ -6,12 +6,13 @@ namespace Cbox\LaravelQueueMetrics\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $key
  * @property string|null $value
- * @property \Illuminate\Support\Carbon|null $expires_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $updated_at
  */
 class MetricsKey extends Model
 {

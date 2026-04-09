@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
@@ -25,7 +26,7 @@ test('database driver binds database repositories', function () {
     ]);
 
     // Force re-registration
-    $provider = new \Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider(app());
+    $provider = new LaravelQueueMetricsServiceProvider(app());
     $provider->packageRegistered();
 
     expect(app(JobMetricsRepository::class))->toBeInstanceOf(DatabaseJobMetricsRepository::class)
@@ -46,7 +47,7 @@ test('explicit repository override takes precedence over driver', function () {
     ]);
 
     // Force re-registration
-    $provider = new \Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider(app());
+    $provider = new LaravelQueueMetricsServiceProvider(app());
     $provider->packageRegistered();
 
     expect(app(WorkerRepository::class))->toBeInstanceOf(RedisWorkerRepository::class);
@@ -60,7 +61,7 @@ test('redis driver binds redis repositories by default', function () {
     ]);
 
     // Force re-registration
-    $provider = new \Cbox\LaravelQueueMetrics\LaravelQueueMetricsServiceProvider(app());
+    $provider = new LaravelQueueMetricsServiceProvider(app());
     $provider->packageRegistered();
 
     expect(app(WorkerRepository::class))->toBeInstanceOf(RedisWorkerRepository::class);
