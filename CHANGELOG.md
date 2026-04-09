@@ -2,6 +2,23 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.5.0 - Database storage driver - 2026-04-09
+
+### What's Changed
+
+* feat: Add database storage driver as alternative to Redis — stores metrics in 4 Eloquent-backed tables (`queue_metrics_keys`, `queue_metrics_hashes`, `queue_metrics_sets`, `queue_metrics_sorted_sets`)
+* feat: Add 5 database repository implementations (`DatabaseWorkerRepository`, `DatabaseWorkerHeartbeatRepository`, `DatabaseJobMetricsRepository`, `DatabaseQueueMetricsRepository`, `DatabaseBaselineRepository`) mirroring Redis behavior
+* feat: Add `DatabaseMetricsStore` providing the same API as `RedisMetricsStore` with Eloquent
+* feat: Add `queue-metrics:cleanup-database` command for expired data removal and sorted set trimming
+* feat: Driver-based repository resolution — set `QUEUE_METRICS_STORAGE=database` to auto-bind all database repositories; explicit overrides still take precedence
+* feat: Add `max_samples_per_key` and `cleanup_chunk_size` config options
+* perf: Bulk `incrementHashFields` method reduces lock contention (4 transactions → 1 per job completion)
+* perf: Heartbeat throttling for database driver — skips writes if same state and <10s since last write (~90% reduction in heartbeat queries)
+* fix: Handle `-inf`/`+inf` in sorted set score queries for database driver
+* fix: Resolve all PHPStan errors in database driver (122 errors → 0)
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v2.4.0...v2.5.0
+
 ## v2.4.0 - Expose worker memory limit in metrics events - 2026-04-07
 
 ### What's Changed
