@@ -21,6 +21,7 @@ use Cbox\LaravelQueueMetrics\Listeners\WorkerStoppingListener;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -59,7 +60,7 @@ it('fires JobMetricsCompleted event when persistence is disabled', function () {
 
     $listener = new JobProcessedListener($recordJobCompletion, $recordWorkerHeartbeat);
 
-    $job = Mockery::mock(\Illuminate\Contracts\Queue\Job::class);
+    $job = Mockery::mock(Job::class);
     $job->shouldReceive('getJobId')->andReturn('job-1');
     $job->shouldReceive('payload')->andReturn([
         'displayName' => 'App\Jobs\TestJob',
@@ -88,7 +89,7 @@ it('fires JobMetricsFailed event when persistence is disabled', function () {
 
     $listener = new JobFailedListener($recordJobFailure, $recordWorkerHeartbeat);
 
-    $job = Mockery::mock(\Illuminate\Contracts\Queue\Job::class);
+    $job = Mockery::mock(Job::class);
     $job->shouldReceive('getJobId')->andReturn('job-2');
     $job->shouldReceive('payload')->andReturn([
         'displayName' => 'App\Jobs\FailingJob',
@@ -121,7 +122,7 @@ it('skips repository calls in JobProcessingListener when persistence is disabled
 
     $listener = new JobProcessingListener($recordJobStart, $recordWorkerHeartbeat);
 
-    $job = Mockery::mock(\Illuminate\Contracts\Queue\Job::class);
+    $job = Mockery::mock(Job::class);
     $job->shouldReceive('getJobId')->andReturn('job-3');
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\Jobs\TestJob']);
     $job->shouldReceive('getQueue')->andReturn('default');
@@ -170,7 +171,7 @@ it('skips repository calls in JobTimedOutListener when persistence is disabled',
 
     $listener = new JobTimedOutListener($this->jobMetricsRepository);
 
-    $job = Mockery::mock(\Illuminate\Contracts\Queue\Job::class);
+    $job = Mockery::mock(Job::class);
     $job->shouldReceive('getJobId')->andReturn('job-5');
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\Jobs\SlowJob']);
     $job->shouldReceive('getQueue')->andReturn('default');
@@ -184,7 +185,7 @@ it('skips repository calls in JobExceptionOccurredListener when persistence is d
 
     $listener = new JobExceptionOccurredListener($this->jobMetricsRepository);
 
-    $job = Mockery::mock(\Illuminate\Contracts\Queue\Job::class);
+    $job = Mockery::mock(Job::class);
     $job->shouldReceive('getJobId')->andReturn('job-6');
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\Jobs\BrokenJob']);
     $job->shouldReceive('getQueue')->andReturn('default');
