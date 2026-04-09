@@ -131,20 +131,38 @@ Extensible architecture with events for reactive monitoring and notifications.
 
 ## Configuration
 
-### Storage Backend
+### Storage Drivers
 
-**Redis (Recommended for Production)**:
+#### Redis (default, recommended)
+
+Redis is the recommended driver for all workloads. It handles high-frequency metrics writes with minimal overhead.
 
 ```env
 QUEUE_METRICS_STORAGE=redis
 QUEUE_METRICS_CONNECTION=default
 ```
 
-**Database (For Persistence)**:
+#### Database
+
+For applications without Redis infrastructure, a database driver is available. This stores metrics in 4 database tables using the same schema as your application database.
 
 ```env
 QUEUE_METRICS_STORAGE=database
+QUEUE_METRICS_CONNECTION=mysql  # or your database connection
 ```
+
+Run the migration to create the metrics tables:
+
+```bash
+php artisan vendor:publish --tag="laravel-queue-metrics-migrations"
+php artisan migrate
+```
+
+> **Important:** The database driver is designed for low-scale workloads (< 10 workers). At higher scale, metrics writes create contention on the same database your queue jobs use. Use Redis for production with moderate to high workloads.
+
+> **Recommended setting for database driver:** Set `QUEUE_METRICS_MAX_SAMPLES=500` to keep table sizes manageable.
+
+The database cleanup command runs automatically every minute when using the database driver, removing expired data and trimming sample tables.
 
 ### API Authentication
 

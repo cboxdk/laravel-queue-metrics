@@ -15,6 +15,7 @@ use Cbox\LaravelQueueMetrics\Commands\CleanupStaleWorkersCommand;
 use Cbox\LaravelQueueMetrics\Config\QueueMetricsConfig;
 use Cbox\LaravelQueueMetrics\Config\StorageConfig;
 use Cbox\LaravelQueueMetrics\Console\CalculateQueueMetricsCommand;
+use Cbox\LaravelQueueMetrics\Console\CleanupDatabaseCommand;
 use Cbox\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
 use Cbox\LaravelQueueMetrics\Console\RecordTrendDataCommand;
 use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
@@ -33,6 +34,11 @@ use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseBaselineRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseJobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseQueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseWorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Repositories\DatabaseWorkerRepository;
 use Cbox\LaravelQueueMetrics\Repositories\RedisBaselineRepository;
 use Cbox\LaravelQueueMetrics\Repositories\RedisJobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
@@ -45,6 +51,7 @@ use Cbox\LaravelQueueMetrics\Services\QueueMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Services\RedisKeyScannerService;
 use Cbox\LaravelQueueMetrics\Services\ServerMetricsService;
 use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
+use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
 use Illuminate\Console\Scheduling\Schedule;
@@ -72,6 +79,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             ->hasMigration('2024_01_01_000001_create_queue_metrics_storage_tables')
             ->hasCommand(CalculateBaselinesCommand::class)
             ->hasCommand(CalculateQueueMetricsCommand::class)
+            ->hasCommand(CleanupDatabaseCommand::class)
             ->hasCommand(CleanupStaleWorkersCommand::class)
             ->hasCommand(DetectStaleWorkersCommand::class)
             ->hasCommand(RecordTrendDataCommand::class);
@@ -88,10 +96,15 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             return $app->make(QueueMetricsConfig::class)->storage;
         });
 
-        // Register Redis metrics store - uses Laravel's Redis connection directly
-        $this->app->singleton(RedisMetricsStore::class, function () {
-            return new RedisMetricsStore;
-        });
+        // Register the appropriate metrics store
+        $driver = config('queue-metrics.storage.driver', 'redis');
+        if ($driver === 'database') {
+            $this->app->singleton(DatabaseMetricsStore::class);
+        } else {
+            $this->app->singleton(RedisMetricsStore::class, function () {
+                return new RedisMetricsStore;
+            });
+        }
 
         // Register repositories from config (extensible Spatie-style)
         $this->registerRepositoriesFromConfig();
@@ -117,19 +130,36 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
 
     /**
      * Register repositories from config - allows users to extend/replace repositories.
+     *
+     * When a repository config value is null, the implementation is resolved
+     * from the configured storage driver (redis or database).
      */
     protected function registerRepositoriesFromConfig(): void
     {
-        /** @var array<class-string, class-string> $repositories */
-        $repositories = config('queue-metrics.repositories', [
-            JobMetricsRepository::class => RedisJobMetricsRepository::class,
-            QueueMetricsRepository::class => RedisQueueMetricsRepository::class,
-            WorkerRepository::class => RedisWorkerRepository::class,
-            BaselineRepository::class => RedisBaselineRepository::class,
-            WorkerHeartbeatRepository::class => RedisWorkerHeartbeatRepository::class,
-        ]);
+        $driver = config('queue-metrics.storage.driver', 'redis');
 
-        foreach ($repositories as $contract => $implementation) {
+        $driverDefaults = match ($driver) {
+            'database' => [
+                JobMetricsRepository::class => DatabaseJobMetricsRepository::class,
+                QueueMetricsRepository::class => DatabaseQueueMetricsRepository::class,
+                WorkerRepository::class => DatabaseWorkerRepository::class,
+                BaselineRepository::class => DatabaseBaselineRepository::class,
+                WorkerHeartbeatRepository::class => DatabaseWorkerHeartbeatRepository::class,
+            ],
+            default => [
+                JobMetricsRepository::class => RedisJobMetricsRepository::class,
+                QueueMetricsRepository::class => RedisQueueMetricsRepository::class,
+                WorkerRepository::class => RedisWorkerRepository::class,
+                BaselineRepository::class => RedisBaselineRepository::class,
+                WorkerHeartbeatRepository::class => RedisWorkerHeartbeatRepository::class,
+            ],
+        };
+
+        /** @var array<class-string, class-string|null> $repositories */
+        $repositories = config('queue-metrics.repositories', []);
+
+        foreach ($driverDefaults as $contract => $default) {
+            $implementation = $repositories[$contract] ?? $default;
             $this->app->singleton($contract, $implementation);
         }
     }
@@ -220,6 +250,13 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             if (config('queue-metrics.scheduling.tasks.record_trends', true)) {
                 // Schedule trend data recording (every minute for real-time trends)
                 $scheduler->command('queue-metrics:record-trends')
+                    ->everyMinute()
+                    ->withoutOverlapping();
+            }
+
+            // Schedule database cleanup when using database driver
+            if (config('queue-metrics.storage.driver') === 'database') {
+                $scheduler->command('queue-metrics:cleanup-database')
                     ->everyMinute()
                     ->withoutOverlapping();
             }
