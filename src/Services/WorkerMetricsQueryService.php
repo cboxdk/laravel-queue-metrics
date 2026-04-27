@@ -176,7 +176,7 @@ final readonly class WorkerMetricsQueryService
 
         // Group workers by hostname
         foreach ($heartbeats as $heartbeat) {
-            $hostname = $heartbeat->hostname ?? 'unknown';
+            $hostname = $heartbeat->hostname;
 
             if (! isset($servers[$hostname])) {
                 $servers[$hostname] = [

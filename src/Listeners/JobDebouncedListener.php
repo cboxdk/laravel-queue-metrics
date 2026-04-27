@@ -11,6 +11,7 @@ use Cbox\LaravelQueueMetrics\Events\JobMetricsDebounced;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
+use Illuminate\Contracts\Queue\Job;
 
 /**
  * Listen for debounced (superseded) jobs.
@@ -30,9 +31,13 @@ final readonly class JobDebouncedListener
         private RecordWorkerHeartbeatAction $recordWorkerHeartbeat,
     ) {}
 
+    /**
+     * @param  object{connectionName: string, job: Job, command: mixed}  $event
+     */
     public function handle(object $event): void
     {
-        $job = $event->job;
+        /** @var Job $job */
+        $job = $event->job; // @phpstan-ignore property.notFound
         $payload = $job->payload();
         $jobId = (string) $job->getJobId();
 
@@ -43,7 +48,8 @@ final readonly class JobDebouncedListener
         $trackerId = "job_{$jobId}";
         ProcessMetrics::stop($trackerId);
 
-        $connection = $event->connectionName;
+        /** @var string $connection */
+        $connection = $event->connectionName; // @phpstan-ignore property.notFound
         $queue = $job->getQueue();
         $hostname = gethostname() ?: 'unknown';
         $jobClass = $payload['displayName'] ?? 'UnknownJob';

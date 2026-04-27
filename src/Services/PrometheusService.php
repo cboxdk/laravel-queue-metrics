@@ -170,7 +170,7 @@ final readonly class PrometheusService
             /** @var array{avg: float, min: float, max: float, peak: float, p95: float, p99: float}|null $memory */
             $memory = $jobData['memory'] ?? null;
 
-            /** @var array{success_count: int, failure_count: int, total_debounced: int, success_rate: float, failure_rate: float}|null $execution */
+            /** @var array{success_count: int, failure_count: int, total_debounced?: int, success_rate: float, failure_rate: float}|null $execution */
             $execution = $jobData['execution'] ?? null;
 
             /** @var array{per_minute: float, per_hour: float, per_day: float}|null $throughput */
