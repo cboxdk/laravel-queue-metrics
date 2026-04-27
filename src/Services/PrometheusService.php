@@ -170,7 +170,7 @@ final readonly class PrometheusService
             /** @var array{avg: float, min: float, max: float, peak: float, p95: float, p99: float}|null $memory */
             $memory = $jobData['memory'] ?? null;
 
-            /** @var array{success_count: int, failure_count: int, success_rate: float, failure_rate: float}|null $execution */
+            /** @var array{success_count: int, failure_count: int, total_debounced: int, success_rate: float, failure_rate: float}|null $execution */
             $execution = $jobData['execution'] ?? null;
 
             /** @var array{per_minute: float, per_hour: float, per_day: float}|null $throughput */
@@ -298,6 +298,18 @@ final readonly class PrometheusService
                     ->label('connection')
                     ->helpText('Job failure rate percentage')
                     ->value($execution['failure_rate'] * 100, [$job, $queue, $connection]);
+
+                // Debounced jobs counter
+                $debouncedCount = (int) ($execution['total_debounced'] ?? 0);
+
+                Prometheus::addCounter('job_debounced_total')
+                    ->name('job_debounced_total')
+                    ->namespace($namespace)
+                    ->label('job')
+                    ->label('queue')
+                    ->label('connection')
+                    ->helpText('Total number of debounced (superseded) jobs')
+                    ->setInitialValue($debouncedCount, [$job, $queue, $connection]);
             }
 
             // Throughput metrics
