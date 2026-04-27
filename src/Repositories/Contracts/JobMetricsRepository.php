@@ -51,6 +51,17 @@ interface JobMetricsRepository
     ): void;
 
     /**
+     * Record a debounced (superseded) job event.
+     */
+    public function recordDebounced(
+        string|int $jobId,
+        string $jobClass,
+        string $connection,
+        string $queue,
+        Carbon $debouncedAt,
+    ): void;
+
+    /**
      * Get hostname-scoped job metrics for a specific server.
      *
      * @return array<string, array{total_processed: int, total_failed: int, total_duration_ms: float, failure_rate: float, avg_duration_ms: float}>

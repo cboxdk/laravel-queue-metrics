@@ -199,3 +199,37 @@ test('it handles missing queue labels gracefully', function () {
     expect($metrics)->toContain('queue="unknown"');
     expect($metrics)->toContain('connection="unknown"');
 })->group('functional');
+
+test('it exports debounced job counter', function () {
+    config(['queue-metrics.prometheus.namespace' => 'test_namespace']);
+
+    $overview = Mockery::mock(OverviewQueryInterface::class);
+    $config = QueueMetricsConfig::fromConfig();
+
+    $overview->shouldReceive('getOverview')->andReturn([
+        'queues' => [],
+        'jobs' => [
+            'App\\Jobs\\SyncData' => [
+                'queue' => 'default',
+                'connection' => 'redis',
+                'execution' => [
+                    'success_count' => 100,
+                    'failure_count' => 5,
+                    'total_debounced' => 23,
+                    'success_rate' => 0.95,
+                    'failure_rate' => 0.05,
+                ],
+            ],
+        ],
+        'workers' => ['total' => 0, 'active' => 0, 'idle' => 0, 'avg_idle_percentage' => 0, 'total_jobs_processed' => 0],
+        'baselines' => [],
+    ]);
+
+    $service = new PrometheusService($overview, $config);
+    $service->exportMetrics();
+
+    $metrics = Prometheus::renderCollectors();
+
+    expect($metrics)->toContain('test_namespace_job_debounced_total');
+    expect($metrics)->toContain('job="App\\\\Jobs\\\\SyncData"');
+})->group('functional');

@@ -214,6 +214,29 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         }
     }
 
+    public function recordDebounced(
+        string|int $jobId,
+        string $jobClass,
+        string $connection,
+        string $queue,
+        Carbon $debouncedAt,
+    ): void {
+        $metricsKey = $this->store->key('jobs', $connection, $queue, $jobClass);
+        $jobKey = $this->store->key('job', (string) $jobId);
+        $ttl = $this->store->getTtl('raw');
+
+        $driver = $this->store->driver();
+
+        $this->store->transaction(function () use ($driver, $metricsKey, $jobKey, $debouncedAt, $ttl) {
+            $driver->incrementHashField($metricsKey, 'total_debounced', 1);
+            $driver->setHash($metricsKey, ['last_debounced_at' => $debouncedAt->timestamp]);
+            $driver->expire($metricsKey, $ttl);
+
+            // Clean up job tracking key (started in recordStart)
+            $driver->delete($jobKey);
+        });
+    }
+
     /**
      * @return array<string, array{total_processed: int, total_failed: int, total_duration_ms: float, failure_rate: float, avg_duration_ms: float}>
      */
@@ -277,6 +300,10 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         return [
             'total_processed' => (int) ($data['total_processed'] ?? 0),
             'total_failed' => (int) ($data['total_failed'] ?? 0),
+            'total_debounced' => (int) ($data['total_debounced'] ?? 0),
+            'last_debounced_at' => isset($data['last_debounced_at'])
+                ? Carbon::createFromTimestamp((int) $data['last_debounced_at'])
+                : null,
             'total_duration_ms' => (float) ($data['total_duration_ms'] ?? 0.0),
             'total_memory_mb' => (float) ($data['total_memory_mb'] ?? 0.0),
             'total_cpu_time_ms' => (float) ($data['total_cpu_time_ms'] ?? 0.0),

@@ -8,6 +8,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
+use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
 use Cbox\SystemMetrics\ProcessMetrics;
@@ -28,6 +29,12 @@ final readonly class JobProcessedListener
         $job = $event->job;
         $payload = $job->payload();
         $jobId = (string) $job->getJobId();
+
+        // Skip performance metrics for debounced (superseded) jobs.
+        // The JobDebouncedListener already recorded the debounce counter.
+        if (DebouncedJobTracker::wasDebounced($jobId)) {
+            return;
+        }
 
         // Calculate duration
         $startTime = $payload['pushedAt'] ?? microtime(true);

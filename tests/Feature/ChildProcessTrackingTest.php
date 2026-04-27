@@ -45,7 +45,7 @@ it('tracks child processes when job spawns subprocesses', function () {
     $stats = $statsResult->getValue();
 
     // Verify metrics are calculated correctly as in JobProcessedListener
-    $memoryMb = $stats->peak->memoryRssBytes / 1024 / 1024;
+    $memoryMb = (float) ($stats->peak->memoryRssBytes / 1024 / 1024);
     expect($memoryMb)->toBeGreaterThan(0.0);
 
     $cpuUsagePercent = $stats->delta->cpuUsagePercentage();
@@ -160,7 +160,7 @@ it('provides process resource usage compatible with JobProcessedListener calcula
     $stats = $statsResult->getValue();
 
     // This is exactly how JobProcessedListener uses the metrics:
-    $memoryMb = $stats->peak->memoryRssBytes / 1024 / 1024;
+    $memoryMb = (float) ($stats->peak->memoryRssBytes / 1024 / 1024);
     $cpuUsagePercent = $stats->delta->cpuUsagePercentage();
     $durationSeconds = $stats->delta->durationSeconds;
     $cpuTimeMs = ($cpuUsagePercent / 100.0) * $durationSeconds * 1000.0;

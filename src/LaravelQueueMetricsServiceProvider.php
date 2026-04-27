@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics;
 
 use Cbox\LaravelQueueMetrics\Actions\CalculateJobMetricsAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobCompletionAction;
+use Cbox\LaravelQueueMetrics\Actions\RecordJobDebouncedAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
@@ -20,6 +21,7 @@ use Cbox\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
 use Cbox\LaravelQueueMetrics\Console\RecordTrendDataCommand;
 use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\Exceptions\ConfigurationException;
+use Cbox\LaravelQueueMetrics\Listeners\JobDebouncedListener;
 use Cbox\LaravelQueueMetrics\Listeners\JobExceptionOccurredListener;
 use Cbox\LaravelQueueMetrics\Listeners\JobFailedListener;
 use Cbox\LaravelQueueMetrics\Listeners\JobProcessedListener;
@@ -55,6 +57,7 @@ use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Queue\Events\JobDebounced;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -180,6 +183,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             'record_queue_depth_history' => Actions\RecordQueueDepthHistoryAction::class,
             'record_throughput_history' => Actions\RecordThroughputHistoryAction::class,
             'calculate_baselines' => Actions\CalculateBaselinesAction::class,
+            'record_job_debounced' => RecordJobDebouncedAction::class,
         ]);
 
         foreach ($actions as $key => $actionClass) {
@@ -204,6 +208,11 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
         Event::listen(JobRetryRequested::class, JobRetryRequestedListener::class);
         Event::listen(JobTimedOut::class, JobTimedOutListener::class);
         Event::listen(JobExceptionOccurred::class, JobExceptionOccurredListener::class);
+
+        // Register debounce listener (Laravel 13.6+ only)
+        if (class_exists(JobDebounced::class)) {
+            Event::listen(JobDebounced::class, JobDebouncedListener::class);
+        }
 
         // Register worker lifecycle event listeners
         Event::listen(WorkerStopping::class, WorkerStoppingListener::class);
