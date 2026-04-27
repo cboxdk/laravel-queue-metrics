@@ -2,6 +2,40 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.7.0 - Debounce metrics tracking - 2026-04-27
+
+### What's New
+
+#### Debounce Metrics Tracking (Laravel 13.6+)
+
+Laravel 13.6 introduced debounceable queued jobs via the `#[DebounceFor]` attribute. When a debounced job is superseded by a newer dispatch, it's silently discarded at execution time — but Laravel still fires `JobProcessing` and `JobProcessed` events, which would pollute your performance metrics with ghost ~0ms completions.
+
+This release adds proper handling:
+
+- **Debounced jobs are excluded** from duration/memory/CPU percentiles and throughput — they never actually executed
+- **`total_debounced` counter** tracked per job class, visible in API responses and Prometheus (`job_debounced_total`)
+- **`JobMetricsDebounced` event** fired for downstream consumers
+- **Fully backward compatible** — the listener is conditionally registered only when `Illuminate\Queue\Events\JobDebounced` exists. No impact on Laravel 11/12.
+
+#### New Prometheus Metric
+
+```
+laravel_queue_job_debounced_total{job="App\\Jobs\\SyncData",queue="default",connection="redis"} 23
+
+```
+#### How It Works
+
+When Laravel fires `JobDebounced` (between `JobProcessing` and `JobProcessed`), the new `JobDebouncedListener`:
+
+1. Marks the job via `DebouncedJobTracker` so `JobProcessedListener` skips performance metrics
+2. Records `total_debounced` counter in the repository
+3. Fires `JobMetricsDebounced` event for downstream consumers
+
+#### Bug Fixes
+
+- Fixed `toBeFloat()` assertion failure in `ChildProcessTrackingTest` when memory division yields whole number
+- Fixed PHPStan level 9 errors (redundant null coalesce on non-nullable `WorkerHeartbeat::$hostname`)
+
 ## v2.6.0 - Persistence toggle - 2026-04-09
 
 ### What's Changed
