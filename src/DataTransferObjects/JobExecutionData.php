@@ -14,6 +14,7 @@ final readonly class JobExecutionData
         public int $totalFailed,
         public float $successRate,
         public float $failureRate,
+        public int $totalDebounced = 0,
     ) {}
 
     /**
@@ -24,8 +25,11 @@ final readonly class JobExecutionData
         $totalProcessedValue = $data['total_processed'] ?? 0;
         $totalFailedValue = $data['total_failed'] ?? 0;
 
+        $totalDebouncedValue = $data['total_debounced'] ?? 0;
+
         $totalProcessed = is_numeric($totalProcessedValue) ? (int) $totalProcessedValue : 0;
         $totalFailed = is_numeric($totalFailedValue) ? (int) $totalFailedValue : 0;
+        $totalDebounced = is_numeric($totalDebouncedValue) ? (int) $totalDebouncedValue : 0;
         $total = $totalProcessed + $totalFailed;
 
         return new self(
@@ -33,6 +37,7 @@ final readonly class JobExecutionData
             totalFailed: $totalFailed,
             successRate: $total > 0 ? ($totalProcessed / $total) * 100 : 0.0,
             failureRate: $total > 0 ? ($totalFailed / $total) * 100 : 0.0,
+            totalDebounced: $totalDebounced,
         );
     }
 
@@ -44,6 +49,7 @@ final readonly class JobExecutionData
         return [
             'total_processed' => $this->totalProcessed,
             'total_failed' => $this->totalFailed,
+            'total_debounced' => $this->totalDebounced,
             'success_rate' => $this->successRate,
             'failure_rate' => $this->failureRate,
         ];
