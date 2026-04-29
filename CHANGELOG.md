@@ -2,6 +2,25 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v2.8.0 - CPU time statistics - 2026-04-29
+
+### What's New
+
+#### CPU Time Statistics
+
+Job metrics now include CPU time statistics alongside the existing duration and memory metrics. The new `CpuStats` DTO tracks average, peak, P95, and P99 CPU time in milliseconds for each job class.
+
+```php
+$metrics = QueueMetrics::getJobMetrics(ProcessOrder::class);
+
+$metrics->cpu->avg;   // Average CPU time in ms
+$metrics->cpu->peak;  // Peak CPU time
+$metrics->cpu->p95;   // 95th percentile
+$metrics->cpu->p99;   // 99th percentile
+```
+
+CPU time is also available in the HTTP API via the `avg_cpu_time_ms` field on job metrics endpoints.
+
 ## v2.7.0 - Debounce metrics tracking - 2026-04-27
 
 ### What's New
