@@ -6,10 +6,17 @@ namespace Cbox\LaravelQueueMetrics\Actions;
 
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Support\CpuSnapshotCache;
 use Cbox\SystemMetrics\ProcessMetrics;
 
 /**
  * Record worker heartbeat with current state.
+ *
+ * CPU usage is calculated as a true delta between consecutive heartbeats:
+ * (deltaCpuTimeMs / deltaWallTimeMs) * 100. The first heartbeat for a worker
+ * establishes the baseline and reports 0%. Values above 100% are valid in
+ * multi-core containers where the process can use more than one core's worth
+ * of CPU time within a wall-clock interval.
  */
 final readonly class RecordWorkerHeartbeatAction
 {
@@ -39,24 +46,29 @@ final readonly class RecordWorkerHeartbeatAction
         $cpuUsagePercent = 0.0;
 
         if ($pid > 0) {
-            $trackerId = "worker_{$workerId}";
             $metricsResult = ProcessMetrics::snapshot($pid);
 
             if ($metricsResult->isSuccess()) {
                 $snapshot = $metricsResult->getValue();
                 $memoryUsageMb = $snapshot->resources->memoryRssBytes / 1024 / 1024;
 
-                // Calculate CPU usage percentage from process times
+                // Delta-based CPU usage: compare cumulative CPU time between heartbeats
                 $cpuTimes = $snapshot->resources->cpuTimes;
-                $totalCpuTimeMs = $cpuTimes->user + $cpuTimes->system;
+                $totalCpuTimeMs = (float) ($cpuTimes->user + $cpuTimes->system);
+                $now = microtime(true);
 
-                // Get uptime estimate (simplified - actual calculation would need previous snapshot)
-                if ($totalCpuTimeMs > 0) {
-                    // Approximate CPU % based on cumulative CPU time
-                    // This is a snapshot, so we can't calculate true % without previous measurement
-                    // Use cumulative time as indicator
-                    $cpuUsagePercent = min(100.0, ($totalCpuTimeMs / 1000.0) / 10.0);
+                $previous = CpuSnapshotCache::get($workerId);
+
+                if ($previous !== null) {
+                    $deltaCpuMs = $totalCpuTimeMs - $previous['cpu_time_ms'];
+                    $deltaWallMs = ($now - $previous['wall_time']) * 1000.0;
+
+                    if ($deltaWallMs > 0) {
+                        $cpuUsagePercent = ($deltaCpuMs / $deltaWallMs) * 100.0;
+                    }
                 }
+
+                CpuSnapshotCache::store($workerId, $totalCpuTimeMs, $now);
             }
         }
 

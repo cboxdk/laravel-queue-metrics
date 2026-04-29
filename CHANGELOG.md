@@ -2,6 +2,19 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.0.0 - system-metrics v3.0 with float CPU cores - 2026-04-29
+
+### What's Changed
+
+- **Upgraded `cboxdk/system-metrics` to `^3.0`** — CPU core counts are now `float` instead of `int`, enabling millicore support for containerized environments (e.g. 200m = 0.2 cores, 1500m = 1.5 cores)
+- **Fixed worker CPU measurement** — replaced broken cumulative-time indicator with true delta-based CPU percentage between heartbeats. Values above 100% are valid in multi-core containers
+- **Updated health status formatting** — CPU core count displayed with decimal precision for fractional quotas
+
+### Breaking Changes
+
+- Requires `cboxdk/system-metrics ^3.0` (up from `^2.0`)
+- CPU core values in API responses (`cores`, `count` fields) are now `float` instead of `int`
+
 ## v2.8.0 - CPU time statistics - 2026-04-29
 
 ### What's New

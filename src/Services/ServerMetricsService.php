@@ -202,7 +202,7 @@ final class ServerMetricsService
         $score = 100;
 
         // Type-safe extraction with guards
-        /** @var array{usage_percent: float, count: int, load_average: array{'1min': float, '5min': float, '15min': float}} $cpu */
+        /** @var array{usage_percent: float, count: float, load_average: array{'1min': float, '5min': float, '15min': float}} $cpu */
         $cpu = $metrics['cpu'];
         /** @var array{usage_percent: float} $memory */
         $memory = $metrics['memory'];
@@ -249,10 +249,10 @@ final class ServerMetricsService
         $loadPerCpu = $loadAvg1min / $cpuCount;
 
         if ($loadPerCpu > 2.0) {
-            $issues[] = sprintf('Critical system load: %.2f (%d CPUs)', $loadAvg1min, $cpuCount);
+            $issues[] = sprintf('Critical system load: %.2f (%.1f CPUs)', $loadAvg1min, $cpuCount);
             $score -= 30;
         } elseif ($loadPerCpu > 1.5) {
-            $issues[] = sprintf('High system load: %.2f (%d CPUs)', $loadAvg1min, $cpuCount);
+            $issues[] = sprintf('High system load: %.2f (%.1f CPUs)', $loadAvg1min, $cpuCount);
             $score -= 15;
         }
 
