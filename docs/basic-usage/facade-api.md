@@ -73,6 +73,12 @@ $metrics->memory->peak;      // float: Peak memory usage
 $metrics->memory->p95;       // float: 95th percentile memory
 $metrics->memory->p99;       // float: 99th percentile memory
 
+// CPU time (CpuStats)
+$metrics->cpu->avg;          // float: Average CPU time in ms
+$metrics->cpu->peak;         // float: Peak CPU time
+$metrics->cpu->p95;          // float: 95th percentile CPU time
+$metrics->cpu->p99;          // float: 99th percentile CPU time
+
 // Throughput (ThroughputStats)
 $metrics->throughput->perMinute;  // float: Jobs per minute
 $metrics->throughput->perHour;    // float: Jobs per hour
@@ -95,6 +101,10 @@ $metrics = QueueMetrics::getJobMetrics(ProcessOrder::class);
 
 if ($metrics->duration->p95 > 5000) { // P95 >5 seconds
     Slack::send("⚠️ {$metrics->jobClass} is slow: P95 {$metrics->duration->p95}ms");
+}
+
+if ($metrics->cpu->p95 > 2000) { // P95 CPU time >2 seconds
+    Log::warning("High CPU usage for {$metrics->jobClass}: P95 {$metrics->cpu->p95}ms");
 }
 
 if ($metrics->execution->failureRate > 5) { // >5% failure rate
@@ -132,6 +142,7 @@ $allJobs = QueueMetrics::getAllJobsWithMetrics();
         'execution' => [...],
         'duration' => [...],
         'memory' => [...],
+        'cpu' => [...],
         'throughput' => [...],
         'failures' => [...],
         'window_stats' => [...],

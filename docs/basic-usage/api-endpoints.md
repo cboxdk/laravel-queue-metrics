@@ -225,6 +225,7 @@ Get aggregated metrics for a specific job class across all queues where it has e
         "total_failures": 25,
         "avg_duration_ms": 1250.50,
         "avg_memory_mb": 45.25,
+        "avg_cpu_time_ms": 850.00,
         "failure_rate": 2.5,
         "throughput_per_minute": 12.5,
         "by_queue": [
@@ -235,6 +236,7 @@ Get aggregated metrics for a specific job class across all queues where it has e
                 "failures": 15,
                 "avg_duration_ms": 1200.00,
                 "avg_memory_mb": 43.50,
+                "avg_cpu_time_ms": 800.00,
                 "failure_rate": 1.875,
                 "throughput_per_minute": 10.0
             },
@@ -245,6 +247,7 @@ Get aggregated metrics for a specific job class across all queues where it has e
                 "failures": 8,
                 "avg_duration_ms": 1500.00,
                 "avg_memory_mb": 52.00,
+                "avg_cpu_time_ms": 1100.00,
                 "failure_rate": 5.33,
                 "throughput_per_minute": 2.0
             },
@@ -255,6 +258,7 @@ Get aggregated metrics for a specific job class across all queues where it has e
                 "failures": 2,
                 "avg_duration_ms": 1100.00,
                 "avg_memory_mb": 40.00,
+                "avg_cpu_time_ms": 750.00,
                 "failure_rate": 4.0,
                 "throughput_per_minute": 0.5
             }
@@ -272,6 +276,7 @@ Get aggregated metrics for a specific job class across all queues where it has e
 - `total_failures` - Sum of failures across all queues
 - `avg_duration_ms` - Weighted average duration (weighted by execution count per queue)
 - `avg_memory_mb` - Weighted average memory usage (weighted by execution count per queue)
+- `avg_cpu_time_ms` - Weighted average CPU time in milliseconds (weighted by execution count per queue)
 - `failure_rate` - Percentage calculated as `(total_failures / total_executions) * 100`
 - `throughput_per_minute` - Sum of throughput across all queues
 - `calculated_at` - Timestamp when metrics were calculated
@@ -284,6 +289,7 @@ Each element contains metrics for a specific connection/queue combination where 
 - `failures` - Number of failures on this queue
 - `avg_duration_ms` - Average duration on this queue
 - `avg_memory_mb` - Average memory usage on this queue
+- `avg_cpu_time_ms` - Average CPU time in milliseconds on this queue
 - `failure_rate` - Failure rate percentage for this queue
 - `throughput_per_minute` - Jobs processed per minute on this queue
 
@@ -292,10 +298,11 @@ Each element contains metrics for a specific connection/queue combination where 
 The endpoint aggregates metrics across all queues where the job class has executed:
 
 1. **Totals**: `total_executions` and `total_failures` are simple sums across all queues
-2. **Weighted Averages**: `avg_duration_ms` and `avg_memory_mb` are calculated using weighted averages based on execution counts:
+2. **Weighted Averages**: `avg_duration_ms`, `avg_memory_mb`, and `avg_cpu_time_ms` are calculated using weighted averages based on execution counts:
    ```
    avg_duration = Σ(queue_duration × queue_executions) / total_executions
    avg_memory = Σ(queue_memory × queue_executions) / total_executions
+   avg_cpu_time = Σ(queue_cpu_time × queue_executions) / total_executions
    ```
 3. **Failure Rate**: Calculated from totals: `(total_failures / total_executions) * 100`
 4. **Throughput**: Sum of throughput across all queues (assumes non-overlapping time windows)

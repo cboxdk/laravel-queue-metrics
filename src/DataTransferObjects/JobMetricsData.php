@@ -21,6 +21,7 @@ final readonly class JobMetricsData
         public JobExecutionData $execution,
         public DurationStats $duration,
         public MemoryStats $memory,
+        public CpuStats $cpu,
         public ThroughputStats $throughput,
         public FailureInfo $failures,
         public array $windowStats,
@@ -38,6 +39,7 @@ final readonly class JobMetricsData
         $execution = $data['execution'] ?? [];
         $duration = $data['duration'] ?? [];
         $memory = $data['memory'] ?? [];
+        $cpu = $data['cpu'] ?? [];
         $throughput = $data['throughput'] ?? [];
         $failures = $data['failures'] ?? [];
         $windowStatsData = $data['window_stats'] ?? [];
@@ -55,6 +57,7 @@ final readonly class JobMetricsData
             execution: JobExecutionData::fromArray(is_array($execution) ? $execution : []),
             duration: DurationStats::fromArray(is_array($duration) ? $duration : []),
             memory: MemoryStats::fromArray(is_array($memory) ? $memory : []),
+            cpu: CpuStats::fromArray(is_array($cpu) ? $cpu : []),
             throughput: ThroughputStats::fromArray(is_array($throughput) ? $throughput : []),
             failures: FailureInfo::fromArray(is_array($failures) ? $failures : []),
             windowStats: $windowStats,
@@ -76,6 +79,7 @@ final readonly class JobMetricsData
             'execution' => $this->execution->toArray(),
             'duration' => $this->duration->toArray(),
             'memory' => $this->memory->toArray(),
+            'cpu' => $this->cpu->toArray(),
             'throughput' => $this->throughput->toArray(),
             'failures' => $this->failures->toArray(),
             'window_stats' => array_map(

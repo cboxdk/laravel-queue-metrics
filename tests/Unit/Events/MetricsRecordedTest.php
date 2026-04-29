@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\CpuStats;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\DurationStats;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\FailureInfo;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\JobExecutionData;
@@ -47,6 +48,12 @@ it('can be dispatched with job metrics data', function () {
             p95: 45.0,
             p99: 48.0,
         ),
+        cpu: new CpuStats(
+            avg: 12.5,
+            peak: 45.0,
+            p95: 30.0,
+            p99: 40.0,
+        ),
         throughput: new ThroughputStats(
             perMinute: 10.0,
             perHour: 600.0,
@@ -80,6 +87,7 @@ it('contains complete job metrics data', function () {
         execution: new JobExecutionData(48, 2, 96.0, 4.0),
         duration: new DurationStats(100.0, 80.0, 120.0, 95.0, 115.0, 118.0, 12.0),
         memory: new MemoryStats(30.0, 45.0, 42.0, 44.0),
+        cpu: new CpuStats(10.0, 35.0, 28.0, 33.0),
         throughput: new ThroughputStats(5.0, 300.0, 7200.0),
         failures: new FailureInfo(2, 4.0, null, null),
         windowStats: [],

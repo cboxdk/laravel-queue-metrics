@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Actions;
 
 use Carbon\Carbon;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\CpuStats;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\DurationStats;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\FailureInfo;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\JobExecutionData;
@@ -41,6 +42,7 @@ final readonly class CalculateJobMetricsAction
             execution: $this->calculateExecution($metrics),
             duration: $this->calculateDuration($jobClass, $connection, $queue, $metrics),
             memory: $this->calculateMemory($jobClass, $connection, $queue),
+            cpu: $this->calculateCpu($jobClass, $connection, $queue),
             throughput: $this->calculateThroughput($jobClass, $connection, $queue),
             failures: $this->calculateFailures($metrics),
             windowStats: $this->calculateWindows($jobClass, $connection, $queue),
@@ -103,6 +105,27 @@ final readonly class CalculateJobMetricsAction
         $percentiles = $this->percentiles->calculateMultiple($samples, [95, 99]);
 
         return new MemoryStats(
+            avg: array_sum($samples) / count($samples),
+            peak: max($samples),
+            p95: $percentiles['p95'],
+            p99: $percentiles['p99'],
+        );
+    }
+
+    private function calculateCpu(
+        string $jobClass,
+        string $connection,
+        string $queue,
+    ): CpuStats {
+        $samples = $this->repository->getCpuTimeSamples($jobClass, $connection, $queue);
+
+        if (empty($samples)) {
+            return new CpuStats(0.0, 0.0, 0.0, 0.0);
+        }
+
+        $percentiles = $this->percentiles->calculateMultiple($samples, [95, 99]);
+
+        return new CpuStats(
             avg: array_sum($samples) / count($samples),
             peak: max($samples),
             p95: $percentiles['p95'],
