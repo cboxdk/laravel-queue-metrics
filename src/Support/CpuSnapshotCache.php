@@ -10,6 +10,9 @@ namespace Cbox\LaravelQueueMetrics\Support;
  * Stores the cumulative CPU time and wall-clock timestamp from the last heartbeat
  * per worker, enabling true CPU usage percentage as (deltaCpu / deltaWall) * 100.
  *
+ * Entries older than MAX_AGE_SECONDS are evicted on every store() call to prevent
+ * unbounded growth when worker IDs are recycled in long-lived daemons.
+ *
  * Extracted as a standalone class because PHP readonly classes cannot contain
  * static properties.
  *
@@ -17,6 +20,8 @@ namespace Cbox\LaravelQueueMetrics\Support;
  */
 final class CpuSnapshotCache
 {
+    private const MAX_AGE_SECONDS = 300;
+
     /** @var array<string, array{cpu_time_ms: float, wall_time: float}> */
     private static array $snapshots = [];
 
@@ -31,7 +36,7 @@ final class CpuSnapshotCache
     }
 
     /**
-     * Store a CPU snapshot for the given worker.
+     * Store a CPU snapshot for the given worker and evict stale entries.
      */
     public static function store(string $workerId, float $cpuTimeMs, float $wallTime): void
     {
@@ -39,6 +44,14 @@ final class CpuSnapshotCache
             'cpu_time_ms' => $cpuTimeMs,
             'wall_time' => $wallTime,
         ];
+
+        $cutoff = $wallTime - self::MAX_AGE_SECONDS;
+
+        foreach (self::$snapshots as $id => $snapshot) {
+            if ($snapshot['wall_time'] < $cutoff) {
+                unset(self::$snapshots[$id]);
+            }
+        }
     }
 
     /**
