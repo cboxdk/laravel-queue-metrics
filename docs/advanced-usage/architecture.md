@@ -368,6 +368,7 @@ class JobMetricsQueryService
 - `QueueMetricsData` - Queue health data
 - `DurationStatsDTO` - Duration statistics
 - `MemoryStatsDTO` - Memory statistics
+- `CpuStatsDTO` - CPU time statistics
 - `ThroughputStatsDTO` - Throughput metrics
 - `HealthDataDTO` - Health assessment
 - `TrendDataDTO` - Trend analysis
@@ -393,6 +394,7 @@ final readonly class JobMetricsData
         public float $failureRate,
         public DurationStatsDTO $duration,
         public MemoryStatsDTO $memory,
+        public CpuStatsDTO $cpu,
         public ThroughputStatsDTO $throughput,
         public ?FailureInfoDTO $lastFailure,
         public ?TrendDataDTO $trend,
