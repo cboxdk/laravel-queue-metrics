@@ -55,7 +55,7 @@ final readonly class RecordWorkerHeartbeatAction
                     // Approximate CPU % based on cumulative CPU time
                     // This is a snapshot, so we can't calculate true % without previous measurement
                     // Use cumulative time as indicator
-                    $cpuUsagePercent = min(100.0, ($totalCpuTimeMs / 1000.0) / 10.0);
+                    $cpuUsagePercent = ($totalCpuTimeMs / 1000.0) / 10.0;
                 }
             }
         }
