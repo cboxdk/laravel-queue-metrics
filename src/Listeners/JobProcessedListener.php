@@ -9,6 +9,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
+use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
 use Cbox\SystemMetrics\ProcessMetrics;
@@ -50,16 +51,20 @@ final readonly class JobProcessedListener
         if ($metricsResult->isSuccess()) {
             $metrics = $metricsResult->getValue();
 
-            // Use peak memory (maximum RSS during job execution, includes children)
+            // Peak memory during job window (for OOM safeguarding)
             $memoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
 
-            // Calculate CPU time from delta (actual usage during job, not cumulative)
-            // delta->cpuUsagePercentage() returns percentage (0-100+)
-            // Multiply by duration to get total CPU seconds, then convert to ms
-            $cpuUsagePercent = $metrics->delta->cpuUsagePercentage();
-            $durationSeconds = $metrics->delta->durationSeconds;
-            $cpuTimeMs = ($cpuUsagePercent / 100.0) * $durationSeconds * 1000.0;
+            // CPU time: delta between cumulative CPU times at end vs start
+            $endCpuTimes = $metrics->current->cpuTimes;
+            $endCpuTimeMs = (float) ($endCpuTimes->user + $endCpuTimes->system);
+            $startCpuTimeMs = JobCpuSnapshotCache::get($jobId);
+
+            if ($startCpuTimeMs !== null) {
+                $cpuTimeMs = max(0.0, $endCpuTimeMs - $startCpuTimeMs);
+            }
         }
+
+        JobCpuSnapshotCache::forget($jobId);
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
