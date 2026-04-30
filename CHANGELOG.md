@@ -2,6 +2,20 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.0.1 - Fix per-job CPU metrics - 2026-04-30
+
+### Bug Fixes
+
+- **Fixed per-job CPU time always equaling duration** — `cpuTimeMs` was computed via `delta->cpuUsagePercentage() * duration`, which returns ~100% for busy workers, making every job appear to use a full CPU core. Now uses direct CPU time delta: snapshots cumulative `cpuTimes.user + cpuTimes.system` at job start and end, reports the difference. A `usleep(150ms)` job correctly reports ~5ms CPU instead of ~150ms. (#16)
+- **Fixed same bug in `JobFailedListener`** — failed jobs had the identical broken CPU calculation. (#16)
+- **Added TTL eviction to `JobCpuSnapshotCache`** — entries from jobs that never complete (killed workers, stuck jobs) are evicted after 600 seconds, preventing unbounded memory growth in long-lived worker processes. (#16)
+
+### What's Not Changed
+
+- **Memory metric unchanged** — `memory_avg` continues to report peak RSS during the job window, which is the correct metric for OOM safeguarding.
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v3.0.0...v3.0.1
+
 ## v3.0.0 - system-metrics v3.0 with float CPU cores - 2026-04-29
 
 ### What's Changed
@@ -30,8 +44,8 @@ $metrics->cpu->avg;   // Average CPU time in ms
 $metrics->cpu->peak;  // Peak CPU time
 $metrics->cpu->p95;   // 95th percentile
 $metrics->cpu->p99;   // 99th percentile
-```
 
+```
 CPU time is also available in the HTTP API via the `avg_cpu_time_ms` field on job metrics endpoints.
 
 ## v2.7.0 - Debounce metrics tracking - 2026-04-27
@@ -53,6 +67,7 @@ This release adds proper handling:
 
 ```
 laravel_queue_job_debounced_total{job="App\\Jobs\\SyncData",queue="default",connection="redis"} 23
+
 
 ```
 #### How It Works
