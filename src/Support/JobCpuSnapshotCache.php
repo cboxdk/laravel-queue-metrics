@@ -12,13 +12,16 @@ namespace Cbox\LaravelQueueMetrics\Support;
  * (endCpuTimeMs - startCpuTimeMs) for the actual CPU time consumed by the job.
  *
  * Entries are consumed via forget() when the job completes or fails.
- * No TTL needed — job lifecycle is bounded within a single process.
+ * Stale entries (from jobs that never completed, e.g. killed workers)
+ * are evicted on every store() call after MAX_AGE_SECONDS.
  *
  * @internal
  */
 final class JobCpuSnapshotCache
 {
-    /** @var array<string, float> */
+    private const MAX_AGE_SECONDS = 600;
+
+    /** @var array<string, array{cpu_time_ms: float, stored_at: float}> */
     private static array $snapshots = [];
 
     /**
@@ -26,15 +29,30 @@ final class JobCpuSnapshotCache
      */
     public static function get(string $jobId): ?float
     {
-        return self::$snapshots[$jobId] ?? null;
+        return isset(self::$snapshots[$jobId])
+            ? self::$snapshots[$jobId]['cpu_time_ms']
+            : null;
     }
 
     /**
-     * Store the cumulative CPU time (ms) at job start.
+     * Store the cumulative CPU time (ms) at job start and evict stale entries.
      */
     public static function store(string $jobId, float $cpuTimeMs): void
     {
-        self::$snapshots[$jobId] = $cpuTimeMs;
+        $now = microtime(true);
+
+        self::$snapshots[$jobId] = [
+            'cpu_time_ms' => $cpuTimeMs,
+            'stored_at' => $now,
+        ];
+
+        $cutoff = $now - self::MAX_AGE_SECONDS;
+
+        foreach (self::$snapshots as $id => $snapshot) {
+            if ($snapshot['stored_at'] < $cutoff) {
+                unset(self::$snapshots[$id]);
+            }
+        }
     }
 
     /**
