@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
 use Cbox\SystemMetrics\ProcessMetrics;
@@ -51,8 +52,15 @@ final readonly class JobProcessedListener
         if ($metricsResult->isSuccess()) {
             $metrics = $metricsResult->getValue();
 
-            // Peak memory during job window (for OOM safeguarding)
-            $memoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
+            // Memory: incremental allocation by this job (peak RSS minus baseline)
+            $peakMemoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
+            $startMemoryMb = JobMemorySnapshotCache::get($jobId);
+
+            if ($startMemoryMb !== null) {
+                $memoryMb = max(0.0, $peakMemoryMb - $startMemoryMb);
+            } else {
+                $memoryMb = $peakMemoryMb; // fallback for missing baseline
+            }
 
             // CPU time: delta between cumulative CPU times at end vs start
             $endCpuTimes = $metrics->current->cpuTimes;
@@ -65,6 +73,7 @@ final readonly class JobProcessedListener
         }
 
         JobCpuSnapshotCache::forget($jobId);
+        JobMemorySnapshotCache::forget($jobId);
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
