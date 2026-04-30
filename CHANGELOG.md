@@ -2,6 +2,27 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.1.0 - Per-job memory now reports incremental allocation, not peak RSS - UNRELEASED
+
+### Breaking Changes
+
+- **`memoryMb` semantics changed** — per-job memory metric now reports incremental memory allocated by the job itself (peak RSS minus baseline RSS at job start), not the entire worker process's peak RSS. A `usleep(150ms)` job now correctly reports ~0 MB instead of ~50-200 MB. (#18)
+- **Threshold-based alerts on `memoryMb` need recalibration** — values will be dramatically smaller. Worker-level peak memory remains available via `WorkerHeartbeat.peakMemoryUsageMb` for OOM safeguarding.
+- **Same fix applied to `JobFailedListener`** — failed jobs now also report incremental memory. (#18)
+
+### What's New
+
+- **`JobMemorySnapshotCache`** — in-memory cache for per-job memory baselines, with 600-second TTL eviction matching `JobCpuSnapshotCache`. Prevents unbounded growth from never-completing jobs. (#18)
+
+### Migration Guide
+
+If you have alerts or dashboards that threshold on `memoryMb`:
+- Old: `memoryMb ≈ 50-200 MB` (entire worker process RSS)
+- New: `memoryMb ≈ 0-N MB` (only what the job allocated)
+- For OOM monitoring, use `WorkerHeartbeat.peakMemoryUsageMb` instead
+
+**Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v3.0.1...v3.1.0
+
 ## v3.0.1 - Fix per-job CPU metrics - 2026-04-30
 
 ### Bug Fixes
