@@ -8,6 +8,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobProcessing;
@@ -37,12 +38,14 @@ final readonly class JobProcessingListener
                 includeChildren: true
             );
 
-            // Cache CPU baseline for accurate per-job CPU time delta
+            // Cache CPU and memory baselines for accurate per-job delta calculation
             $snapshotResult = ProcessMetrics::snapshot($pid);
             if ($snapshotResult->isSuccess()) {
-                $cpuTimes = $snapshotResult->getValue()->resources->cpuTimes;
+                $resources = $snapshotResult->getValue()->resources;
+                $cpuTimes = $resources->cpuTimes;
                 $totalCpuTimeMs = (float) ($cpuTimes->user + $cpuTimes->system);
                 JobCpuSnapshotCache::store($jobId, $totalCpuTimeMs);
+                JobMemorySnapshotCache::store($jobId, $resources->memoryRssBytes / 1024 / 1024);
             }
         }
 
