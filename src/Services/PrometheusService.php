@@ -252,6 +252,16 @@ final readonly class PrometheusService
                     ->label('connection')
                     ->helpText('Job memory usage 99th percentile')
                     ->value($memory['p99'], [$job, $queue, $connection]);
+
+                // Incremental memory (job allocation above baseline)
+                Prometheus::addGauge('job_memory_avg_incremental_megabytes')
+                    ->name('job_memory_avg_incremental_megabytes')
+                    ->namespace($namespace)
+                    ->label('job')
+                    ->label('queue')
+                    ->label('connection')
+                    ->helpText('Job incremental memory allocation in megabytes (peak minus baseline)')
+                    ->value($memory['avg_incremental'] ?? 0.0, [$job, $queue, $connection]);
             }
 
             // Execution counters (cumulative metrics)
