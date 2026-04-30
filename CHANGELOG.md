@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## v3.1.0 - Per-job memory now reports incremental allocation, not peak RSS - UNRELEASED
+## v3.1.0 - Per-job memory now reports incremental allocation, not peak RSS - 2026-04-30
 
 ### Breaking Changes
 
