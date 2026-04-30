@@ -96,7 +96,7 @@ afterEach(function () {
     Mockery::close();
 });
 
-it('reports memory as delta between peak and baseline, not raw peak RSS', function () {
+it('reports peak RSS as memoryMb and incremental as memoryIncrementalMb', function () {
     Event::fake([JobMetricsCompleted::class]);
 
     // Baseline: worker process at 64 MB RSS when job starts
@@ -114,6 +114,7 @@ it('reports memory as delta between peak and baseline, not raw peak RSS', functi
     usleep(10_000);
 
     $capturedMemoryMb = null;
+    $capturedMemoryIncrementalMb = null;
     $this->jobMetricsRepository->shouldReceive('recordCompletion')
         ->once()
         ->withArgs(function (
@@ -124,8 +125,12 @@ it('reports memory as delta between peak and baseline, not raw peak RSS', functi
             float $durationMs,
             float $memoryMb,
             float $cpuTimeMs,
-        ) use (&$capturedMemoryMb) {
+            $completedAt,
+            ?string $hostname,
+            float $memoryIncrementalMb,
+        ) use (&$capturedMemoryMb, &$capturedMemoryIncrementalMb) {
             $capturedMemoryMb = $memoryMb;
+            $capturedMemoryIncrementalMb = $memoryIncrementalMb;
 
             return true;
         });
@@ -142,11 +147,12 @@ it('reports memory as delta between peak and baseline, not raw peak RSS', functi
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
-    // Memory should be 8 MB (72 - 64), NOT 72 MB (raw peak RSS)
-    expect($capturedMemoryMb)->toBe(8.0);
+    // memoryMb = peak RSS (72), memoryIncrementalMb = delta (72 - 64 = 8)
+    expect($capturedMemoryMb)->toBe(72.0);
+    expect($capturedMemoryIncrementalMb)->toBe(8.0);
 })->group('functional');
 
-it('reports near-zero memory for sleep-bound jobs', function () {
+it('reports peak RSS for sleep jobs with near-zero incremental', function () {
     Event::fake([JobMetricsCompleted::class]);
 
     // Baseline and peak are both 64 MB — job allocated nothing
@@ -163,6 +169,7 @@ it('reports near-zero memory for sleep-bound jobs', function () {
     usleep(10_000);
 
     $capturedMemoryMb = null;
+    $capturedMemoryIncrementalMb = null;
     $this->jobMetricsRepository->shouldReceive('recordCompletion')
         ->once()
         ->withArgs(function (
@@ -173,8 +180,12 @@ it('reports near-zero memory for sleep-bound jobs', function () {
             float $durationMs,
             float $memoryMb,
             float $cpuTimeMs,
-        ) use (&$capturedMemoryMb) {
+            $completedAt,
+            ?string $hostname,
+            float $memoryIncrementalMb,
+        ) use (&$capturedMemoryMb, &$capturedMemoryIncrementalMb) {
             $capturedMemoryMb = $memoryMb;
+            $capturedMemoryIncrementalMb = $memoryIncrementalMb;
 
             return true;
         });
@@ -191,11 +202,12 @@ it('reports near-zero memory for sleep-bound jobs', function () {
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
-    // Sleep job: 0 MB incremental (64 - 64)
-    expect($capturedMemoryMb)->toBe(0.0);
+    // Sleep job: memoryMb = peak RSS (64), memoryIncrementalMb = 0 (64 - 64)
+    expect($capturedMemoryMb)->toBe(64.0);
+    expect($capturedMemoryIncrementalMb)->toBe(0.0);
 })->group('functional');
 
-it('falls back to peak RSS when memory baseline is missing', function () {
+it('falls back to peak RSS for both values when baseline is missing', function () {
     Event::fake([JobMetricsCompleted::class]);
 
     // CPU baseline exists but memory baseline does NOT
@@ -212,6 +224,7 @@ it('falls back to peak RSS when memory baseline is missing', function () {
     usleep(10_000);
 
     $capturedMemoryMb = null;
+    $capturedMemoryIncrementalMb = null;
     $this->jobMetricsRepository->shouldReceive('recordCompletion')
         ->once()
         ->withArgs(function (
@@ -222,8 +235,12 @@ it('falls back to peak RSS when memory baseline is missing', function () {
             float $durationMs,
             float $memoryMb,
             float $cpuTimeMs,
-        ) use (&$capturedMemoryMb) {
+            $completedAt,
+            ?string $hostname,
+            float $memoryIncrementalMb,
+        ) use (&$capturedMemoryMb, &$capturedMemoryIncrementalMb) {
             $capturedMemoryMb = $memoryMb;
+            $capturedMemoryIncrementalMb = $memoryIncrementalMb;
 
             return true;
         });
@@ -240,8 +257,9 @@ it('falls back to peak RSS when memory baseline is missing', function () {
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
-    // Falls back to raw peak RSS: 80 MB
+    // Both fall back to raw peak RSS: 80 MB
     expect($capturedMemoryMb)->toBe(80.0);
+    expect($capturedMemoryIncrementalMb)->toBe(80.0);
 })->group('functional');
 
 it('cleans up memory cache entry after job completion', function () {
@@ -277,7 +295,7 @@ it('cleans up memory cache entry after job completion', function () {
     expect(JobMemorySnapshotCache::get('job-cleanup'))->toBeNull();
 })->group('functional');
 
-it('two jobs with different allocation sizes report distinguishable memory values', function () {
+it('two jobs with different allocation sizes report distinguishable values', function () {
     Event::fake([JobMetricsCompleted::class]);
 
     // Job A: allocates ~8 MB (baseline 64, peak 72)
@@ -294,6 +312,7 @@ it('two jobs with different allocation sizes report distinguishable memory value
     usleep(10_000);
 
     $capturedMemorySmall = null;
+    $capturedIncrementalSmall = null;
     $this->jobMetricsRepository->shouldReceive('recordCompletion')
         ->once()
         ->withArgs(function (
@@ -304,8 +323,12 @@ it('two jobs with different allocation sizes report distinguishable memory value
             float $durationMs,
             float $memoryMb,
             float $cpuTimeMs,
-        ) use (&$capturedMemorySmall) {
+            $completedAt,
+            ?string $hostname,
+            float $memoryIncrementalMb,
+        ) use (&$capturedMemorySmall, &$capturedIncrementalSmall) {
             $capturedMemorySmall = $memoryMb;
+            $capturedIncrementalSmall = $memoryIncrementalMb;
 
             return true;
         });
@@ -339,6 +362,7 @@ it('two jobs with different allocation sizes report distinguishable memory value
     usleep(10_000);
 
     $capturedMemoryLarge = null;
+    $capturedIncrementalLarge = null;
     $this->jobMetricsRepository->shouldReceive('recordCompletion')
         ->once()
         ->withArgs(function (
@@ -349,8 +373,12 @@ it('two jobs with different allocation sizes report distinguishable memory value
             float $durationMs,
             float $memoryMb,
             float $cpuTimeMs,
-        ) use (&$capturedMemoryLarge) {
+            $completedAt,
+            ?string $hostname,
+            float $memoryIncrementalMb,
+        ) use (&$capturedMemoryLarge, &$capturedIncrementalLarge) {
             $capturedMemoryLarge = $memoryMb;
+            $capturedIncrementalLarge = $memoryIncrementalMb;
 
             return true;
         });
@@ -367,13 +395,19 @@ it('two jobs with different allocation sizes report distinguishable memory value
 
     $this->processedListener->handle(new JobProcessed('redis', $jobLarge));
 
-    // 8 MB vs 200 MB — clearly distinguishable
-    expect($capturedMemorySmall)->toBe(8.0);
-    expect($capturedMemoryLarge)->toBe(200.0);
-    expect($capturedMemoryLarge)->toBeGreaterThan($capturedMemorySmall * 10);
+    // Small job: memoryMb=72, incremental=8
+    expect($capturedMemorySmall)->toBe(72.0);
+    expect($capturedIncrementalSmall)->toBe(8.0);
+
+    // Large job: memoryMb=264, incremental=200
+    expect($capturedMemoryLarge)->toBe(264.0);
+    expect($capturedIncrementalLarge)->toBe(200.0);
+
+    // Peak RSS values are clearly distinguishable
+    expect($capturedMemoryLarge)->toBeGreaterThan($capturedMemorySmall * 3);
 })->group('functional');
 
-it('clamps negative memory delta to zero', function () {
+it('clamps negative incremental to zero while peak RSS stays at actual peak', function () {
     Event::fake([JobMetricsCompleted::class]);
 
     // Edge case: RSS decreases during job (GC freed memory)
@@ -391,6 +425,7 @@ it('clamps negative memory delta to zero', function () {
     usleep(10_000);
 
     $capturedMemoryMb = null;
+    $capturedMemoryIncrementalMb = null;
     $this->jobMetricsRepository->shouldReceive('recordCompletion')
         ->once()
         ->withArgs(function (
@@ -401,8 +436,12 @@ it('clamps negative memory delta to zero', function () {
             float $durationMs,
             float $memoryMb,
             float $cpuTimeMs,
-        ) use (&$capturedMemoryMb) {
+            $completedAt,
+            ?string $hostname,
+            float $memoryIncrementalMb,
+        ) use (&$capturedMemoryMb, &$capturedMemoryIncrementalMb) {
             $capturedMemoryMb = $memoryMb;
+            $capturedMemoryIncrementalMb = $memoryIncrementalMb;
 
             return true;
         });
@@ -419,6 +458,7 @@ it('clamps negative memory delta to zero', function () {
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
-    // Clamped to 0, not negative
-    expect($capturedMemoryMb)->toBe(0.0);
+    // Peak RSS stays at 72 (actual peak), incremental clamped to 0 (not negative)
+    expect($capturedMemoryMb)->toBe(72.0);
+    expect($capturedMemoryIncrementalMb)->toBe(0.0);
 })->group('functional');
