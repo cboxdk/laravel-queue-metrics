@@ -99,13 +99,14 @@ final readonly class CalculateJobMetricsAction
         $samples = $this->repository->getMemorySamples($jobClass, $connection, $queue);
 
         if (empty($samples)) {
-            return new MemoryStats(0.0, 0.0, 0.0, 0.0);
+            return new MemoryStats(0.0, 0.0, 0.0, 0.0, 0.0);
         }
 
         $percentiles = $this->percentiles->calculateMultiple($samples, [95, 99]);
 
         return new MemoryStats(
             avg: array_sum($samples) / count($samples),
+            avgIncremental: 0.0,
             peak: max($samples),
             p95: $percentiles['p95'],
             p99: $percentiles['p99'],
