@@ -44,16 +44,16 @@ it('tracks child processes when job spawns subprocesses', function () {
 
     $stats = $statsResult->getValue();
 
-    // Verify metrics are calculated correctly as in JobProcessedListener
     $memoryMb = (float) ($stats->peak->memoryRssBytes / 1024 / 1024);
     expect($memoryMb)->toBeGreaterThan(0.0);
 
-    $cpuUsagePercent = $stats->delta->cpuUsagePercentage();
-    $durationSeconds = $stats->delta->durationSeconds;
-    $cpuTimeMs = ($cpuUsagePercent / 100.0) * $durationSeconds * 1000.0;
+    // CPU time using direct delta (same as fixed JobProcessedListener)
+    $endCpuTimes = $stats->current->cpuTimes;
+    $endCpuTimeMs = (float) ($endCpuTimes->user + $endCpuTimes->system);
+    // Note: in this test we don't have a start snapshot cached, so just verify the value is valid
+    expect($endCpuTimeMs)->toBeGreaterThanOrEqual(0.0);
 
-    expect($cpuTimeMs)->toBeGreaterThanOrEqual(0.0);
-    expect($durationSeconds)->toBeGreaterThanOrEqual(0.0); // Can be 0 for very fast operations
+    expect($stats->delta->durationSeconds)->toBeGreaterThanOrEqual(0.0);
 
     // Process count may be > 1 if child processes were captured
     expect($stats->processCount)->toBeGreaterThanOrEqual(1);
@@ -159,21 +159,20 @@ it('provides process resource usage compatible with JobProcessedListener calcula
 
     $stats = $statsResult->getValue();
 
-    // This is exactly how JobProcessedListener uses the metrics:
+    // This is how the fixed JobProcessedListener uses the metrics:
     $memoryMb = (float) ($stats->peak->memoryRssBytes / 1024 / 1024);
-    $cpuUsagePercent = $stats->delta->cpuUsagePercentage();
-    $durationSeconds = $stats->delta->durationSeconds;
-    $cpuTimeMs = ($cpuUsagePercent / 100.0) * $durationSeconds * 1000.0;
+
+    // CPU time via direct delta (start snapshot would be cached in real usage)
+    $endCpuTimes = $stats->current->cpuTimes;
+    $endCpuTimeMs = (float) ($endCpuTimes->user + $endCpuTimes->system);
 
     // Verify all values are usable
     expect($memoryMb)->toBeFloat()->toBeGreaterThan(0.0);
-    expect($cpuUsagePercent)->toBeFloat()->toBeGreaterThanOrEqual(0.0);
-    expect($durationSeconds)->toBeFloat()->toBeGreaterThanOrEqual(0.0); // Can be 0 on fast systems
-    expect($cpuTimeMs)->toBeFloat()->toBeGreaterThanOrEqual(0.0);
+    expect($endCpuTimeMs)->toBeFloat()->toBeGreaterThanOrEqual(0.0);
 
     // These values would be passed to RecordJobCompletionAction
     expect($memoryMb)->toBeLessThan(10000.0); // Sanity check (< 10GB)
-    expect($cpuTimeMs)->toBeLessThan(60000.0); // Sanity check (< 1 minute)
+    expect($endCpuTimeMs)->toBeLessThan(3600000.0); // Sanity check (< 1 hour cumulative)
 
     unset($data);
 })->group('functional');

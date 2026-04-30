@@ -75,9 +75,15 @@ it('tracks process metrics with child processes enabled', function () {
     unset($data);
 })->group('functional');
 
-it('calculates CPU time correctly from delta metrics', function () {
+it('calculates CPU time correctly using direct delta', function () {
     $pid = getmypid();
     $trackerId = 'cpu_test_'.uniqid();
+
+    // Take start snapshot for CPU baseline
+    $startSnapshot = ProcessMetrics::snapshot($pid);
+    expect($startSnapshot->isSuccess())->toBeTrue();
+    $startCpuTimes = $startSnapshot->getValue()->resources->cpuTimes;
+    $startCpuTimeMs = (float) ($startCpuTimes->user + $startCpuTimes->system);
 
     ProcessMetrics::start(pid: $pid, trackerId: $trackerId, includeChildren: true);
 
@@ -92,13 +98,13 @@ it('calculates CPU time correctly from delta metrics', function () {
 
     $stats = $statsResult->getValue();
 
-    // Calculate CPU time using the same formula as JobProcessedListener
-    $cpuUsagePercent = $stats->delta->cpuUsagePercentage();
-    $durationSeconds = $stats->delta->durationSeconds;
-    $cpuTimeMs = ($cpuUsagePercent / 100.0) * $durationSeconds * 1000.0;
+    // Calculate CPU time using the new delta approach (same as fixed JobProcessedListener)
+    $endCpuTimes = $stats->current->cpuTimes;
+    $endCpuTimeMs = (float) ($endCpuTimes->user + $endCpuTimes->system);
+    $cpuTimeMs = max(0.0, $endCpuTimeMs - $startCpuTimeMs);
 
     expect($cpuTimeMs)->toBeGreaterThanOrEqual(0.0);
-    expect($cpuUsagePercent)->toBeGreaterThanOrEqual(0.0);
+    expect($endCpuTimeMs)->toBeGreaterThanOrEqual($startCpuTimeMs);
 })->group('functional');
 
 it('tracks peak memory during execution', function () {
