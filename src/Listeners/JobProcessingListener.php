@@ -7,6 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobProcessing;
@@ -33,8 +34,16 @@ final readonly class JobProcessingListener
             ProcessMetrics::start(
                 pid: $pid,
                 trackerId: "job_{$jobId}",
-                includeChildren: true // Track parent + child processes for accurate metrics
+                includeChildren: true
             );
+
+            // Cache CPU baseline for accurate per-job CPU time delta
+            $snapshotResult = ProcessMetrics::snapshot($pid);
+            if ($snapshotResult->isSuccess()) {
+                $cpuTimes = $snapshotResult->getValue()->resources->cpuTimes;
+                $totalCpuTimeMs = (float) ($cpuTimes->user + $cpuTimes->system);
+                JobCpuSnapshotCache::store($jobId, $totalCpuTimeMs);
+            }
         }
 
         $jobClass = $payload['displayName'] ?? 'UnknownJob';

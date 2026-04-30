@@ -8,6 +8,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsFailed;
+use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
 use Cbox\SystemMetrics\ProcessMetrics;
@@ -43,12 +44,20 @@ final readonly class JobFailedListener
         if ($metricsResult->isSuccess()) {
             $metrics = $metricsResult->getValue();
 
+            // Peak memory during job window (for OOM safeguarding)
             $memoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
 
-            $cpuUsagePercent = $metrics->delta->cpuUsagePercentage();
-            $durationSeconds = $metrics->delta->durationSeconds;
-            $cpuTimeMs = ($cpuUsagePercent / 100.0) * $durationSeconds * 1000.0;
+            // CPU time: delta between cumulative CPU times at end vs start
+            $endCpuTimes = $metrics->current->cpuTimes;
+            $endCpuTimeMs = (float) ($endCpuTimes->user + $endCpuTimes->system);
+            $startCpuTimeMs = JobCpuSnapshotCache::get($jobId);
+
+            if ($startCpuTimeMs !== null) {
+                $cpuTimeMs = max(0.0, $endCpuTimeMs - $startCpuTimeMs);
+            }
         }
+
+        JobCpuSnapshotCache::forget($jobId);
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
