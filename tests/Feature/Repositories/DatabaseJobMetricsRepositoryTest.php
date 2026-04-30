@@ -428,7 +428,56 @@ test('getMetrics returns defaults for non-existent job', function () {
     expect($metrics['total_duration_ms'])->toBe(0.0);
     expect($metrics['total_memory_mb'])->toBe(0.0);
     expect($metrics['total_cpu_time_ms'])->toBe(0.0);
+    expect($metrics['total_memory_incremental_mb'])->toBe(0.0);
     expect($metrics['last_processed_at'])->toBeNull();
     expect($metrics['last_failed_at'])->toBeNull();
     expect($metrics['last_exception'])->toBeNull();
+});
+
+// --- memoryIncrementalMb ---
+
+test('recordCompletion stores incremental memory in hash', function () {
+    $this->repo->recordCompletion(
+        jobId: 'job-inc-1',
+        jobClass: 'App\\Jobs\\SendEmail',
+        connection: 'redis',
+        queue: 'default',
+        durationMs: 150.0,
+        memoryMb: 64.0,
+        cpuTimeMs: 45.0,
+        completedAt: now(),
+        hostname: null,
+        memoryIncrementalMb: 8.5,
+    );
+
+    $metrics = $this->repo->getMetrics('App\\Jobs\\SendEmail', 'redis', 'default');
+    expect((float) $metrics['total_memory_mb'])->toBe(64.0)
+        ->and((float) $metrics['total_memory_incremental_mb'])->toBe(8.5);
+});
+
+test('recordCompletion accumulates incremental memory across multiple calls', function () {
+    $this->repo->recordCompletion('j1', 'App\\Jobs\\SendEmail', 'redis', 'default', 100.0, 60.0, 5.0, now(), null, 6.0);
+    $this->repo->recordCompletion('j2', 'App\\Jobs\\SendEmail', 'redis', 'default', 200.0, 65.0, 10.0, now(), null, 12.0);
+
+    $metrics = $this->repo->getMetrics('App\\Jobs\\SendEmail', 'redis', 'default');
+    expect($metrics['total_processed'])->toBe(2)
+        ->and((float) $metrics['total_memory_mb'])->toBe(125.0)
+        ->and((float) $metrics['total_memory_incremental_mb'])->toBe(18.0);
+});
+
+test('recordCompletion defaults incremental memory to zero', function () {
+    $this->repo->recordCompletion(
+        jobId: 'job-no-inc',
+        jobClass: 'App\\Jobs\\SendEmail',
+        connection: 'redis',
+        queue: 'default',
+        durationMs: 150.0,
+        memoryMb: 64.0,
+        cpuTimeMs: 45.0,
+        completedAt: now(),
+    );
+
+    $metrics = $this->repo->getMetrics('App\\Jobs\\SendEmail', 'redis', 'default');
+    expect((float) $metrics['total_memory_mb'])->toBe(64.0)
+        ->and((float) $metrics['total_memory_incremental_mb'])->toBe(0.0);
 });

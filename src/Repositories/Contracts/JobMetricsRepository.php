@@ -35,6 +35,7 @@ interface JobMetricsRepository
         float $cpuTimeMs,
         Carbon $completedAt,
         ?string $hostname = null,
+        float $memoryIncrementalMb = 0.0,
     ): void;
 
     /**
