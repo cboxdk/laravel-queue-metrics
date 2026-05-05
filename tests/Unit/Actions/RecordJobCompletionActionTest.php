@@ -32,6 +32,7 @@ it('records job completion with all parameters', function () {
             300.0,
             Mockery::type(Carbon::class),
             null,
+            0.0,
         );
 
     $this->action->execute(
@@ -58,6 +59,7 @@ it('records job completion with zero CPU time by default', function () {
             0.0,
             Mockery::type(Carbon::class),
             null,
+            0.0,
         );
 
     $this->action->execute(
@@ -98,6 +100,7 @@ it('handles very short duration jobs', function () {
             0.1,
             Mockery::type(Carbon::class),
             null,
+            0.0,
         );
 
     $this->action->execute(
@@ -124,6 +127,7 @@ it('handles very long duration jobs', function () {
             3000000.0,
             Mockery::type(Carbon::class),
             null,
+            0.0,
         );
 
     $this->action->execute(
@@ -152,6 +156,7 @@ it('records completion time at execution moment', function () {
             500.0,
             Mockery::type(Carbon::class),
             null,
+            0.0,
         );
 
     $this->action->execute(
@@ -178,6 +183,7 @@ it('handles different queue connections', function () {
             250.0,
             Mockery::type(Carbon::class),
             null,
+            0.0,
         );
 
     $this->action->execute(
@@ -188,5 +194,60 @@ it('handles different queue connections', function () {
         durationMs: 1200.0,
         memoryMb: 15.5,
         cpuTimeMs: 250.0,
+    );
+})->group('functional');
+
+it('passes incremental memory to repository', function () {
+    $this->repository->shouldReceive('recordCompletion')
+        ->once()
+        ->with(
+            'job-inc',
+            'App\Jobs\ProcessOrder',
+            'redis',
+            'default',
+            1500.5,
+            64.0,
+            300.0,
+            Mockery::type(Carbon::class),
+            null,
+            8.5,
+        );
+
+    $this->action->execute(
+        jobId: 'job-inc',
+        jobClass: 'App\Jobs\ProcessOrder',
+        connection: 'redis',
+        queue: 'default',
+        durationMs: 1500.5,
+        memoryMb: 64.0,
+        cpuTimeMs: 300.0,
+        memoryIncrementalMb: 8.5,
+    );
+})->group('functional');
+
+it('defaults incremental memory to zero', function () {
+    $this->repository->shouldReceive('recordCompletion')
+        ->once()
+        ->with(
+            'job-no-inc',
+            'App\Jobs\ProcessOrder',
+            'redis',
+            'default',
+            1500.5,
+            64.0,
+            300.0,
+            Mockery::type(Carbon::class),
+            null,
+            0.0,
+        );
+
+    $this->action->execute(
+        jobId: 'job-no-inc',
+        jobClass: 'App\Jobs\ProcessOrder',
+        connection: 'redis',
+        queue: 'default',
+        durationMs: 1500.5,
+        memoryMb: 64.0,
+        cpuTimeMs: 300.0,
     );
 })->group('functional');

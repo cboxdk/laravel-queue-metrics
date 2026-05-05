@@ -25,5 +25,6 @@ final class JobMetricsFailed
         public readonly string $exceptionMessage,
         public readonly ?string $hostname = null,
         public readonly ?float $workerMemoryLimitMb = null,
+        public readonly float $memoryIncrementalMb = 0.0,
     ) {}
 }

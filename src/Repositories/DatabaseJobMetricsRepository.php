@@ -81,6 +81,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         float $cpuTimeMs,
         Carbon $completedAt,
         ?string $hostname = null,
+        float $memoryIncrementalMb = 0.0,
     ): void {
         $metricsKey = $this->store->key('jobs', $connection, $queue, $jobClass);
         $durationKey = $this->store->key('durations', $connection, $queue, $jobClass);
@@ -99,6 +100,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             $durationMs,
             $memoryMb,
             $cpuTimeMs,
+            $memoryIncrementalMb,
             $completedAt,
             $ttl,
             $jobId
@@ -108,6 +110,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
                 'total_duration_ms' => $durationMs,
                 'total_memory_mb' => $memoryMb,
                 'total_cpu_time_ms' => $cpuTimeMs,
+                'total_memory_incremental_mb' => $memoryIncrementalMb,
             ]);
             $driver->setHash($metricsKey, ['last_processed_at' => $completedAt->timestamp]);
 
@@ -307,6 +310,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             'total_duration_ms' => (float) ($data['total_duration_ms'] ?? 0.0),
             'total_memory_mb' => (float) ($data['total_memory_mb'] ?? 0.0),
             'total_cpu_time_ms' => (float) ($data['total_cpu_time_ms'] ?? 0.0),
+            'total_memory_incremental_mb' => (float) ($data['total_memory_incremental_mb'] ?? 0.0),
             'last_processed_at' => isset($data['last_processed_at'])
                 ? Carbon::createFromTimestamp((int) $data['last_processed_at'])
                 : null,

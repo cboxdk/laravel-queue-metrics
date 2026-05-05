@@ -24,5 +24,6 @@ final class JobMetricsCompleted
         public readonly float $cpuTimeMs,
         public readonly ?string $hostname = null,
         public readonly ?float $workerMemoryLimitMb = null,
+        public readonly float $memoryIncrementalMb = 0.0,
     ) {}
 }

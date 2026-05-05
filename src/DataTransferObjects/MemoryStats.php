@@ -11,6 +11,7 @@ final readonly class MemoryStats
 {
     public function __construct(
         public float $avg,
+        public float $avgIncremental,
         public float $peak,
         public float $p95,
         public float $p99,
@@ -22,12 +23,14 @@ final readonly class MemoryStats
     public static function fromArray(array $data): self
     {
         $avg = $data['avg'] ?? 0.0;
+        $avgIncremental = $data['avg_incremental'] ?? 0.0;
         $peak = $data['peak'] ?? 0.0;
         $p95 = $data['p95'] ?? 0.0;
         $p99 = $data['p99'] ?? 0.0;
 
         return new self(
             avg: is_numeric($avg) ? (float) $avg : 0.0,
+            avgIncremental: is_numeric($avgIncremental) ? (float) $avgIncremental : 0.0,
             peak: is_numeric($peak) ? (float) $peak : 0.0,
             p95: is_numeric($p95) ? (float) $p95 : 0.0,
             p99: is_numeric($p99) ? (float) $p99 : 0.0,
@@ -41,6 +44,7 @@ final readonly class MemoryStats
     {
         return [
             'avg' => $this->avg,
+            'avg_incremental' => $this->avgIncremental,
             'peak' => $this->peak,
             'p95' => $this->p95,
             'p99' => $this->p99,

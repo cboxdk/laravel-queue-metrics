@@ -41,7 +41,7 @@ final readonly class CalculateJobMetricsAction
             queue: $queue,
             execution: $this->calculateExecution($metrics),
             duration: $this->calculateDuration($jobClass, $connection, $queue, $metrics),
-            memory: $this->calculateMemory($jobClass, $connection, $queue),
+            memory: $this->calculateMemory($jobClass, $connection, $queue, $metrics),
             cpu: $this->calculateCpu($jobClass, $connection, $queue),
             throughput: $this->calculateThroughput($jobClass, $connection, $queue),
             failures: $this->calculateFailures($metrics),
@@ -91,21 +91,29 @@ final readonly class CalculateJobMetricsAction
         );
     }
 
+    /**
+     * @param  array<string, mixed>  $metrics
+     */
     private function calculateMemory(
         string $jobClass,
         string $connection,
         string $queue,
+        array $metrics,
     ): MemoryStats {
         $samples = $this->repository->getMemorySamples($jobClass, $connection, $queue);
 
         if (empty($samples)) {
-            return new MemoryStats(0.0, 0.0, 0.0, 0.0);
+            return new MemoryStats(0.0, 0.0, 0.0, 0.0, 0.0);
         }
 
         $percentiles = $this->percentiles->calculateMultiple($samples, [95, 99]);
 
+        $totalProcessed = is_numeric($metrics['total_processed'] ?? null) ? (int) $metrics['total_processed'] : 0;
+        $totalIncrementalMb = is_numeric($metrics['total_memory_incremental_mb'] ?? null) ? (float) $metrics['total_memory_incremental_mb'] : 0.0;
+
         return new MemoryStats(
             avg: array_sum($samples) / count($samples),
+            avgIncremental: $totalProcessed > 0 ? $totalIncrementalMb / $totalProcessed : 0.0,
             peak: max($samples),
             p95: $percentiles['p95'],
             p99: $percentiles['p99'],

@@ -23,6 +23,7 @@ final readonly class RecordJobCompletionAction
         string $queue,
         float $durationMs,
         float $memoryMb,
+        float $memoryIncrementalMb = 0.0,
         float $cpuTimeMs = 0.0,
         ?string $hostname = null,
     ): void {
@@ -40,6 +41,7 @@ final readonly class RecordJobCompletionAction
             cpuTimeMs: $cpuTimeMs,
             completedAt: Carbon::now(),
             hostname: $hostname,
+            memoryIncrementalMb: $memoryIncrementalMb,
         );
     }
 }

@@ -78,6 +78,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         float $cpuTimeMs,
         Carbon $completedAt,
         ?string $hostname = null,
+        float $memoryIncrementalMb = 0.0,
     ): void {
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
         $durationKey = $this->redis->key('durations', $connection, $queue, $jobClass);
@@ -94,6 +95,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $durationMs,
             $memoryMb,
             $cpuTimeMs,
+            $memoryIncrementalMb,
             $completedAt,
             $ttl,
             $jobId
@@ -102,6 +104,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $pipe->incrementHashField($metricsKey, 'total_duration_ms', $durationMs);
             $pipe->incrementHashField($metricsKey, 'total_memory_mb', $memoryMb);
             $pipe->incrementHashField($metricsKey, 'total_cpu_time_ms', $cpuTimeMs);
+            $pipe->incrementHashField($metricsKey, 'total_memory_incremental_mb', $memoryIncrementalMb);
             $pipe->setHash($metricsKey, ['last_processed_at' => $completedAt->timestamp]);
 
             // Store samples in sorted sets with timestamp as score
@@ -335,6 +338,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             'total_duration_ms' => (float) ($data['total_duration_ms'] ?? 0.0),
             'total_memory_mb' => (float) ($data['total_memory_mb'] ?? 0.0),
             'total_cpu_time_ms' => (float) ($data['total_cpu_time_ms'] ?? 0.0),
+            'total_memory_incremental_mb' => (float) ($data['total_memory_incremental_mb'] ?? 0.0),
             'last_processed_at' => isset($data['last_processed_at'])
                 ? Carbon::createFromTimestamp((int) $data['last_processed_at'])
                 : null,

@@ -167,7 +167,7 @@ final readonly class PrometheusService
             /** @var array{avg: float, min: float, max: float, p50: float, p95: float, p99: float, stddev: float}|null $duration */
             $duration = $jobData['duration'] ?? null;
 
-            /** @var array{avg: float, min: float, max: float, peak: float, p95: float, p99: float}|null $memory */
+            /** @var array{avg: float, avg_incremental: float, min: float, max: float, peak: float, p95: float, p99: float}|null $memory */
             $memory = $jobData['memory'] ?? null;
 
             /** @var array{success_count: int, failure_count: int, total_debounced?: int, success_rate: float, failure_rate: float}|null $execution */
@@ -252,6 +252,16 @@ final readonly class PrometheusService
                     ->label('connection')
                     ->helpText('Job memory usage 99th percentile')
                     ->value($memory['p99'], [$job, $queue, $connection]);
+
+                // Incremental memory (job allocation above baseline)
+                Prometheus::addGauge('job_memory_avg_incremental_megabytes')
+                    ->name('job_memory_avg_incremental_megabytes')
+                    ->namespace($namespace)
+                    ->label('job')
+                    ->label('queue')
+                    ->label('connection')
+                    ->helpText('Job incremental memory allocation in megabytes (peak minus baseline)')
+                    ->value($memory['avg_incremental'], [$job, $queue, $connection]);
             }
 
             // Execution counters (cumulative metrics)

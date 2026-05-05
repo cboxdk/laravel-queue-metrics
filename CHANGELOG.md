@@ -2,6 +2,20 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.2.0 - Unreleased
+
+### Added
+- `memory.avg_incremental` field in job metrics output — reports incremental memory allocation (peak minus baseline) for job-class differentiation
+- `memoryIncrementalMb` parameter on `RecordJobCompletionAction::execute()`, repository contract, and job events
+- `job_memory_avg_incremental_megabytes` Prometheus gauge
+
+### Changed
+- `memory.avg`, `memory.peak`, `memory.p95`, `memory.p99` now report peak RSS (worker's actual memory footprint during job) instead of incremental allocation — restores correct capacity-planning semantics for consumers like queue-autoscale
+- `memoryMb` in `JobMetricsCompleted` and `JobMetricsFailed` events now carries peak RSS instead of incremental
+
+### Fixed
+- queue-autoscale capacity estimates were ~10x too low because `memory.avg` reported incremental allocation (~6 MB) instead of actual worker footprint (~50-80 MB) (#20)
+
 ## v3.1.0 - Per-job memory now reports incremental allocation, not peak RSS - 2026-04-30
 
 ### Breaking Changes

@@ -40,20 +40,24 @@ final readonly class JobFailedListener
         $metricsResult = ProcessMetrics::stop($trackerId);
 
         $memoryMb = memory_get_peak_usage(true) / 1024 / 1024;
+        $memoryIncrementalMb = $memoryMb;
         $cpuTimeMs = 0.0;
 
         if ($metricsResult->isSuccess()) {
             $metrics = $metricsResult->getValue();
 
-            // Memory: incremental allocation by this job (peak RSS minus baseline)
+            // Memory: peak RSS is the capacity-planning metric
             $peakMemoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
             $startMemoryMb = JobMemorySnapshotCache::get($jobId);
 
+            // Incremental allocation is the differentiation metric
             if ($startMemoryMb !== null) {
-                $memoryMb = max(0.0, $peakMemoryMb - $startMemoryMb);
+                $memoryIncrementalMb = max(0.0, $peakMemoryMb - $startMemoryMb);
             } else {
-                $memoryMb = $peakMemoryMb; // fallback for missing baseline
+                $memoryIncrementalMb = $peakMemoryMb; // fallback for missing baseline
             }
+
+            $memoryMb = $peakMemoryMb;
 
             // CPU time: delta between cumulative CPU times at end vs start
             $endCpuTimes = $metrics->current->cpuTimes;
@@ -98,6 +102,7 @@ final readonly class JobFailedListener
             $exceptionMessage,
             $hostname,
             MemoryLimitParser::getCurrentLimitMb(),
+            $memoryIncrementalMb,
         );
 
         // Record worker heartbeat with IDLE state (job failed, worker ready for next job)
