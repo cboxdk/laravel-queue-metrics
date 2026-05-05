@@ -108,8 +108,8 @@ final readonly class CalculateJobMetricsAction
 
         $percentiles = $this->percentiles->calculateMultiple($samples, [95, 99]);
 
-        $totalProcessed = (int) ($metrics['total_processed'] ?? 0);
-        $totalIncrementalMb = (float) ($metrics['total_memory_incremental_mb'] ?? 0.0);
+        $totalProcessed = is_numeric($metrics['total_processed'] ?? null) ? (int) $metrics['total_processed'] : 0;
+        $totalIncrementalMb = is_numeric($metrics['total_memory_incremental_mb'] ?? null) ? (float) $metrics['total_memory_incremental_mb'] : 0.0;
 
         return new MemoryStats(
             avg: array_sum($samples) / count($samples),
