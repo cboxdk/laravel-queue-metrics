@@ -6,8 +6,10 @@ namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
+use Cbox\LaravelQueueMetrics\Models\MetricsHash;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
+use Illuminate\Support\Collection;
 
 /**
  * Database-based implementation of worker repository.
@@ -42,7 +44,7 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
 
         // Add to active workers set with hostname:pid format
         $activeWorkersKey = $this->store->key('active_workers');
-        $driver->addToSet($activeWorkersKey, [$hostname.':'.$pid]);
+        $driver->addToSet($activeWorkersKey, [$hostname.':'.$pid], $ttl);
 
         // Add to workers:all sorted set (score = spawned_at timestamp)
         $indexKey = $this->store->key('workers', 'all');
@@ -50,7 +52,6 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
 
         // Set TTL on keys
         $driver->expire($key, $ttl);
-        $driver->expire($activeWorkersKey, $ttl);
     }
 
     public function updateWorkerActivity(
@@ -87,6 +88,8 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
         // Update the sorted set score to current time for activity tracking
         $indexKey = $this->store->key('workers', 'all');
         $driver->addToSortedSet($indexKey, [$hostname.':'.$pid => (int) Carbon::now()->timestamp]);
+
+        $driver->addToSet($this->store->key('active_workers'), [$hostname.':'.$pid], $ttl);
 
         // Refresh TTL on update
         $driver->expire($key, $ttl);
@@ -126,7 +129,11 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
         /** @var array<int, string> $members */
         $members = $driver->getSetMembers($activeWorkersKey);
 
-        $workers = [];
+        if (empty($members)) {
+            return [];
+        }
+
+        $workerKeys = [];
         foreach ($members as $member) {
             $parts = explode(':', $member, 2);
             if (count($parts) !== 2) {
@@ -134,10 +141,25 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
             }
 
             [$memberHostname, $memberPid] = $parts;
-            $workerKey = $this->store->key('worker', $memberHostname, $memberPid);
+            $workerKeys[] = $this->store->key('worker', $memberHostname, $memberPid);
+        }
+
+        if (empty($workerKeys)) {
+            return [];
+        }
+
+        /** @var Collection<string, MetricsHash> $hashRecords */
+        $hashRecords = MetricsHash::notExpired()->whereIn('key', $workerKeys)->get()->keyBy('key');
+
+        $workers = [];
+        foreach ($workerKeys as $workerKey) {
+            $record = $hashRecords->get($workerKey);
+            if ($record === null) {
+                continue;
+            }
 
             /** @var array<string, string> $data */
-            $data = $driver->getHash($workerKey);
+            $data = $record->data;
 
             if (empty($data)) {
                 continue;

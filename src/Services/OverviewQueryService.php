@@ -91,7 +91,8 @@ final readonly class OverviewQueryService implements OverviewQueryInterface
                     $queue
                 );
             } catch (\Throwable $e) {
-                // Skip queues that fail, continue with others
+                report($e);
+
                 continue;
             }
         }
@@ -101,7 +102,7 @@ final readonly class OverviewQueryService implements OverviewQueryInterface
         try {
             $workerEfficiencyTrend = $this->trendAnalysisService->analyzeWorkerEfficiencyTrend();
         } catch (\Throwable $e) {
-            // Worker efficiency is optional
+            report($e);
         }
 
         $trends = [

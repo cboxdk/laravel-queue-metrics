@@ -8,13 +8,38 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 - `memory.avg_incremental` field in job metrics output — reports incremental memory allocation (peak minus baseline) for job-class differentiation
 - `memoryIncrementalMb` parameter on `RecordJobCompletionAction::execute()`, repository contract, and job events
 - `job_memory_avg_incremental_megabytes` Prometheus gauge
+- `job_debounced_total` Prometheus counter
+- `expires_at` column on `queue_metrics_sets` table — sets are now auto-cleaned by the cleanup command
+- `JobMetricsCollector` and `JobMetricsSnapshot` — shared metrics extraction logic for listeners
+- `MemoryConverter` utility — centralizes bytes-to-megabytes conversion
+- `DebouncedJobTracker` TTL eviction — prevents unbounded growth in long-running workers
+- `HeartbeatThrottleCache` TTL eviction — prevents unbounded growth from stale worker entries
+- `LoopingListener` heartbeat throttling — reduces write pressure on high-frequency loop events
+- Batch-loaded worker hashes in `DatabaseWorkerRepository::getActiveWorkers()` — eliminates N+1 queries
+- Batch upsert for `DatabaseMetricsStore::addToSet()` — eliminates N+1 queries on job start
+- `AggregatedJobMetricsData::fromArray()` static factory for DTO consistency
 
 ### Changed
 - `memory.avg`, `memory.peak`, `memory.p95`, `memory.p99` now report peak RSS (worker's actual memory footprint during job) instead of incremental allocation — restores correct capacity-planning semantics for consumers like queue-autoscale
 - `memoryMb` in `JobMetricsCompleted` and `JobMetricsFailed` events now carries peak RSS instead of incremental
+- Internal models (`MetricsHash`, `MetricsKey`, `MetricsSet`, `MetricsSortedSet`) and `Authorize` middleware marked `final`
+- Error responses from metrics controllers no longer expose class/queue names (generic 404 messages)
+- `OverviewQueryService` catch blocks now report exceptions via `report()` instead of silently swallowing
+- `CleanupDatabaseCommand` now selects only required columns for sorted set cleanup (reduced memory ~70%)
 
 ### Fixed
 - queue-autoscale capacity estimates were ~10x too low because `memory.avg` reported incremental allocation (~6 MB) instead of actual worker footprint (~50-80 MB) (#20)
+- `ProcessMetrics` tracker leak when persistence throws in `JobProcessingListener` — tracker and snapshot caches are now cleaned up in catch block
+- Negative duration values from clock skew — guarded with `max(0.0, ...)`
+- CPU baseline calculation (`cpuPercentPerJob`) was dividing ms by 1000 (giving seconds, not percent) — now correctly computes `(cpuTimeMs / durationMs) * 100`
+
+### Migration Guide (v3.1.0 → v3.2.0)
+
+**Memory semantics restored**: `memory.avg` returns to peak RSS (worker footprint during job) for capacity planning. The new `memory.avg_incremental` field provides per-job allocation deltas for differentiation. If you added alerts on `memoryMb` during v3.1.0, those thresholds need to increase back to worker-level values (50-200 MB typical).
+
+**CPU baselines recalculate automatically**: The `cpuPercentPerJob` field in baselines now produces correct percentage values. Existing baselines will update on the next `queue-metrics:baselines` run. No action needed.
+
+**Database migration**: Run `php artisan migrate` to add the `expires_at` column to `queue_metrics_sets`. The migration is idempotent (safe to run multiple times).
 
 ## v3.1.0 - Per-job memory now reports incremental allocation, not peak RSS - 2026-04-30
 

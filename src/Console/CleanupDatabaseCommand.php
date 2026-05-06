@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Console;
 
 use Cbox\LaravelQueueMetrics\Models\MetricsHash;
 use Cbox\LaravelQueueMetrics\Models\MetricsKey;
+use Cbox\LaravelQueueMetrics\Models\MetricsSet;
 use Cbox\LaravelQueueMetrics\Models\MetricsSortedSet;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -23,18 +24,34 @@ class CleanupDatabaseCommand extends Command
         // Delete expired rows via subquery to support SQLite (no auto-increment id on all tables)
         MetricsKey::whereIn('key', MetricsKey::expired()->limit($chunkSize)->pluck('key'))->delete();
         MetricsHash::whereIn('key', MetricsHash::expired()->limit($chunkSize)->pluck('key'))->delete();
-
-        // MetricsSortedSet has a composite unique key (key, member) — delete via member
-        /** @var Collection<string, Collection<int, MetricsSortedSet>> $grouped */
-        $grouped = MetricsSortedSet::expired()
+        /** @var Collection<string, Collection<int, MetricsSet>> $expiredSets */
+        $expiredSets = MetricsSet::expired()
+            ->select('key', 'member')
             ->orderBy('key')
             ->orderBy('member')
             ->limit($chunkSize)
             ->get()
             ->groupBy('key');
 
-        $grouped->each(function ($rows, $key) {
-            MetricsSortedSet::where('key', (string) $key)
+        $expiredSets->each(function (Collection $rows, string $key) {
+            MetricsSet::expired()
+                ->where('key', (string) $key)
+                ->whereIn('member', $rows->pluck('member'))
+                ->delete();
+        });
+
+        /** @var Collection<string, Collection<int, MetricsSortedSet>> $grouped */
+        $grouped = MetricsSortedSet::expired()
+            ->select('key', 'member')
+            ->orderBy('key')
+            ->orderBy('member')
+            ->limit($chunkSize)
+            ->get()
+            ->groupBy('key');
+
+        $grouped->each(function (Collection $rows, string $key) {
+            MetricsSortedSet::expired()
+                ->where('key', (string) $key)
                 ->whereIn('member', $rows->pluck('member'))
                 ->delete();
         });

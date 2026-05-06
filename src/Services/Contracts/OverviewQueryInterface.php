@@ -13,6 +13,7 @@ interface OverviewQueryInterface
      * @return array{
      *     queues: array<string, array<string, mixed>>,
      *     jobs: array<string, array<string, mixed>>,
+     *     servers: array<string, array<string, mixed>>,
      *     workers: array<string, mixed>,
      *     baselines?: array<string, array<string, mixed>>,
      *     trends?: array<string, mixed>,

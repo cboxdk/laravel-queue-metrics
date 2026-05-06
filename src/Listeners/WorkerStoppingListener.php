@@ -26,20 +26,9 @@ final readonly class WorkerStoppingListener
             return;
         }
 
-        $workerId = $this->getWorkerId();
-
-        // Transition worker to STOPPED state
-        // This allows tracking:
-        // - Worker uptime (from first heartbeat to stopped)
-        // - Worker stability metrics
         $this->transitionWorkerState->execute(
-            workerId: $workerId,
+            workerId: HorizonDetector::generateWorkerId(),
             newState: WorkerState::STOPPED,
         );
-    }
-
-    private function getWorkerId(): string
-    {
-        return HorizonDetector::generateWorkerId();
     }
 }

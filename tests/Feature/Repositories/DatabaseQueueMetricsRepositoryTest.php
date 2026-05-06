@@ -11,8 +11,11 @@ use Illuminate\Support\Facades\Queue;
 beforeEach(function () {
     config()->set('queue-metrics.storage.connection', null);
 
-    $migration = include __DIR__.'/../../../database/migrations/2024_01_01_000001_create_queue_metrics_storage_tables.php';
-    $migration->up();
+    $createTables = include __DIR__.'/../../../database/migrations/2024_01_01_000001_create_queue_metrics_storage_tables.php';
+    $createTables->up();
+
+    $addSetExpiry = include __DIR__.'/../../../database/migrations/2024_01_01_000002_add_expires_at_to_queue_metrics_sets.php';
+    $addSetExpiry->up();
 
     $this->store = new DatabaseMetricsStore;
     $this->repo = new DatabaseQueueMetricsRepository($this->store);

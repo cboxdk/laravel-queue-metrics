@@ -10,15 +10,30 @@ namespace Cbox\LaravelQueueMetrics\Support;
  * Allows JobDebouncedListener to mark a job ID, and JobProcessedListener
  * to check and consume that mark. The mark is auto-consumed on read
  * to prevent memory leaks in long-running workers.
+ *
+ * Stale entries (from jobs that were marked but never consumed) are
+ * evicted after MAX_AGE_SECONDS on every mark() call.
+ *
+ * @internal
  */
 final class DebouncedJobTracker
 {
-    /** @var array<string, true> */
+    private const MAX_AGE_SECONDS = 600;
+
+    /** @var array<string, float> Job ID => timestamp when marked */
     private static array $debouncedJobIds = [];
 
     public static function mark(string $jobId): void
     {
-        self::$debouncedJobIds[$jobId] = true;
+        $now = microtime(true);
+        self::$debouncedJobIds[$jobId] = $now;
+
+        $cutoff = $now - self::MAX_AGE_SECONDS;
+        foreach (self::$debouncedJobIds as $id => $timestamp) {
+            if ($timestamp < $cutoff) {
+                unset(self::$debouncedJobIds[$id]);
+            }
+        }
     }
 
     /**

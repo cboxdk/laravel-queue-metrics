@@ -9,11 +9,9 @@ use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
-use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
-use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobMetricsCollector;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
-use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobProcessed;
 
 /**
@@ -38,63 +36,24 @@ final readonly class JobProcessedListener
             return;
         }
 
-        // Calculate duration
-        $startTime = $payload['pushedAt'] ?? microtime(true);
-        $durationMs = (microtime(true) - $startTime) * 1000;
-
-        // Get system metrics from ProcessMetrics tracker
-        $trackerId = "job_{$jobId}";
-        $metricsResult = ProcessMetrics::stop($trackerId);
-
-        $memoryMb = memory_get_peak_usage(true) / 1024 / 1024;
-        $memoryIncrementalMb = $memoryMb;
-        $cpuTimeMs = 0.0;
-
-        if ($metricsResult->isSuccess()) {
-            $metrics = $metricsResult->getValue();
-
-            // Memory: peak RSS is the capacity-planning metric
-            $peakMemoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
-            $startMemoryMb = JobMemorySnapshotCache::get($jobId);
-
-            // Incremental allocation is the differentiation metric
-            if ($startMemoryMb !== null) {
-                $memoryIncrementalMb = max(0.0, $peakMemoryMb - $startMemoryMb);
-            } else {
-                $memoryIncrementalMb = $peakMemoryMb; // fallback for missing baseline
-            }
-
-            $memoryMb = $peakMemoryMb;
-
-            // CPU time: delta between cumulative CPU times at end vs start
-            $endCpuTimes = $metrics->current->cpuTimes;
-            $endCpuTimeMs = (float) ($endCpuTimes->user + $endCpuTimes->system);
-            $startCpuTimeMs = JobCpuSnapshotCache::get($jobId);
-
-            if ($startCpuTimeMs !== null) {
-                $cpuTimeMs = max(0.0, $endCpuTimeMs - $startCpuTimeMs);
-            }
-        }
-
-        JobCpuSnapshotCache::forget($jobId);
-        JobMemorySnapshotCache::forget($jobId);
+        $snapshot = JobMetricsCollector::collect($jobId, $payload);
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
         $hostname = gethostname() ?: 'unknown';
-
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
+        $persistenceEnabled = config('queue-metrics.persistence.enabled', true);
 
-        if (config('queue-metrics.persistence.enabled', true)) {
+        if ($persistenceEnabled) {
             $this->recordJobCompletion->execute(
                 jobId: $jobId,
                 jobClass: $jobClass,
                 connection: $connection,
                 queue: $queue,
-                durationMs: $durationMs,
-                memoryMb: $memoryMb,
-                memoryIncrementalMb: $memoryIncrementalMb,
-                cpuTimeMs: $cpuTimeMs,
+                durationMs: $snapshot->durationMs,
+                memoryMb: $snapshot->memoryMb,
+                memoryIncrementalMb: $snapshot->memoryIncrementalMb,
+                cpuTimeMs: $snapshot->cpuTimeMs,
                 hostname: $hostname,
             );
         }
@@ -105,17 +64,17 @@ final readonly class JobProcessedListener
             $jobClass,
             $connection,
             $queue,
-            $durationMs,
-            $memoryMb,
-            $cpuTimeMs,
+            $snapshot->durationMs,
+            $snapshot->memoryMb,
+            $snapshot->cpuTimeMs,
             $hostname,
             MemoryLimitParser::getCurrentLimitMb(),
-            $memoryIncrementalMb,
+            $snapshot->memoryIncrementalMb,
         );
 
         // Record worker heartbeat with IDLE state (job completed)
-        if (config('queue-metrics.persistence.enabled', true)) {
-            $workerId = $this->getWorkerId();
+        if ($persistenceEnabled) {
+            $workerId = HorizonDetector::generateWorkerId();
             $this->recordWorkerHeartbeat->execute(
                 workerId: $workerId,
                 connection: $connection,
@@ -125,10 +84,5 @@ final readonly class JobProcessedListener
                 currentJobClass: null,
             );
         }
-    }
-
-    private function getWorkerId(): string
-    {
-        return HorizonDetector::generateWorkerId();
     }
 }

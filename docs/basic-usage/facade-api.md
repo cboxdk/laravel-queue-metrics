@@ -68,10 +68,11 @@ $metrics->duration->p99;     // float: 99th percentile
 $metrics->duration->stddev;  // float: Standard deviation
 
 // Memory usage (MemoryStats)
-$metrics->memory->avg;       // float: Average memory in MB
-$metrics->memory->peak;      // float: Peak memory usage
-$metrics->memory->p95;       // float: 95th percentile memory
-$metrics->memory->p99;       // float: 99th percentile memory
+$metrics->memory->avg;              // float: Average peak RSS in MB (capacity planning)
+$metrics->memory->avgIncremental;   // float: Average incremental allocation per job in MB
+$metrics->memory->peak;             // float: Peak memory usage
+$metrics->memory->p95;              // float: 95th percentile memory
+$metrics->memory->p99;              // float: 99th percentile memory
 
 // CPU time (CpuStats)
 $metrics->cpu->avg;          // float: Average CPU time in ms

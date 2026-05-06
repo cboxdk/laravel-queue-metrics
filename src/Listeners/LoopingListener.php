@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
+use Cbox\LaravelQueueMetrics\Support\HeartbeatThrottleCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Illuminate\Queue\Events\Looping;
 
@@ -26,16 +27,14 @@ final readonly class LoopingListener
             return;
         }
 
-        $workerId = $this->getWorkerId();
+        $workerId = HorizonDetector::generateWorkerId();
         $connection = $event->connectionName;
-        $queue = $event->queue; // Property is always set (string type)
+        $queue = $event->queue;
 
-        // Record worker heartbeat on each loop iteration
-        // This provides:
-        // - Worker liveness detection (via heartbeat timestamps)
-        // - Loop frequency metrics
-        // - Worker health monitoring
-        // - Idle vs busy time tracking
+        if (HeartbeatThrottleCache::shouldSkip($workerId, WorkerState::IDLE->value, time())) {
+            return;
+        }
+
         $this->recordWorkerHeartbeat->execute(
             workerId: $workerId,
             connection: $connection,
@@ -44,10 +43,7 @@ final readonly class LoopingListener
             currentJobId: null,
             currentJobClass: null,
         );
-    }
 
-    private function getWorkerId(): string
-    {
-        return HorizonDetector::generateWorkerId();
+        HeartbeatThrottleCache::record($workerId, WorkerState::IDLE->value, time());
     }
 }
