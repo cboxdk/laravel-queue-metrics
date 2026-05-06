@@ -672,7 +672,10 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     public function markJobDiscovered(string $connection, string $queue, string $jobClass): void
     {
         $key = $this->redis->key('discovery', 'jobs');
+        $ttl = $this->redis->getTtl('aggregated');
+
         $this->redis->driver()->addToSet($key, ["{$connection}:{$queue}:{$jobClass}"]);
+        $this->redis->driver()->expire($key, $ttl);
     }
 
     /**

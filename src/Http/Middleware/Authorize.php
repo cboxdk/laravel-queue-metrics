@@ -9,7 +9,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class Authorize
+final class Authorize
 {
     /**
      * Handle the incoming request.

@@ -7,6 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Actions;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Support\CpuSnapshotCache;
+use Cbox\LaravelQueueMetrics\Utilities\MemoryConverter;
 use Cbox\SystemMetrics\ProcessMetrics;
 
 /**
@@ -42,7 +43,7 @@ final readonly class RecordWorkerHeartbeatAction
         }
 
         // Collect per-worker resource metrics
-        $memoryUsageMb = memory_get_usage(true) / 1024 / 1024;
+        $memoryUsageMb = MemoryConverter::bytesToMegabytes(memory_get_usage(true));
         $cpuUsagePercent = 0.0;
 
         if ($pid > 0) {
@@ -50,7 +51,7 @@ final readonly class RecordWorkerHeartbeatAction
 
             if ($metricsResult->isSuccess()) {
                 $snapshot = $metricsResult->getValue();
-                $memoryUsageMb = $snapshot->resources->memoryRssBytes / 1024 / 1024;
+                $memoryUsageMb = MemoryConverter::bytesToMegabytes($snapshot->resources->memoryRssBytes);
 
                 // Delta-based CPU usage: compare cumulative CPU time between heartbeats
                 $cpuTimes = $snapshot->resources->cpuTimes;

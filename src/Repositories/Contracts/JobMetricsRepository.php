@@ -72,7 +72,7 @@ interface JobMetricsRepository
     /**
      * Get raw metrics for a specific job.
      *
-     * @return array<string, mixed>
+     * @return array{total_processed: int, total_failed: int, total_debounced: int, last_debounced_at: Carbon|null, total_duration_ms: float, total_memory_mb: float, total_cpu_time_ms: float, total_memory_incremental_mb: float, last_processed_at: Carbon|null, last_failed_at: Carbon|null, last_exception: string|null}
      */
     public function getMetrics(
         string $jobClass,

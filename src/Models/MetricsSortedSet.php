@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $expires_at
  * @property Carbon|null $updated_at
  */
-class MetricsSortedSet extends Model
+final class MetricsSortedSet extends Model
 {
     public $timestamps = false;
 

@@ -584,7 +584,9 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
     public function markJobDiscovered(string $connection, string $queue, string $jobClass): void
     {
         $key = $this->store->key('discovery', 'jobs');
-        $this->store->driver()->addToSet($key, ["{$connection}:{$queue}:{$jobClass}"]);
+        $ttl = $this->store->getTtl('aggregated');
+
+        $this->store->driver()->addToSet($key, ["{$connection}:{$queue}:{$jobClass}"], $ttl);
     }
 
     /**

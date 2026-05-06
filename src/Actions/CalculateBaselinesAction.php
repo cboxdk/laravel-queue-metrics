@@ -147,7 +147,7 @@ final readonly class CalculateBaselinesAction
             connection: $connection,
             queue: $queue,
             jobClass: $jobClass,
-            cpuPercentPerJob: $weightedCpu > 0 ? round($weightedCpu / 1000, 2) : 0.0, // Convert ms to %
+            cpuPercentPerJob: ($weightedDuration > 0 && $weightedCpu > 0) ? round(($weightedCpu / $weightedDuration) * 100, 2) : 0.0,
             memoryMbPerJob: round($weightedMemory, 2),
             avgDurationMs: round($weightedDuration, 2),
             sampleCount: $totalSamples,

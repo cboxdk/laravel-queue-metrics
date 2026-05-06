@@ -9,6 +9,8 @@ use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsDebounced;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
+use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Contracts\Queue\Job;
@@ -44,9 +46,11 @@ final readonly class JobDebouncedListener
         // Mark this job so JobProcessedListener skips performance metrics
         DebouncedJobTracker::mark($jobId);
 
-        // Stop process metrics tracker (cleanup from JobProcessingListener)
+        // Stop process metrics tracker and clean up snapshot caches (from JobProcessingListener)
         $trackerId = "job_{$jobId}";
         ProcessMetrics::stop($trackerId);
+        JobCpuSnapshotCache::forget($jobId);
+        JobMemorySnapshotCache::forget($jobId);
 
         /** @var string $connection */
         $connection = $event->connectionName; // @phpstan-ignore property.notFound

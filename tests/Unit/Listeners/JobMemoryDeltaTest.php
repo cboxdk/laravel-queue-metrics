@@ -207,7 +207,7 @@ it('reports peak RSS for sleep jobs with near-zero incremental', function () {
     expect($capturedMemoryIncrementalMb)->toBe(0.0);
 })->group('functional');
 
-it('falls back to peak RSS for both values when baseline is missing', function () {
+it('falls back to zero incremental when baseline is missing', function () {
     Event::fake([JobMetricsCompleted::class]);
 
     // CPU baseline exists but memory baseline does NOT
@@ -257,9 +257,9 @@ it('falls back to peak RSS for both values when baseline is missing', function (
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
-    // Both fall back to raw peak RSS: 80 MB
+    // Peak RSS is still reported, but incremental is zero without a baseline
     expect($capturedMemoryMb)->toBe(80.0);
-    expect($capturedMemoryIncrementalMb)->toBe(80.0);
+    expect($capturedMemoryIncrementalMb)->toBe(0.0);
 })->group('functional');
 
 it('cleans up memory cache entry after job completion', function () {

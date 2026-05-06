@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
+use Cbox\LaravelQueueMetrics\Utilities\MemoryConverter;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobProcessing;
 
@@ -29,7 +30,6 @@ final readonly class JobProcessingListener
         $payload = $job->payload();
         $jobId = (string) $job->getJobId();
 
-        // Start tracking process metrics for this job (including child processes)
         $pid = getmypid();
         if ($pid !== false) {
             ProcessMetrics::start(
@@ -38,14 +38,13 @@ final readonly class JobProcessingListener
                 includeChildren: true
             );
 
-            // Cache CPU and memory baselines for accurate per-job delta calculation
             $snapshotResult = ProcessMetrics::snapshot($pid);
             if ($snapshotResult->isSuccess()) {
                 $resources = $snapshotResult->getValue()->resources;
                 $cpuTimes = $resources->cpuTimes;
                 $totalCpuTimeMs = (float) ($cpuTimes->user + $cpuTimes->system);
                 JobCpuSnapshotCache::store($jobId, $totalCpuTimeMs);
-                JobMemorySnapshotCache::store($jobId, $resources->memoryRssBytes / 1024 / 1024);
+                JobMemorySnapshotCache::store($jobId, MemoryConverter::bytesToMegabytes($resources->memoryRssBytes));
             }
         }
 
@@ -54,28 +53,30 @@ final readonly class JobProcessingListener
         $queue = $job->getQueue();
 
         if (config('queue-metrics.persistence.enabled', true)) {
-            $this->recordJobStart->execute(
-                jobId: $jobId,
-                jobClass: $jobClass,
-                connection: $connection,
-                queue: $queue,
-            );
+            try {
+                $this->recordJobStart->execute(
+                    jobId: $jobId,
+                    jobClass: $jobClass,
+                    connection: $connection,
+                    queue: $queue,
+                );
 
-            // Record worker heartbeat with BUSY state
-            $workerId = $this->getWorkerId();
-            $this->recordWorkerHeartbeat->execute(
-                workerId: $workerId,
-                connection: $connection,
-                queue: $queue,
-                state: WorkerState::BUSY,
-                currentJobId: $jobId,
-                currentJobClass: $jobClass,
-            );
+                $workerId = HorizonDetector::generateWorkerId();
+                $this->recordWorkerHeartbeat->execute(
+                    workerId: $workerId,
+                    connection: $connection,
+                    queue: $queue,
+                    state: WorkerState::BUSY,
+                    currentJobId: $jobId,
+                    currentJobClass: $jobClass,
+                );
+            } catch (\Throwable $e) {
+                ProcessMetrics::stop("job_{$jobId}");
+                JobCpuSnapshotCache::forget($jobId);
+                JobMemorySnapshotCache::forget($jobId);
+
+                throw $e;
+            }
         }
-    }
-
-    private function getWorkerId(): string
-    {
-        return HorizonDetector::generateWorkerId();
     }
 }

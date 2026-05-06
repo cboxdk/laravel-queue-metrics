@@ -102,10 +102,11 @@ $event->jobClass;              // string
 $event->connection;            // string
 $event->queue;                 // string
 $event->durationMs;            // float
-$event->memoryMb;              // float
+$event->memoryMb;              // float (peak RSS — capacity planning metric)
 $event->cpuTimeMs;             // float
 $event->hostname;              // ?string
 $event->workerMemoryLimitMb;   // ?float (PHP memory_limit in MB, null if unlimited)
+$event->memoryIncrementalMb;   // float (incremental allocation by this job)
 ```
 
 ### JobMetricsFailed
@@ -138,11 +139,12 @@ $event->jobClass;              // string
 $event->connection;            // string
 $event->queue;                 // string
 $event->durationMs;            // float
-$event->memoryMb;              // float
+$event->memoryMb;              // float (peak RSS — capacity planning metric)
 $event->cpuTimeMs;             // float
 $event->exceptionMessage;      // string
 $event->hostname;              // ?string
 $event->workerMemoryLimitMb;   // ?float (PHP memory_limit in MB, null if unlimited)
+$event->memoryIncrementalMb;   // float (incremental allocation by this job)
 ```
 
 ### WorkerEfficiencyChanged

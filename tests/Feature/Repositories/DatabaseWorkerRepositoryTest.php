@@ -8,8 +8,11 @@ use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 beforeEach(function () {
     config()->set('queue-metrics.storage.connection', null);
 
-    $migration = include __DIR__.'/../../../database/migrations/2024_01_01_000001_create_queue_metrics_storage_tables.php';
-    $migration->up();
+    $createTables = include __DIR__.'/../../../database/migrations/2024_01_01_000001_create_queue_metrics_storage_tables.php';
+    $createTables->up();
+
+    $addSetExpiry = include __DIR__.'/../../../database/migrations/2024_01_01_000002_add_expires_at_to_queue_metrics_sets.php';
+    $addSetExpiry->up();
 
     $this->store = new DatabaseMetricsStore;
     $this->repo = new DatabaseWorkerRepository($this->store);
@@ -85,6 +88,22 @@ test('countActiveWorkers returns count', function () {
     $this->repo->registerWorker(2, 'host', 'redis', 'default', now());
 
     expect($this->repo->countActiveWorkers('redis', 'default'))->toBe(2);
+});
+
+test('updateWorkerActivity refreshes active worker membership TTL', function () {
+    config()->set('queue-metrics.storage.ttl.raw', 60);
+
+    $this->travelTo(now());
+    $this->repo->registerWorker(1, 'host', 'redis', 'default', now());
+
+    $this->travel(30)->seconds();
+    $this->repo->updateWorkerActivity(1, 'host', 'busy');
+
+    $this->travel(35)->seconds();
+
+    expect($this->repo->getActiveWorkers())->toHaveCount(1);
+
+    $this->travelBack();
 });
 
 test('cleanupStaleWorkers removes old workers', function () {

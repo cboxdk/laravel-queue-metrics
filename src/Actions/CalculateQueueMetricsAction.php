@@ -67,8 +67,8 @@ final readonly class CalculateQueueMetricsAction
             // Get lifetime metrics for failure rate and last_processed_at
             $metrics = $this->jobRepository->getMetrics($jobClass, $connection, $queue);
 
-            $totalProcessed += is_int($metrics['total_processed']) ? $metrics['total_processed'] : 0;
-            $totalFailed += is_int($metrics['total_failed']) ? $metrics['total_failed'] : 0;
+            $totalProcessed += $metrics['total_processed'];
+            $totalFailed += $metrics['total_failed'];
 
             if ($metrics['last_processed_at'] instanceof Carbon) {
                 if ($lastProcessedAt === null || $metrics['last_processed_at']->greaterThan($lastProcessedAt)) {

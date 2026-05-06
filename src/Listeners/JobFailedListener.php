@@ -8,11 +8,9 @@ use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsFailed;
-use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
-use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobMetricsCollector;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
-use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Queue\Events\JobFailed;
 
 /**
@@ -31,53 +29,15 @@ final readonly class JobFailedListener
         $payload = $job->payload();
         $jobId = (string) $job->getJobId();
 
-        // Calculate duration
-        $startTime = $payload['pushedAt'] ?? microtime(true);
-        $durationMs = (microtime(true) - $startTime) * 1000;
-
-        // Stop process metrics tracker (started in JobProcessingListener)
-        $trackerId = "job_{$jobId}";
-        $metricsResult = ProcessMetrics::stop($trackerId);
-
-        $memoryMb = memory_get_peak_usage(true) / 1024 / 1024;
-        $memoryIncrementalMb = $memoryMb;
-        $cpuTimeMs = 0.0;
-
-        if ($metricsResult->isSuccess()) {
-            $metrics = $metricsResult->getValue();
-
-            // Memory: peak RSS is the capacity-planning metric
-            $peakMemoryMb = $metrics->peak->memoryRssBytes / 1024 / 1024;
-            $startMemoryMb = JobMemorySnapshotCache::get($jobId);
-
-            // Incremental allocation is the differentiation metric
-            if ($startMemoryMb !== null) {
-                $memoryIncrementalMb = max(0.0, $peakMemoryMb - $startMemoryMb);
-            } else {
-                $memoryIncrementalMb = $peakMemoryMb; // fallback for missing baseline
-            }
-
-            $memoryMb = $peakMemoryMb;
-
-            // CPU time: delta between cumulative CPU times at end vs start
-            $endCpuTimes = $metrics->current->cpuTimes;
-            $endCpuTimeMs = (float) ($endCpuTimes->user + $endCpuTimes->system);
-            $startCpuTimeMs = JobCpuSnapshotCache::get($jobId);
-
-            if ($startCpuTimeMs !== null) {
-                $cpuTimeMs = max(0.0, $endCpuTimeMs - $startCpuTimeMs);
-            }
-        }
-
-        JobCpuSnapshotCache::forget($jobId);
-        JobMemorySnapshotCache::forget($jobId);
+        $snapshot = JobMetricsCollector::collect($jobId, $payload);
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();
         $hostname = gethostname() ?: 'unknown';
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
+        $persistenceEnabled = config('queue-metrics.persistence.enabled', true);
 
-        if (config('queue-metrics.persistence.enabled', true)) {
+        if ($persistenceEnabled) {
             $this->recordJobFailure->execute(
                 jobId: $jobId,
                 jobClass: $jobClass,
@@ -96,18 +56,18 @@ final readonly class JobFailedListener
             $jobClass,
             $connection,
             $queue,
-            $durationMs,
-            $memoryMb,
-            $cpuTimeMs,
+            $snapshot->durationMs,
+            $snapshot->memoryMb,
+            $snapshot->cpuTimeMs,
             $exceptionMessage,
             $hostname,
             MemoryLimitParser::getCurrentLimitMb(),
-            $memoryIncrementalMb,
+            $snapshot->memoryIncrementalMb,
         );
 
         // Record worker heartbeat with IDLE state (job failed, worker ready for next job)
-        if (config('queue-metrics.persistence.enabled', true)) {
-            $workerId = $this->getWorkerId();
+        if ($persistenceEnabled) {
+            $workerId = HorizonDetector::generateWorkerId();
             $this->recordWorkerHeartbeat->execute(
                 workerId: $workerId,
                 connection: $connection,
@@ -117,10 +77,5 @@ final readonly class JobFailedListener
                 currentJobClass: null,
             );
         }
-    }
-
-    private function getWorkerId(): string
-    {
-        return HorizonDetector::generateWorkerId();
     }
 }

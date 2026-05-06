@@ -175,7 +175,10 @@ final readonly class RedisQueueMetricsRepository implements QueueMetricsReposito
     public function markQueueDiscovered(string $connection, string $queue): void
     {
         $key = $this->redis->key('discovery', 'queues');
+        $ttl = $this->redis->getTtl('aggregated');
+
         $this->redis->driver()->addToSet($key, ["{$connection}:{$queue}"]);
+        $this->redis->driver()->expire($key, $ttl);
     }
 
     public function cleanup(int $olderThanSeconds): int

@@ -108,6 +108,7 @@ final class DatabaseMetricsStore
         $affected = 0;
         $affected += MetricsKey::where('key', $key)->update(['expires_at' => $expiresAt]);
         $affected += MetricsHash::where('key', $key)->update(['expires_at' => $expiresAt]);
+        $affected += MetricsSet::where('key', $key)->update(['expires_at' => $expiresAt]);
         $affected += MetricsSortedSet::where('key', $key)->update(['expires_at' => $expiresAt]);
 
         return $affected > 0;
@@ -344,14 +345,28 @@ final class DatabaseMetricsStore
     /**
      * @param  array<int, string>  $members
      */
-    public function addToSet(string $key, array $members): void
+    public function addToSet(string $key, array $members, ?int $ttl = null): void
     {
-        foreach ($members as $member) {
-            MetricsSet::firstOrCreate(
-                ['key' => $key, 'member' => (string) $member],
-                ['created_at' => now()]
-            );
+        if (empty($members)) {
+            return;
         }
+
+        $now = now();
+        $expiresAt = $ttl !== null ? $now->copy()->addSeconds($ttl) : null;
+
+        $rows = [];
+        foreach ($members as $member) {
+            $rows[] = [
+                'key' => $key,
+                'member' => (string) $member,
+                'created_at' => $now,
+                'expires_at' => $expiresAt,
+            ];
+        }
+
+        $updateColumns = $ttl !== null ? ['expires_at'] : ['member'];
+
+        MetricsSet::upsert($rows, ['key', 'member'], $updateColumns);
     }
 
     /**
@@ -360,7 +375,7 @@ final class DatabaseMetricsStore
     public function getSetMembers(string $key): array
     {
         /** @var array<int, string> */
-        return MetricsSet::where('key', $key)->pluck('member')->all();
+        return MetricsSet::visibleForKey($key)->pluck('member')->all();
     }
 
     /**

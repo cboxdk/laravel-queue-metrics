@@ -176,7 +176,9 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
     public function markQueueDiscovered(string $connection, string $queue): void
     {
         $key = $this->store->key('discovery', 'queues');
-        $this->store->driver()->addToSet($key, ["{$connection}:{$queue}"]);
+        $ttl = $this->store->getTtl('aggregated');
+
+        $this->store->driver()->addToSet($key, ["{$connection}:{$queue}"], $ttl);
     }
 
     public function cleanup(int $olderThanSeconds): int

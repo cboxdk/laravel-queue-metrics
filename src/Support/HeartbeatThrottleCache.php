@@ -17,6 +17,8 @@ final class HeartbeatThrottleCache
 {
     private const THROTTLE_SECONDS = 10;
 
+    private const MAX_AGE_SECONDS = 300;
+
     /** @var array<string, int> Last heartbeat write timestamp per worker ID */
     private static array $lastWrite = [];
 
@@ -42,6 +44,13 @@ final class HeartbeatThrottleCache
     {
         self::$lastWrite[$workerId] = $currentTimestamp;
         self::$lastState[$workerId] = $stateValue;
+
+        $cutoff = $currentTimestamp - self::MAX_AGE_SECONDS;
+        foreach (self::$lastWrite as $id => $timestamp) {
+            if ($timestamp < $cutoff) {
+                unset(self::$lastWrite[$id], self::$lastState[$id]);
+            }
+        }
     }
 
     /**

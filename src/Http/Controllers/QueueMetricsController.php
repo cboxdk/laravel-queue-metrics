@@ -21,7 +21,7 @@ final class QueueMetricsController extends Controller
     {
         $metrics = $this->metricsQuery->getQueueMetrics($connection, $queue);
 
-        abort_if($metrics->isEmpty() && $metrics->throughputPerMinute === 0.0, 404, "No metrics found for queue: {$queue} on connection: {$connection}");
+        abort_if($metrics->isEmpty() && $metrics->throughputPerMinute === 0.0, 404, 'Resource not found');
 
         $trends = $this->metricsQuery->getQueueTrends($connection, $queue);
 

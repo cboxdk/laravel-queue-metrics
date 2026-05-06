@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Cbox\LaravelQueueMetrics\Models\MetricsSet;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 
 beforeEach(function () {
@@ -10,8 +11,11 @@ beforeEach(function () {
     config()->set('queue-metrics.storage.connection', null);
 
     // Run the package migration (not auto-loaded since runsMigrations is not called).
-    $migration = include __DIR__.'/../../../database/migrations/2024_01_01_000001_create_queue_metrics_storage_tables.php';
-    $migration->up();
+    $createTables = include __DIR__.'/../../../database/migrations/2024_01_01_000001_create_queue_metrics_storage_tables.php';
+    $createTables->up();
+
+    $addSetExpiry = include __DIR__.'/../../../database/migrations/2024_01_01_000002_add_expires_at_to_queue_metrics_sets.php';
+    $addSetExpiry->up();
 
     $this->store = new DatabaseMetricsStore;
 });
@@ -137,6 +141,30 @@ test('removeFromSet removes members', function () {
     $members = $this->store->getSetMembers('test:set');
     sort($members);
     expect($members)->toBe(['a', 'c']);
+});
+
+test('getSetMembers hides legacy transient rows after their inferred TTL', function () {
+    config()->set('queue-metrics.storage.ttl.raw', 60);
+
+    MetricsSet::create([
+        'key' => 'active_workers',
+        'member' => 'host:1',
+        'created_at' => now()->subMinutes(5),
+        'expires_at' => null,
+    ]);
+
+    expect($this->store->getSetMembers('active_workers'))->toBe([]);
+});
+
+test('getSetMembers keeps legacy permanent rows without expiry', function () {
+    MetricsSet::create([
+        'key' => 'test:set',
+        'member' => 'permanent',
+        'created_at' => now()->subYear(),
+        'expires_at' => null,
+    ]);
+
+    expect($this->store->getSetMembers('test:set'))->toBe(['permanent']);
 });
 
 // --- Key scanning ---

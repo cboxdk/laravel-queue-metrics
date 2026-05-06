@@ -114,12 +114,20 @@ job_duration_p95_ms{job_class="App\\Jobs\\ProcessOrder",connection="redis",queue
 job_duration_p99_ms{job_class="App\\Jobs\\ProcessOrder",connection="redis",queue="default"} 3800.00
 
 # TYPE job_memory_mb gauge
-# HELP Average memory usage in MB
+# HELP Average peak RSS memory usage in MB (capacity planning)
 job_memory_mb{job_class="App\\Jobs\\ProcessOrder",connection="redis",queue="default"} 45.2
+
+# TYPE job_memory_avg_incremental_megabytes gauge
+# HELP Average incremental memory allocated per job in MB
+job_memory_avg_incremental_megabytes{job_class="App\\Jobs\\ProcessOrder",connection="redis",queue="default"} 12.3
 
 # TYPE job_memory_p95_mb gauge
 # HELP 95th percentile memory
 job_memory_p95_mb{job_class="App\\Jobs\\ProcessOrder",connection="redis",queue="default"} 98.7
+
+# TYPE job_debounced_total counter
+# HELP Total debounced (superseded) jobs
+job_debounced_total{job_class="App\\Jobs\\ProcessOrder",connection="redis",queue="default"} 8
 
 # TYPE job_throughput_per_minute gauge
 # HELP Jobs per minute

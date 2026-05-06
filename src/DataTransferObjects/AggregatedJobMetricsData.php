@@ -27,6 +27,24 @@ final readonly class AggregatedJobMetricsData
     ) {}
 
     /**
+     * @param  array{job_class: string, total_executions: int, total_failures: int, avg_duration_ms: float, avg_memory_mb: float, failure_rate: float, throughput_per_minute: float, by_queue: array<array{connection: string, queue: string, executions: int, avg_duration_ms: float, avg_memory_mb: float, failures: int, failure_rate: float, throughput_per_minute: float}>, calculated_at: string}  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            jobClass: $data['job_class'],
+            totalExecutions: $data['total_executions'],
+            totalFailures: $data['total_failures'],
+            avgDurationMs: $data['avg_duration_ms'],
+            avgMemoryMb: $data['avg_memory_mb'],
+            failureRate: $data['failure_rate'],
+            throughputPerMinute: $data['throughput_per_minute'],
+            byQueue: $data['by_queue'],
+            calculatedAt: Carbon::parse($data['calculated_at']),
+        );
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array

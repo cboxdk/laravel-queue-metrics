@@ -8,6 +8,13 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Restricts access to queue metrics endpoints by IP address.
+ *
+ * When deployed behind a reverse proxy (e.g., Nginx, AWS ALB),
+ * ensure Laravel's TrustProxies middleware is configured so that
+ * $request->ip() returns the real client IP, not the proxy IP.
+ */
 final class AllowIps
 {
     public function handle(Request $request, Closure $next): Response

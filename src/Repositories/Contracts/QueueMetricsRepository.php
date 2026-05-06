@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Cbox\LaravelQueueMetrics\Repositories\Contracts;
 
+use Carbon\Carbon;
+
 /**
  * Repository contract for queue-level metrics storage and retrieval.
  */
@@ -30,7 +32,7 @@ interface QueueMetricsRepository
     /**
      * Get latest metrics for a queue.
      *
-     * @return array<string, mixed>
+     * @return array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int, throughput_per_minute: float, avg_duration: float, failure_rate: float, utilization_rate: float, active_workers: int, recorded_at: Carbon|null}|array{}
      */
     public function getLatestMetrics(string $connection, string $queue): array;
 

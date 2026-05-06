@@ -192,12 +192,12 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Do not run `vendor/bin/pint --test`, simply run `vendor/bin/pint` to fix any formatting issues.
 
 
-=== phpunit/core rules ===
+=== pest/core rules ===
 
-## PHPUnit Core
+## Pest
 
-- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit {name}` to create a new test.
-- If you see a test using "Pest", convert it to PHPUnit.
+- This application uses Pest for testing. All tests must be written using Pest syntax (`test(...)`, `beforeEach(...)`, `expect(...)`).
+- Do not convert Pest tests to PHPUnit classes.
 - Every time a test has been updated, run that singular test.
 - When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
 - Tests should test all of the happy paths, failure paths, and weird paths.
@@ -205,9 +205,9 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ### Running Tests
 - Run the minimal number of tests, using an appropriate filter, before finalizing.
-- To run all tests: `php artisan test`.
-- To run all tests in a file: `php artisan test tests/Feature/ExampleTest.php`.
-- To filter on a particular test name: `php artisan test --filter=testName` (recommended after making a change to a related file).
+- To run all tests: `vendor/bin/pest`.
+- To run all tests in a file: `vendor/bin/pest tests/Feature/ExampleTest.php`.
+- To filter on a particular test name: `vendor/bin/pest --filter=testName` (recommended after making a change to a related file).
 </laravel-boost-guidelines>
 
 
