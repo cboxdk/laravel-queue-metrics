@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## v3.2.0 - Unreleased
+## v3.2.0 - OpenTelemetry integration via laravel-telemetry - 2026-07-06
 
 ### Added
 - Optional OpenTelemetry integration via `cboxdk/laravel-telemetry` (on by default when installed, `QUEUE_METRICS_TELEMETRY_ENABLED=false` to disable) — observable gauges for queue depth, oldest-job age, throughput, failure rate, active workers, worker counts/utilization and baselines, plus counters and structured OTLP events for health score changes, depth threshold breaches, debounced jobs, worker efficiency and baseline recalculations
