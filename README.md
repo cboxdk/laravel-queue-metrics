@@ -115,6 +115,33 @@ Redis (fast, in-memory) or Database (persistent) backends with automatic TTL cle
 ### Prometheus Export
 Native Prometheus metrics endpoint for Grafana dashboards and alerting.
 
+### OpenTelemetry via laravel-telemetry
+When [cboxdk/laravel-telemetry](https://github.com/cboxdk/laravel-telemetry) is installed, queue metrics automatically publishes the state telemetry cannot see on its own — no configuration required (disable with `QUEUE_METRICS_TELEMETRY_ENABLED=false`):
+
+| Metric | Type | Unit | Labels |
+|---|---|---|---|
+| `queue_metrics.queue.depth` | gauge | `{jobs}` | `connection`, `queue`, `state` (pending/scheduled/reserved) |
+| `queue_metrics.queue.oldest_job.age` | gauge | `s` | `connection`, `queue` |
+| `queue_metrics.queue.throughput` | gauge | `{jobs}/min` | `connection`, `queue` |
+| `queue_metrics.queue.failure_rate` | gauge | `%` | `connection`, `queue` |
+| `queue_metrics.queue.active_workers` | gauge | `{workers}` | `connection`, `queue` |
+| `queue_metrics.queue.health_score` | gauge | `1` | `connection`, `queue` |
+| `queue_metrics.workers.count` | gauge | `{workers}` | `state` (busy/idle) |
+| `queue_metrics.workers.utilization` | gauge | `%` | `window` (current/lifetime) |
+| `queue_metrics.workers.efficiency` | gauge | `%` | — |
+| `queue_metrics.baseline.duration` | gauge | `ms` | `connection`, `queue` |
+| `queue_metrics.baseline.memory` | gauge | `MBy` | `connection`, `queue` |
+| `queue_metrics.baseline.cpu` | gauge | `%` | `connection`, `queue` |
+| `queue_metrics.baseline.confidence` | gauge | `1` | `connection`, `queue` |
+| `queue_metrics.health.changes` | counter | — | `connection`, `queue`, `severity` |
+| `queue_metrics.queue.depth_threshold.exceeded` | counter | — | `connection`, `queue` |
+| `queue_metrics.jobs.debounced` | counter | — | `job.name`, `queue` |
+| `queue_metrics.baseline.recalculations` | counter | — | `connection`, `queue`, `significant` |
+
+Severe health changes, depth threshold breaches and scaling recommendations are additionally emitted as structured OTLP events. Per-job durations, memory and outcome counters are deliberately **not** re-exported — laravel-telemetry's own queue instrumentation already covers those.
+
+Running both the built-in Prometheus exporter and the telemetry integration exposes the same queue state twice — `php artisan queue-metrics:doctor` diagnoses your setup and warns about double exposure.
+
 ### RESTful API
 Complete HTTP API for integration with custom dashboards and monitoring tools.
 
