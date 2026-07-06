@@ -18,6 +18,7 @@ use Cbox\LaravelQueueMetrics\Config\StorageConfig;
 use Cbox\LaravelQueueMetrics\Console\CalculateQueueMetricsCommand;
 use Cbox\LaravelQueueMetrics\Console\CleanupDatabaseCommand;
 use Cbox\LaravelQueueMetrics\Console\DetectStaleWorkersCommand;
+use Cbox\LaravelQueueMetrics\Console\DoctorCommand;
 use Cbox\LaravelQueueMetrics\Console\RecordTrendDataCommand;
 use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\Exceptions\ConfigurationException;
@@ -56,6 +57,7 @@ use Cbox\LaravelQueueMetrics\Services\WorkerMetricsQueryService;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Cbox\LaravelQueueMetrics\Utilities\PercentileCalculator;
+use Cbox\Telemetry\TelemetryManager;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Queue\Events\JobDebounced;
 use Illuminate\Queue\Events\JobExceptionOccurred;
@@ -85,6 +87,7 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
             ->hasCommand(CleanupDatabaseCommand::class)
             ->hasCommand(CleanupStaleWorkersCommand::class)
             ->hasCommand(DetectStaleWorkersCommand::class)
+            ->hasCommand(DoctorCommand::class)
             ->hasCommand(RecordTrendDataCommand::class);
     }
 
@@ -129,6 +132,12 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
 
         // Register utilities
         $this->app->singleton(PercentileCalculator::class);
+
+        // Snapshot source consumed by the optional telemetry integration
+        $this->app->singleton(
+            Telemetry\Contracts\ProvidesTelemetrySnapshot::class,
+            Telemetry\QueueMetricsTelemetrySnapshot::class,
+        );
     }
 
     /**
@@ -218,8 +227,38 @@ final class LaravelQueueMetricsServiceProvider extends PackageServiceProvider
         Event::listen(WorkerStopping::class, WorkerStoppingListener::class);
         Event::listen(Looping::class, LoopingListener::class);
 
+        // Publish to cboxdk/laravel-telemetry when it is installed
+        $this->registerTelemetryIntegration();
+
         // Register scheduled tasks
         $this->registerScheduledTasks();
+    }
+
+    /**
+     * Register the optional cboxdk/laravel-telemetry integration: an
+     * observable-gauge provider for stored queue/worker/baseline state and
+     * an event subscriber pushing counters and OTLP events. Guarded so the
+     * dependency stays optional and the integration can be disabled.
+     */
+    protected function registerTelemetryIntegration(): void
+    {
+        if (! class_exists(TelemetryManager::class)) {
+            return;
+        }
+
+        if (! config('queue-metrics.telemetry.enabled', true)) {
+            return;
+        }
+
+        if (! $this->app->bound(TelemetryManager::class)) {
+            return;
+        }
+
+        $this->app->make(TelemetryManager::class)->provider(
+            new Telemetry\QueueMetricsTelemetryProvider($this->app),
+        );
+
+        Event::subscribe(Telemetry\TelemetryEventSubscriber::class);
     }
 
     /**

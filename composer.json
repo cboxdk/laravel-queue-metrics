@@ -28,9 +28,10 @@
         "spatie/laravel-prometheus": "^1.3"
     },
     "require-dev": {
+        "cboxdk/laravel-telemetry": "^0.2.0",
+        "larastan/larastan": "^3.0",
         "laravel/pint": "^1.14",
         "nunomaduro/collision": "^8.8",
-        "larastan/larastan": "^3.0",
         "orchestra/testbench": "^11.0.0||^10.0.0||^9.0.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-arch": "^4.0",
@@ -38,6 +39,9 @@
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0"
+    },
+    "suggest": {
+        "cboxdk/laravel-telemetry": "Publishes queue depth, worker state and baseline gauges plus health/scaling events to OpenTelemetry & Prometheus via the telemetry pipeline."
     },
     "autoload": {
         "psr-4": {

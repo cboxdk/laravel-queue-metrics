@@ -74,6 +74,43 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | 📡 TELEMETRY (cboxdk/laravel-telemetry)
+    |--------------------------------------------------------------------------
+    |
+    | When cboxdk/laravel-telemetry is installed, queue metrics automatically
+    | publishes observable gauges (queue depth, worker state, baselines) and
+    | pushes domain events (health changes, depth threshold breaches,
+    | debounced jobs) to it. Batteries included: on by default, no-op when
+    | the package is not installed.
+    |
+    | Tip: run `php artisan queue-metrics:doctor` — it warns when both this
+    | integration and the built-in Prometheus exporter are active, which
+    | would expose the same metrics twice.
+    |
+    */
+
+    'telemetry' => [
+        'enabled' => env('QUEUE_METRICS_TELEMETRY_ENABLED', true),
+
+        // Snapshot cache in seconds, so concurrent scrapes don't all scan
+        // the metrics store at once. 0 disables caching.
+        'cache_ttl' => env('QUEUE_METRICS_TELEMETRY_CACHE_TTL', 10),
+
+        // Observable gauge groups, evaluated at scrape time.
+        'gauges' => [
+            'queues' => true,
+            'workers' => true,
+            'baselines' => true,
+        ],
+
+        // Push counters/gauges/OTLP events from package domain events
+        // (health score changes, depth threshold breaches, debounces,
+        // worker efficiency, baseline recalculations).
+        'events' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | ⚙️ ADVANCED
     |--------------------------------------------------------------------------
     */
