@@ -12,6 +12,7 @@ use Cbox\LaravelQueueMetrics\Events\QueueDepthThresholdExceeded;
 use Cbox\LaravelQueueMetrics\Events\WorkerEfficiencyChanged;
 use Cbox\LaravelQueueMetrics\Telemetry\TelemetryEventSubscriber;
 use Cbox\Telemetry\Facades\Telemetry;
+use Cbox\Telemetry\TelemetryManager;
 
 beforeEach(function () {
     config([
@@ -153,6 +154,31 @@ it('records nothing when the events toggle is disabled', function () {
     ));
 
     $this->fake->assertCounterNotIncremented('queue_metrics.health.changes');
+})->group('functional');
+
+it('never lets telemetry failures propagate into the dispatching process', function () {
+    $throwing = Mockery::mock(TelemetryManager::class);
+    $throwing->shouldReceive('gauge', 'counter', 'event', 'flush')
+        ->andThrow(new RuntimeException('telemetry backend down'));
+
+    app()->instance(TelemetryManager::class, $throwing);
+
+    $this->subscriber->handleHealthScoreChanged(new HealthScoreChanged(
+        connection: 'redis',
+        queue: 'default',
+        currentScore: 45.0,
+        previousScore: 80.0,
+        status: 'degraded',
+    ));
+
+    $this->subscriber->handleJobMetricsDebounced(new JobMetricsDebounced(
+        jobId: 'job-1',
+        jobClass: 'App\\Jobs\\SendEmail',
+        connection: 'redis',
+        queue: 'default',
+    ));
+
+    expect(true)->toBeTrue();
 })->group('functional');
 
 it('maps package events to handler methods', function () {
