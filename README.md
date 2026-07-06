@@ -116,7 +116,7 @@ Redis (fast, in-memory) or Database (persistent) backends with automatic TTL cle
 Native Prometheus metrics endpoint for Grafana dashboards and alerting.
 
 ### OpenTelemetry via laravel-telemetry
-When [cboxdk/laravel-telemetry](https://github.com/cboxdk/laravel-telemetry) is installed, queue metrics automatically publishes the state telemetry cannot see on its own — no configuration required (disable with `QUEUE_METRICS_TELEMETRY_ENABLED=false`):
+When [cboxdk/laravel-telemetry](https://github.com/cboxdk/laravel-telemetry) is installed (requires Laravel 12+), queue metrics automatically publishes the state telemetry cannot see on its own — no configuration required (disable with `QUEUE_METRICS_TELEMETRY_ENABLED=false`):
 
 | Metric | Type | Unit | Labels |
 |---|---|---|---|

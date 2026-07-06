@@ -5,8 +5,13 @@ declare(strict_types=1);
 use Cbox\LaravelQueueMetrics\Telemetry\Contracts\ProvidesTelemetrySnapshot;
 use Cbox\LaravelQueueMetrics\Telemetry\QueueMetricsTelemetryProvider;
 use Cbox\Telemetry\Facades\Telemetry;
+use Cbox\Telemetry\TelemetryManager;
 
 beforeEach(function () {
+    if (! class_exists(TelemetryManager::class)) {
+        $this->markTestSkipped('cboxdk/laravel-telemetry is not installed (Laravel 12+ only)');
+    }
+
     config(['queue-metrics.telemetry.enabled' => true]);
 
     $this->fake = Telemetry::fake();

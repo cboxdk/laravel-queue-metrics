@@ -19,6 +19,15 @@ use Mockery;
 
 final class TelemetryBootWiringTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        if (! class_exists(TelemetryManager::class)) {
+            $this->markTestSkipped('cboxdk/laravel-telemetry is not installed (Laravel 12+ only)');
+        }
+
+        parent::setUp();
+    }
+
     protected function getPackageProviders($app)
     {
         return [TelemetryServiceProvider::class, ...parent::getPackageProviders($app)];

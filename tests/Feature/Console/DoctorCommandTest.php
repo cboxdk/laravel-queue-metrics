@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cbox\Telemetry\TelemetryServiceProvider;
+use PHPUnit\Framework\Assert;
 
 beforeEach(function () {
     config([
@@ -14,6 +15,10 @@ beforeEach(function () {
 
 function registerTelemetry(): void
 {
+    if (! class_exists(TelemetryServiceProvider::class)) {
+        Assert::markTestSkipped('cboxdk/laravel-telemetry is not installed (Laravel 12+ only)');
+    }
+
     app()->register(TelemetryServiceProvider::class);
 
     config([

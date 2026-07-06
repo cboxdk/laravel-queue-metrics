@@ -6,11 +6,21 @@ namespace Cbox\LaravelQueueMetrics\Tests\Feature\Telemetry;
 
 use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 use Cbox\LaravelQueueMetrics\Tests\TestCase;
+use Cbox\Telemetry\TelemetryManager;
 use Cbox\Telemetry\TelemetryServiceProvider;
 use Illuminate\Support\Facades\Event;
 
 final class TelemetryDisabledTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        if (! class_exists(TelemetryManager::class)) {
+            $this->markTestSkipped('cboxdk/laravel-telemetry is not installed (Laravel 12+ only)');
+        }
+
+        parent::setUp();
+    }
+
     protected function getPackageProviders($app)
     {
         return [TelemetryServiceProvider::class, ...parent::getPackageProviders($app)];
