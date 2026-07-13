@@ -42,7 +42,7 @@ Event::listen(HealthScoreChanged::class, function ($event) {
 
 ## Documentation
 
-📚 **[Full Documentation →](docs/introduction.md)**
+📚 **[Full Documentation →](docs/index.md)**
 
 ## 🚀 Need Deep Insight and Replay Capability?
 
@@ -60,6 +60,7 @@ The two packages are designed to work together: **Metrics** tells you *that* som
 ### Getting Started
 - **[Installation](docs/installation.md)** - Get up and running
 - **[Quick Start](docs/quickstart.md)** - 5-minute walkthrough
+- **[Requirements](docs/requirements.md)** - PHP, Laravel, and dependencies
 - **[Configuration](docs/configuration-reference.md)** - Customize behavior
 
 ### Integration
@@ -361,7 +362,7 @@ composer format
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Please see the [GitHub repository](https://github.com/cboxdk/laravel-queue-metrics) to open issues or pull requests.
 
 ## Security Vulnerabilities
 
@@ -378,4 +379,4 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 ---
 
-**[📚 Read the full documentation →](docs/introduction.md)**
+**[📚 Read the full documentation →](docs/index.md)**

@@ -1,3 +1,9 @@
+---
+title: "Security"
+description: "Secure the queue metrics dashboard and HTTP endpoints with authorization, middleware, and IP restrictions"
+weight: 80
+---
+
 # Security
 
 The Queue Metrics for Laravel dashboard exposes sensitive information about your job queues. It is crucial to secure these endpoints in production environments.

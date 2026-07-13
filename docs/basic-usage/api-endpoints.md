@@ -758,7 +758,7 @@ job_failure_rate{job_class="App\\Jobs\\ProcessOrder",connection="redis",queue="d
 worker_count{connection="redis",queue="default"} 4
 ```
 
-See [Prometheus Integration](prometheus.md) for detailed setup.
+See [Prometheus Integration](../advanced-usage/prometheus.md) for detailed setup.
 
 ---
 

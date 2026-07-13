@@ -82,6 +82,8 @@ Deep dive into advanced capabilities:
 - **Laravel**: 11.0 or higher (12.0+ recommended, 13.0 supported)
 - **Storage**: Redis (recommended) or Database
 
+See the [Requirements](requirements.md) page for the full list of enforced dependencies.
+
 ## License
 
 Queue Metrics for Laravel is open-source software licensed under the MIT license.
