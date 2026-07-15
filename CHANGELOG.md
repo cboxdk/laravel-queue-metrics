@@ -2,6 +2,15 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.2.1 - Documentation fixes - 2026-07-15
+
+### Fixed
+- Corrected a dead link in the API endpoints guide that pointed at a non-existent `prometheus.md`; it now links to the Prometheus integration guide under `advanced-usage/`.
+
+### Changed
+- Moved internal planning notes out of the published `docs/` tree and added a requirements page so the documentation renders cleanly on the site.
+- Bumped the `cboxdk/laravel-telemetry` dev requirement.
+
 ## v3.2.0 - OpenTelemetry integration via laravel-telemetry - 2026-07-06
 
 ### Added
