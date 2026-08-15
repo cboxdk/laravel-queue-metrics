@@ -9,6 +9,7 @@ use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Queue\RedisQueue;
+use Illuminate\Redis\Connections\Connection;
 use ReflectionClass;
 use ReflectionException;
 
@@ -19,7 +20,8 @@ final readonly class LaravelQueueInspector implements QueueInspector
 {
     public function __construct(
         private QueueFactory $queueFactory,
-    ) {}
+    ) {
+    }
 
     public function getQueueDepth(string $connection, string $queue): QueueDepthData
     {
@@ -363,18 +365,28 @@ final readonly class LaravelQueueInspector implements QueueInspector
                 $prefix = 'queues';
             }
 
+            // On a cluster, Laravel's RedisQueue wraps unbraced queue names in a {hash tag}
+            // (getQueueRedisKey), so jobs live at queues:{name}. Mirror that or reads return 0.
+            $queueKey = $queueName;
+            if ($redis instanceof Connection
+                && $redis->isCluster()
+                && ! Connection::hasHashTag($queueKey)
+            ) {
+                $queueKey = '{'.$queueKey.'}';
+            }
+
             // Get pending jobs count
-            $pendingKey = "{$prefix}:{$queueName}";
+            $pendingKey = "{$prefix}:{$queueKey}";
             $pendingCount = $redis->llen($pendingKey);
             $pendingJobs = is_int($pendingCount) ? $pendingCount : 0;
 
             // Get reserved jobs count
-            $reservedKey = "{$prefix}:{$queueName}:reserved";
+            $reservedKey = "{$prefix}:{$queueKey}:reserved";
             $reservedCount = $redis->zcard($reservedKey);
             $reservedJobs = is_int($reservedCount) ? $reservedCount : 0;
 
             // Get delayed jobs count
-            $delayedKey = "{$prefix}:{$queueName}:delayed";
+            $delayedKey = "{$prefix}:{$queueKey}:delayed";
             $delayedCount = $redis->zcard($delayedKey);
             $delayedJobs = is_int($delayedCount) ? $delayedCount : 0;
 

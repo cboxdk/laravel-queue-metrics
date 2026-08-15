@@ -172,3 +172,70 @@ jobs:
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           REDIS_AVAILABLE: true
+
+  test-with-redis-cluster:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+      matrix:
+        # Cover both the reflection depth path (L11, no native queue size methods) and the
+        # native path (L13), on a single PHP version to keep the cluster job lean.
+        include:
+          - php: 8.4
+            laravel: 13.*
+            testbench: ^11.0
+          - php: 8.4
+            laravel: 11.*
+            testbench: ^9.14
+
+    name: Redis Cluster - P${{ matrix.php }} - L${{ matrix.laravel }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo, redis
+          coverage: none
+
+      - name: Setup problem matchers
+        run: |
+          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Install dependencies
+        run: |
+          if [ "${{ matrix.laravel }}" = "11.*" ]; then
+            composer remove cboxdk/laravel-telemetry --dev --no-interaction --no-update
+          fi
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: List Installed Dependencies
+        run: composer show -D
+
+      - name: Create Redis Cluster
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --fix-missing redis-server
+          sudo service redis-server stop
+          redis-server --daemonize yes --port 7000 --appendonly yes --cluster-enabled yes --cluster-config-file nodes-7000.conf
+          redis-server --daemonize yes --port 7001 --appendonly yes --cluster-enabled yes --cluster-config-file nodes-7001.conf
+          redis-server --daemonize yes --port 7002 --appendonly yes --cluster-enabled yes --cluster-config-file nodes-7002.conf
+          redis-cli --cluster create 127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 --cluster-replicas 0 --cluster-yes
+
+      - name: Check Redis Cluster is ready
+        run: |
+          for port in 7000 7001 7002; do
+            redis-cli -c -h 127.0.0.1 -p "$port" cluster info | grep "cluster_state:ok"
+          done
+
+      - name: Execute cluster integration tests
+        run: vendor/bin/pest --ci --group=redis
+        env:
+          REDIS_CLUSTER_HOSTS_AND_PORTS: 127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002
+          REDIS_AVAILABLE: true
