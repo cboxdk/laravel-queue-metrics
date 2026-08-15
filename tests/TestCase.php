@@ -39,8 +39,8 @@ class TestCase extends Orchestra
     /**
      * Configure the `default` Redis connection.
      *
-     * Mirrors Laravel's InteractsWithRedis: when REDIS_CLUSTER_HOSTS_AND_PORTS is set the
-     * connection is backed by a real Redis Cluster, otherwise a single node. The same redis
+     * When REDIS_CLUSTER_HOSTS_AND_PORTS is set the connection is backed
+     * by a real Redis Cluster, otherwise a single node. The same redis
      * test suite therefore runs against both modes depending on the CI job's environment.
      */
     private function configureRedis($app): void

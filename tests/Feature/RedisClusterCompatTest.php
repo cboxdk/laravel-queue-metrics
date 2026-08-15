@@ -9,11 +9,11 @@ use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Illuminate\Support\Facades\Redis;
 
 /**
- * Redis Cluster compatibility regression tests
+ * Redis Cluster compatibility tests.
  *
  * These run against whichever Redis the environment provides: a single node normally, or a
- * real cluster when REDIS_CLUSTER_HOSTS_AND_PORTS is set (see the cluster CI job). Assertions
- * hold in both modes; the cluster run is the one that fails before the fixes land.
+ * real cluster when REDIS_CLUSTER_HOSTS_AND_PORTS is set (see the cluster CI job). The same
+ * assertions must hold in both modes.
  */
 beforeEach(function () {
     if (! getenv('REDIS_AVAILABLE')) {
@@ -34,7 +34,7 @@ beforeEach(function () {
     Redis::connection('default')->flushdb();
 });
 
-// Issue A — scanKeys must not throw and must return written keys on a cluster.
+// scanKeys must not throw and must return written keys on a cluster.
 it('scans keys across the keyspace', function () {
     $store = app(RedisMetricsStore::class);
 
@@ -46,7 +46,7 @@ it('scans keys across the keyspace', function () {
     expect($keys)->toHaveCount(2);
 })->group('redis');
 
-// Issue B — depth reads the {hash tag} key Laravel's RedisQueue writes on a cluster.
+// Depth must read the {hash tag} key Laravel's RedisQueue writes on a cluster.
 it('reads queue depth for an unbraced queue name', function () {
     $queue = app('queue')->connection('redis');
     $queue->pushRaw('{"job":"a"}', 'depthtest');
@@ -58,7 +58,7 @@ it('reads queue depth for an unbraced queue name', function () {
     expect($depth->pendingJobs)->toBe(3);
 })->group('redis');
 
-// Issue B — an already-braced queue name must not be double-wrapped.
+// An already-braced queue name must not be double-wrapped.
 it('reads queue depth for an already-braced queue name without double wrapping', function () {
     $queue = app('queue')->connection('redis');
     $queue->pushRaw('{"job":"a"}', '{braced}');
@@ -69,7 +69,7 @@ it('reads queue depth for an already-braced queue name without double wrapping',
     expect($depth->pendingJobs)->toBe(2);
 })->group('redis');
 
-// Issue C — transaction() writes succeed and are readable on a cluster.
+// transaction() writes must succeed and be readable on a cluster.
 it('writes through a transaction and reads the result back', function () {
     $repository = app(JobMetricsRepository::class);
     $store = app(RedisMetricsStore::class);
@@ -81,7 +81,7 @@ it('writes through a transaction and reads the result back', function () {
     expect($store->getHash($metricsKey)['total_queued'])->toBe('1');
 })->group('redis');
 
-// Issue C — pipeline() writes succeed and are readable on a cluster.
+// pipeline() writes must succeed and be readable on a cluster.
 it('writes through a pipeline and reads the result back', function () {
     $store = app(RedisMetricsStore::class);
     $key = $store->key('pipeline', 'example');
@@ -94,7 +94,7 @@ it('writes through a pipeline and reads the result back', function () {
 })->group('redis');
 
 /**
- * Invoke the reflection-based depth path directly so Issue B is covered even on Laravel
+ * Invoke the reflection-based depth path directly so it is covered even on Laravel
  * versions whose RedisQueue exposes native size methods (which bypass getRedisQueueDepth).
  */
 function invokeRedisQueueDepth(object $queue, string $queueName): QueueDepthData
