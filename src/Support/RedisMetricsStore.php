@@ -346,8 +346,11 @@ final class RedisMetricsStore
      * Execute commands in a Redis transaction (MULTI/EXEC).
      * Ensures all commands are executed atomically.
      *
+     * On a cluster connection the commands are issued individually (no MULTI), so the batched
+     * incr/expire calls are not atomic and an empty array is returned instead of the exec result.
+     *
      * @param  callable(PipelineWrapper): void  $callback
-     * @return array<int, mixed> Results of executed commands
+     * @return array<int, mixed> Results of executed commands, or an empty array on a cluster
      */
     public function transaction(callable $callback): array
     {

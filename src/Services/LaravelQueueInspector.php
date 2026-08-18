@@ -20,8 +20,7 @@ final readonly class LaravelQueueInspector implements QueueInspector
 {
     public function __construct(
         private QueueFactory $queueFactory,
-    ) {
-    }
+    ) {}
 
     public function getQueueDepth(string $connection, string $queue): QueueDepthData
     {

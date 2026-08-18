@@ -16,8 +16,7 @@ final class PipelineWrapper
      */
     public function __construct(
         private mixed $pipe,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $data
