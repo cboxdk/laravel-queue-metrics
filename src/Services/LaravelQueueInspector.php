@@ -59,7 +59,11 @@ final readonly class LaravelQueueInspector implements QueueInspector
     {
         /** @var array<string, array<string, mixed>> $connections */
         $connections = config('queue.connections', []);
-        $discovered = ['default'];
+
+        // No hardcoded seed: the default queue's real name comes from the
+        // connection configs below. Inventing a literal 'default' probed a
+        // queue that does not exist on drivers with named queues (e.g. SQS).
+        $discovered = [];
 
         foreach ($connections as $connection => $config) {
             $queue = $config['queue'] ?? null;
