@@ -23,15 +23,58 @@ final readonly class LaravelQueueInspector implements QueueInspector
 
     public function getQueueDepth(string $connection, string $queue): QueueDepthData
     {
-        $queueInstance = $this->queueFactory->connection($connection);
+        try {
+            $queueInstance = $this->queueFactory->connection($connection);
 
-        // Layer 1: Try Laravel 12.19+ native methods (PR #56010)
-        if ($this->hasAllNativeMethods($queueInstance)) {
-            return $this->getDepthNativeApi($queueInstance, $connection, $queue);
+            // Layer 1: Try Laravel 12.19+ native methods (PR #56010)
+            if ($this->hasAllNativeMethods($queueInstance)) {
+                return $this->getDepthNativeApi($queueInstance, $connection, $queue);
+            }
+
+            // Layer 2: Try driver-specific implementations
+            return $this->getDepthViaReflection($queueInstance, $connection, $queue);
+        } catch (\Throwable $e) {
+            $this->reportUnreadableQueue($connection, $queue, $e);
+
+            return new QueueDepthData(
+                connection: $connection,
+                queue: $queue,
+                pendingJobs: 0,
+                reservedJobs: 0,
+                delayedJobs: 0,
+                oldestPendingJobAge: null,
+                oldestDelayedJobAge: null,
+                measuredAt: Carbon::now(),
+            );
+        }
+    }
+
+    /**
+     * Log an unreadable queue once per process instead of every cycle.
+     *
+     * A queue the driver cannot report on (for example an SQS queue that
+     * does not exist yet) is an expected condition. Before this guard the
+     * driver exception escaped to every caller, and the per-queue catch in
+     * the metrics query path logged it as an error on every collection
+     * cycle.
+     */
+    private function reportUnreadableQueue(string $connection, string $queue, \Throwable $e): void
+    {
+        static $reported = [];
+
+        $key = "{$connection}:{$queue}";
+
+        if (isset($reported[$key])) {
+            return;
         }
 
-        // Layer 2: Try driver-specific implementations
-        return $this->getDepthViaReflection($queueInstance, $connection, $queue);
+        $reported[$key] = true;
+
+        logger()->info('Queue depth unavailable; reporting zero until the queue becomes readable', [
+            'connection' => $connection,
+            'queue' => $queue,
+            'error' => $e->getMessage(),
+        ]);
     }
 
     /**

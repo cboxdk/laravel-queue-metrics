@@ -2,6 +2,13 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Eliminated the phantom `default` queue: queue discovery no longer seeds a hardcoded `'default'` name (the real default comes from the connection configs), and jobs dispatched inside a batch are now recorded under the queue carried by the `JobQueued` event instead of a literal `default`. On drivers with named queues (e.g. SQS) the phantom queue was probed every cycle and could cause downstream consumers to act on a queue no producer writes to.
+- `getQueueDepth()` now tolerates a queue the driver cannot read (for example an SQS queue that does not exist yet): it reports zero depth and logs once per queue per process at info level, instead of letting the driver exception surface as a logged error on every collection cycle.
+
 ## v3.2.1 - Documentation fixes - 2026-07-15
 
 ### Fixed
