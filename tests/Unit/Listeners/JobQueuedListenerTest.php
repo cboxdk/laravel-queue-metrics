@@ -55,7 +55,17 @@ it('prefers the event queue over the job instance queue', function () {
     $this->listener->handle(queuedEventFor(eventQueue: 'resolved', jobQueue: 'stale'));
 });
 
-it('falls back to default when neither the event nor the job carries a queue', function () {
+it('resolves the connection default queue for jobs dispatched without an explicit queue', function () {
+    config(['queue.connections.redis.queue' => 'myapp-jobs']);
+
+    expectRecordedQueue($this->repository, 'myapp-jobs');
+
+    $this->listener->handle(queuedEventFor(eventQueue: null, jobQueue: null));
+});
+
+it('falls back to default when neither the event, the job, nor the connection config carries a queue', function () {
+    config(['queue.connections.redis.queue' => null]);
+
     expectRecordedQueue($this->repository, 'default');
 
     $this->listener->handle(queuedEventFor(eventQueue: null, jobQueue: null));

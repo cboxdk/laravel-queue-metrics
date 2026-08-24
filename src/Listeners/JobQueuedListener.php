@@ -29,8 +29,15 @@ final readonly class JobQueuedListener
         // The event's queue is authoritative: the job instance's own queue
         // property is null when the destination came from the connection
         // default or from a bulk push (e.g. every job inside a batch), which
-        // recorded all batched jobs under a literal 'default' queue.
-        $queue = $event->queue ?? $event->job->queue ?? 'default';
+        // recorded all batched jobs under a literal 'default' queue. Both are
+        // null for a plain dispatch with no explicit queue, so resolve the
+        // same name the driver resolves internally: the connection's
+        // configured `queue` key.
+        $queue = $event->queue ?? $event->job->queue ?? null;
+
+        if (! is_string($queue) || $queue === '') {
+            $queue = $this->connectionDefaultQueue($connection);
+        }
 
         // Job can be an object or a string depending on the queue driver
         $job = $event->job;
@@ -44,5 +51,16 @@ final readonly class JobQueuedListener
             queue: $queue,
             queuedAt: Carbon::now(),
         );
+    }
+
+    /**
+     * Resolve the queue name the driver itself resolves for a
+     * connection-default dispatch (`enum_value($queue) ?: $this->default`).
+     */
+    private function connectionDefaultQueue(string $connection): string
+    {
+        $configured = config("queue.connections.{$connection}.queue");
+
+        return is_string($configured) && $configured !== '' ? $configured : 'default';
     }
 }
