@@ -393,18 +393,28 @@ final readonly class LaravelQueueInspector implements QueueInspector
             $prefix = 'queues';
         }
 
+        // On a cluster, Laravel 13's RedisQueue wraps unbraced queue names in a
+        // {hash tag} (getQueueRedisKey), so jobs live at queues:{name}. Mirror
+        // that or reads return 0. Detected on the raw client so the check works
+        // on every supported Laravel version; RedisQueue cannot drive a cluster
+        // before Laravel 13, so the branch is simply inert there.
+        $queueKey = $queueName;
+        if ($redis->client() instanceof \RedisCluster && ! $this->hasHashTag($queueKey)) {
+            $queueKey = '{'.$queueKey.'}';
+        }
+
         // Get pending jobs count
-        $pendingKey = "{$prefix}:{$queueName}";
+        $pendingKey = "{$prefix}:{$queueKey}";
         $pendingCount = $redis->llen($pendingKey);
         $pendingJobs = is_int($pendingCount) ? $pendingCount : 0;
 
         // Get reserved jobs count
-        $reservedKey = "{$prefix}:{$queueName}:reserved";
+        $reservedKey = "{$prefix}:{$queueKey}:reserved";
         $reservedCount = $redis->zcard($reservedKey);
         $reservedJobs = is_int($reservedCount) ? $reservedCount : 0;
 
         // Get delayed jobs count
-        $delayedKey = "{$prefix}:{$queueName}:delayed";
+        $delayedKey = "{$prefix}:{$queueKey}:delayed";
         $delayedCount = $redis->zcard($delayedKey);
         $delayedJobs = is_int($delayedCount) ? $delayedCount : 0;
 
@@ -438,5 +448,22 @@ final readonly class LaravelQueueInspector implements QueueInspector
             oldestDelayedJobAge: $oldestDelayed,
             measuredAt: Carbon::now(),
         );
+    }
+
+    /**
+     * Mirror of Laravel 13's Connection::hasHashTag(), local so the check
+     * works on Laravel versions that predate it.
+     */
+    private function hasHashTag(string $key): bool
+    {
+        $open = strpos($key, '{');
+
+        if ($open === false) {
+            return false;
+        }
+
+        $close = strpos($key, '}', $open + 1);
+
+        return $close !== false && $close - $open > 1;
     }
 }

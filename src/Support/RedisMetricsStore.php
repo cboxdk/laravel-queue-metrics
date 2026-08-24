@@ -32,6 +32,14 @@ final class RedisMetricsStore
     }
 
     /**
+     * Whether the underlying connection is backed by a Redis Cluster client.
+     */
+    private function isCluster(): bool
+    {
+        return $this->getRedis()->client() instanceof \RedisCluster;
+    }
+
+    /**
      * Get prefix (lazy loaded).
      */
     private function getPrefix(): string
@@ -246,15 +254,22 @@ final class RedisMetricsStore
     public function scanKeys(string $pattern): array
     {
         // Get the underlying PhpRedis client - it includes Redis connection prefix
-        /** @var \Redis $client */
+        /** @var \Redis|\RedisCluster $client */
         $client = $this->getRedis()->client();
 
-        // Get Laravel's Redis connection prefix (e.g., 'laravel_database_')
-        $connectionPrefix = $this->getRedis()->_prefix('');
+        // Combine Laravel's Redis connection prefix (e.g., 'laravel_database_') with our pattern
+        $fullPattern = $this->getRedis()->_prefix('').$pattern;
 
-        // Combine connection prefix with our pattern
-        $fullPattern = $connectionPrefix.$pattern;
+        return $client instanceof \RedisCluster
+            ? $this->scanClusterKeys($client, $fullPattern)
+            : $this->scanSingleNodeKeys($client, $fullPattern);
+    }
 
+    /**
+     * @return array<int, string>
+     */
+    private function scanSingleNodeKeys(\Redis $client, string $fullPattern): array
+    {
         $keys = [];
         $cursor = null;
 
@@ -278,8 +293,47 @@ final class RedisMetricsStore
         return $keys;
     }
 
+    /**
+     * RedisCluster has no cluster-wide SCAN; every master must be scanned individually.
+     *
+     * @return array<int, string>
+     */
+    private function scanClusterKeys(\RedisCluster $client, string $fullPattern): array
+    {
+        $keys = [];
+
+        // _masters() returns [host, port] pairs, which is the node argument scan() expects.
+        foreach ($client->_masters() as $master) {
+            $cursor = null;
+
+            do {
+                /** @var array<int, string>|false $result */
+                $result = $client->scan($cursor, $master, $fullPattern, 1000);
+
+                if ($result === false) {
+                    break;
+                }
+
+                if ($result !== []) {
+                    $keys = array_merge($keys, $result);
+                }
+            } while ($cursor > 0);
+        }
+
+        // Dedupe across masters to guard against resharding during the scan.
+        return array_values(array_unique($keys));
+    }
+
     public function pipeline(callable $callback): void
     {
+        // A cluster connection cannot pipeline slot-routed commands through a single node;
+        // run the commands sequentially instead. The single-node path is unchanged.
+        if ($this->isCluster()) {
+            $callback(new PipelineWrapper($this->getRedis()));
+
+            return;
+        }
+
         // @phpstan-ignore-next-line - PhpRedis pipeline accepts no parameters in newer versions
         $this->getRedis()->pipeline(function ($pipe) use ($callback) {
             $wrapper = new PipelineWrapper($pipe);
@@ -291,12 +345,24 @@ final class RedisMetricsStore
      * Execute commands in a Redis transaction (MULTI/EXEC).
      * Ensures all commands are executed atomically.
      *
+     * On a cluster connection the commands are issued individually (no MULTI), so the batched
+     * incr/expire calls are not atomic and an empty array is returned instead of the exec result.
+     *
      * @param  callable(PipelineWrapper): void  $callback
-     * @return array<int, mixed> Results of executed commands
+     * @return array<int, mixed> Results of executed commands, or an empty array on a cluster
      */
     public function transaction(callable $callback): array
     {
         $redis = $this->getRedis();
+
+        // A node-less MULTI cannot reconcile with slot-routed commands on a cluster, and the
+        // metrics keys span multiple slots. Drop atomicity and issue commands individually.
+        // The single-node MULTI/EXEC path below is unchanged.
+        if ($this->isCluster()) {
+            $callback(new PipelineWrapper($redis));
+
+            return [];
+        }
 
         // Laravel Redis uses multi() and exec() for transactions
         $redis->multi();

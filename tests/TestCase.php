@@ -33,10 +33,55 @@ class TestCase extends Orchestra
         // Disable queue metrics during tests to avoid Redis connection attempts
         config()->set('queue-metrics.enabled', false);
 
-        /*
-         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/../database/migrations') as $migration) {
-            (include $migration->getRealPath())->up();
-         }
-         */
+        $this->configureRedis();
+    }
+
+    /**
+     * Configure the `default` Redis connection.
+     *
+     * When REDIS_CLUSTER_HOSTS_AND_PORTS is set the connection is backed
+     * by a real Redis Cluster, otherwise a single node. The same redis
+     * test suite therefore runs against both modes depending on the CI job's environment.
+     */
+    private function configureRedis(): void
+    {
+        $clusterHosts = getenv('REDIS_CLUSTER_HOSTS_AND_PORTS');
+
+        if (is_string($clusterHosts) && $clusterHosts !== '') {
+            config()->set('database.redis', [
+                'client' => 'phpredis',
+                'options' => [
+                    'cluster' => 'redis',
+                    'prefix' => 'lqm_test_',
+                ],
+                'clusters' => [
+                    'default' => array_map(
+                        static fn (string $hostAndPort): array => [
+                            'host' => explode(':', $hostAndPort)[0],
+                            'port' => (int) explode(':', $hostAndPort)[1],
+                        ],
+                        explode(',', $clusterHosts),
+                    ),
+                ],
+            ]);
+
+            return;
+        }
+
+        $host = getenv('REDIS_HOST') ?: '127.0.0.1';
+        $port = getenv('REDIS_PORT') ?: '6379';
+
+        config()->set('database.redis', [
+            'client' => 'phpredis',
+            'options' => [
+                'prefix' => 'lqm_test_',
+            ],
+            'default' => [
+                'host' => $host,
+                'port' => (int) $port,
+                'database' => 0,
+                'timeout' => 1.0,
+            ],
+        ]);
     }
 }
