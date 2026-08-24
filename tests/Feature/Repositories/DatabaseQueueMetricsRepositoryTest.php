@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Carbon\Carbon;
+use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
+use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 use Cbox\LaravelQueueMetrics\Repositories\DatabaseQueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
     config()->set('queue-metrics.storage.connection', null);
@@ -18,26 +20,52 @@ beforeEach(function () {
     $addSetExpiry->up();
 
     $this->store = new DatabaseMetricsStore;
-    $this->repo = new DatabaseQueueMetricsRepository($this->store);
+    $this->inspector = Mockery::mock(QueueInspector::class);
+    $this->repo = new DatabaseQueueMetricsRepository($this->store, $this->inspector);
 });
 
 // --- getQueueState ---
 
-test('getQueueState returns depth info from queue driver', function () {
-    Queue::shouldReceive('connection')
-        ->with('redis')
-        ->andReturnSelf();
-
-    Queue::shouldReceive('size')
-        ->with('default')
-        ->andReturn(42);
+test('getQueueState returns live depth info from the queue inspector', function () {
+    $this->inspector->shouldReceive('getQueueDepth')
+        ->with('redis', 'default')
+        ->andReturn(new QueueDepthData(
+            connection: 'redis',
+            queue: 'default',
+            pendingJobs: 42,
+            reservedJobs: 3,
+            delayedJobs: 5,
+            oldestPendingJobAge: Carbon::now()->subSeconds(120),
+            oldestDelayedJobAge: null,
+            measuredAt: Carbon::now(),
+        ));
 
     $state = $this->repo->getQueueState('redis', 'default');
 
-    expect($state['depth'])->toBe(42);
+    expect($state['depth'])->toBe(50);
     expect($state['pending'])->toBe(42);
-    expect($state['scheduled'])->toBe(0);
-    expect($state['reserved'])->toBe(0);
+    expect($state['scheduled'])->toBe(5);
+    expect($state['reserved'])->toBe(3);
+    expect($state['oldest_job_age'])->toBe(120);
+});
+
+test('getQueueState reports zero age for an empty queue', function () {
+    $this->inspector->shouldReceive('getQueueDepth')
+        ->with('redis', 'default')
+        ->andReturn(new QueueDepthData(
+            connection: 'redis',
+            queue: 'default',
+            pendingJobs: 0,
+            reservedJobs: 0,
+            delayedJobs: 0,
+            oldestPendingJobAge: null,
+            oldestDelayedJobAge: null,
+            measuredAt: Carbon::now(),
+        ));
+
+    $state = $this->repo->getQueueState('redis', 'default');
+
+    expect($state['depth'])->toBe(0);
     expect($state['oldest_job_age'])->toBe(0);
 });
 
@@ -77,6 +105,21 @@ test('recordSnapshot stores snapshot and getLatestMetrics retrieves it', functio
 test('getLatestMetrics returns empty array when no snapshot exists', function () {
     $latest = $this->repo->getLatestMetrics('redis', 'default');
     expect($latest)->toBe([]);
+});
+
+test('getLatestMetrics omits fields the snapshot does not store', function () {
+    $this->repo->recordSnapshot('redis', 'default', [
+        'throughput_per_minute' => 5.5,
+        'avg_duration' => 250.0,
+        'failure_rate' => 2.0,
+    ]);
+
+    $latest = $this->repo->getLatestMetrics('redis', 'default');
+
+    expect($latest['throughput_per_minute'])->toBe(5.5)
+        ->and($latest['avg_duration'])->toBe(250.0)
+        ->and($latest['failure_rate'])->toBe(2.0)
+        ->and($latest)->not->toHaveKeys(['depth', 'pending', 'scheduled', 'reserved', 'oldest_job_age', 'active_workers', 'utilization_rate']);
 });
 
 test('recordSnapshot trims sorted set to 1000 entries', function () {

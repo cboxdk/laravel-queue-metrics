@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Listeners\JobQueuedListener;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Illuminate\Queue\Events\JobQueued;
+use Mockery\MockInterface;
 
 beforeEach(function () {
     config(['queue-metrics.persistence.enabled' => true]);
@@ -27,7 +28,7 @@ function queuedEventFor(?string $eventQueue, ?string $jobQueue): JobQueued
     return $event;
 }
 
-function expectRecordedQueue(Mockery\MockInterface $repository, string $expectedQueue): void
+function expectRecordedQueue(MockInterface $repository, string $expectedQueue): void
 {
     $repository->shouldReceive('recordQueuedAt')->once()->withArgs(
         function (string $jobClass, string $connection, string $queue, Carbon $queuedAt) use ($expectedQueue): bool {

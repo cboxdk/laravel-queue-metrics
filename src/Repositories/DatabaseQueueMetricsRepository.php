@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
+use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 use Cbox\LaravelQueueMetrics\Models\MetricsHash;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
-use Illuminate\Support\Facades\Queue;
 
 /**
  * Database-based implementation of queue metrics repository.
@@ -19,6 +19,7 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
 {
     public function __construct(
         private DatabaseMetricsStore $store,
+        private QueueInspector $queueInspector,
     ) {}
 
     /**
@@ -26,19 +27,14 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
      */
     public function getQueueState(string $connection, string $queue): array
     {
-        $queueManager = Queue::connection($connection);
+        $depth = $this->queueInspector->getQueueDepth($connection, $queue);
 
-        // Get queue size (pending jobs)
-        $size = $queueManager->size($queue);
-
-        // For detailed metrics, we'd need to query the queue backend directly
-        // This is a simplified version - extend based on your queue driver
         return [
-            'depth' => $size,
-            'pending' => $size,
-            'scheduled' => 0,
-            'reserved' => 0,
-            'oldest_job_age' => 0,
+            'depth' => $depth->totalJobs(),
+            'pending' => $depth->pendingJobs,
+            'scheduled' => $depth->delayedJobs,
+            'reserved' => $depth->reservedJobs,
+            'oldest_job_age' => (int) ($depth->secondsOldestPendingJob() ?? 0),
         ];
     }
 
@@ -72,6 +68,13 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
     }
 
     /**
+     * Return only the fields the stored snapshot actually contains.
+     *
+     * The snapshot writer records throughput and failure data, never queue
+     * depth. Zero-defaulting the absent depth fields here let a stale zero
+     * overwrite the live queue state in getQueueMetrics(), reporting an
+     * empty queue while a real backlog existed.
+     *
      * @return array<string, mixed>
      */
     public function getLatestMetrics(string $connection, string $queue): array
@@ -86,21 +89,25 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
             return [];
         }
 
-        return [
-            'depth' => (int) ($data['depth'] ?? 0),
-            'pending' => (int) ($data['pending'] ?? 0),
-            'scheduled' => (int) ($data['scheduled'] ?? 0),
-            'reserved' => (int) ($data['reserved'] ?? 0),
-            'oldest_job_age' => (int) ($data['oldest_job_age'] ?? 0),
-            'throughput_per_minute' => (float) ($data['throughput_per_minute'] ?? 0.0),
-            'avg_duration' => (float) ($data['avg_duration'] ?? 0.0),
-            'failure_rate' => (float) ($data['failure_rate'] ?? 0.0),
-            'utilization_rate' => (float) ($data['utilization_rate'] ?? 0.0),
-            'active_workers' => (int) ($data['active_workers'] ?? 0),
-            'recorded_at' => isset($data['recorded_at'])
-                ? Carbon::createFromTimestamp((int) $data['recorded_at'])
-                : null,
-        ];
+        $metrics = [];
+
+        foreach (['depth', 'pending', 'scheduled', 'reserved', 'oldest_job_age', 'active_workers'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $metrics[$field] = (int) $data[$field];
+            }
+        }
+
+        foreach (['throughput_per_minute', 'avg_duration', 'failure_rate', 'utilization_rate'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $metrics[$field] = (float) $data[$field];
+            }
+        }
+
+        if (isset($data['recorded_at'])) {
+            $metrics['recorded_at'] = Carbon::createFromTimestamp((int) $data['recorded_at']);
+        }
+
+        return $metrics;
     }
 
     /**
