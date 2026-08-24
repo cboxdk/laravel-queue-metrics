@@ -7,6 +7,8 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 ### Fixed
 
 - `getQueueMetrics()` no longer reports `pending`, `oldest_job_age`, `depth`, `scheduled`, and `reserved` as zero whenever a recorded snapshot exists. The snapshot reader now returns only the fields the snapshot actually stores, live queue state wins the merge for state-shaped fields, and `getQueueState()` now reads real depth and job-age numbers from the queue inspector instead of hardcoding zeros. Previously any snapshot (written every collection cycle) zeroed out the live backlog in the reported metrics.
+- Eliminated the phantom `default` queue: queue discovery no longer seeds a hardcoded `'default'` name (the real default comes from the connection configs), and jobs dispatched inside a batch are now recorded under the queue carried by the `JobQueued` event instead of a literal `default`. On drivers with named queues (e.g. SQS) the phantom queue was probed every cycle and could cause downstream consumers to act on a queue no producer writes to.
+- `getQueueDepth()` now tolerates a queue the driver cannot read (for example an SQS queue that does not exist yet): it reports zero depth and logs once per queue per process at info level, instead of letting the driver exception surface as a logged error on every collection cycle.
 
 ## v3.2.1 - Documentation fixes - 2026-07-15
 

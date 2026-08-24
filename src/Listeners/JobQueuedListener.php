@@ -25,7 +25,12 @@ final readonly class JobQueuedListener
         }
 
         $connection = $event->connectionName;
-        $queue = $event->job->queue ?? 'default';
+
+        // The event's queue is authoritative: the job instance's own queue
+        // property is null when the destination came from the connection
+        // default or from a bulk push (e.g. every job inside a batch), which
+        // recorded all batched jobs under a literal 'default' queue.
+        $queue = $event->queue ?? $event->job->queue ?? 'default';
 
         // Job can be an object or a string depending on the queue driver
         $job = $event->job;
