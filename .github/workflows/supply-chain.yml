@@ -1,0 +1,57 @@
+name: Supply Chain
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    name: Supply Chain
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+
+      # This package does not commit composer.lock — correct for a library,
+      # but it means the supply-chain checks have to resolve dependencies here
+      # rather than reading a committed lock.
+      - name: Resolve dependencies
+        run: composer update --prefer-stable --no-interaction --no-progress
+
+      - name: Audit dependencies for known vulnerabilities
+        run: composer audit --no-dev
+
+      - name: Check dependency licences
+        run: php bin/check-licenses.php
+
+      # Byte-for-byte drift detection is deliberately NOT asserted: without a
+      # committed lock, CI resolves versions this machine never saw, so a diff
+      # against the committed sbom.json would fail on every upstream release
+      # rather than on a real change. What is checked is that the generator
+      # runs and produces a valid, non-empty CycloneDX document. Enabling true
+      # drift detection means committing composer.lock.
+      - name: Generate and validate the SBOM
+        run: |
+          php bin/generate-sbom.php
+          php -r '
+            $sbom = json_decode(file_get_contents("sbom.json"), true, 512, JSON_THROW_ON_ERROR);
+            if (($sbom["bomFormat"] ?? null) !== "CycloneDX") { fwrite(STDERR, "not a CycloneDX document\n"); exit(1); }
+            if (($sbom["specVersion"] ?? null) !== "1.5") { fwrite(STDERR, "unexpected spec version\n"); exit(1); }
+            if (count($sbom["components"] ?? []) < 1) { fwrite(STDERR, "no components\n"); exit(1); }
+            printf("SBOM valid: %d components\n", count($sbom["components"]));
+          '
+
+      - name: Upload the SBOM
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom
+          path: sbom.json
