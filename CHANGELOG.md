@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Worker heartbeats are now Redis Cluster-safe. The heartbeat previously ran a multi-key Lua script over the worker hash and the worker index, whose keys hash to different slots, so a multi-shard cluster rejected every heartbeat with `CROSSSLOT`. The script now takes only the worker hash (the read-modify-write that must be atomic) and the index is updated with plain single-key commands afterwards; a missed index update self-heals on the next heartbeat. This closes the known limitation documented in v3.3.0's cluster support.
+
 ## v3.3.1 - scanKeys prefix fix, supply-chain gate, and docs restructure - 2026-08-24
 
 ### Added

@@ -1,6 +1,12 @@
--- Update worker heartbeat atomically
+-- Update worker heartbeat atomically.
+--
+-- Single-key on purpose: the read-modify-write on the worker hash is the part
+-- that must be atomic (time accounting, jobs_processed, peak memory). The
+-- worker index lives in a different cluster slot, so touching it here would be
+-- a CROSSSLOT error on Redis Cluster; the caller updates it with plain
+-- single-key commands instead.
+--
 -- KEYS[1]: worker hash key
--- KEYS[2]: worker index sorted set key
 -- ARGV[1]: worker_id
 -- ARGV[2]: connection
 -- ARGV[3]: queue
@@ -15,7 +21,6 @@
 -- ARGV[12]: ttl
 
 local workerKey = KEYS[1]
-local indexKey = KEYS[2]
 
 local workerId = ARGV[1]
 local connection = ARGV[2]
@@ -89,12 +94,8 @@ redis.call('HSET', workerKey,
     'peak_memory_usage_mb', peakMemoryUsageMb
 )
 
--- Update worker index with heartbeat timestamp
-redis.call('ZADD', indexKey, now, workerId)
-
--- Set TTL on both keys
+-- Set TTL on the worker key
 redis.call('EXPIRE', workerKey, ttl)
-redis.call('EXPIRE', indexKey, ttl)
 
 -- Return updated jobs_processed for verification
 return jobsProcessed

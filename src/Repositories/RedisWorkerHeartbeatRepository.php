@@ -44,9 +44,11 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
         // Get Laravel Redis connection
         $laravelConnection = $this->redis->connection();
 
-        // Prepare script arguments
-        // Laravel's Redis connection auto-prefixes keys for both eval() and evalsha()
-        $keys = [$workerKey, $indexKey];
+        // Prepare script arguments. The script takes only the worker hash key:
+        // the index key hashes to a different cluster slot, so it is updated
+        // below with plain single-key commands instead of inside the script.
+        // Laravel's Redis connection auto-prefixes keys passed to eval().
+        $keys = [$workerKey];
         $args = [
             $workerId, // ARGV[1]
             $connection, // ARGV[2]
@@ -64,6 +66,12 @@ final readonly class RedisWorkerHeartbeatRepository implements WorkerHeartbeatRe
 
         // Execute Lua script with SHA caching for performance
         $this->executeScriptWithCache($laravelConnection, $keys, $args);
+
+        // Keep the worker index in step with the heartbeat. Not atomic with
+        // the hash write above, but the next heartbeat (seconds away)
+        // self-heals a missed index update, and consumers only read the index
+        // score as a staleness signal.
+        $driver->addToSortedSet($indexKey, [$workerId => $now->getTimestamp()], $ttl);
     }
 
     public function transitionState(

@@ -58,14 +58,10 @@ Point the storage connection at a cluster connection defined in
   instead of through `MULTI`/`EXEC`, so an exception mid-callback can leave a
   partial write. All built-in callers tolerate this.
 - `scanKeys()` scans each master node and merges the results.
-
-## Known limitation: worker heartbeats
-
-Worker-heartbeat writes use a multi-key Lua script whose keys hash to
-different slots, which a multi-shard cluster rejects. Until that path is made
-cluster-safe, worker heartbeat tracking requires a single-node (or
-single-slot) Redis connection. Queue metrics, job metrics, and depth
-monitoring are unaffected.
+- Worker heartbeats update the worker hash through a single-key Lua script
+  (the read-modify-write that must be atomic) and the worker index with plain
+  single-key commands. The two writes are not atomic with each other, but a
+  missed index update self-heals on the next heartbeat seconds later.
 
 ## Verification
 
