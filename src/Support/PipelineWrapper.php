@@ -7,7 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Support;
 /**
  * Wrapper around Laravel Redis pipeline for batch operations.
  *
- * @phpstan-type PipelineType \Redis|\Illuminate\Redis\Connections\PhpRedisConnection
+ * @phpstan-type PipelineType \Redis|\RedisCluster|\Illuminate\Redis\Connections\Connection|\Illuminate\Redis\Connections\PhpRedisConnection
  */
 final class PipelineWrapper
 {

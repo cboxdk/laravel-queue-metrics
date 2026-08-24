@@ -30,7 +30,7 @@
     "require-dev": {
         "cboxdk/laravel-telemetry": "^1.0.0",
         "larastan/larastan": "^3.0",
-        "laravel/pint": "^1.14",
+        "laravel/pint": "^1.18",
         "nunomaduro/collision": "^8.8",
         "orchestra/testbench": "^11.0.0||^10.0.0||^9.0.0",
         "pestphp/pest": "^4.0",
