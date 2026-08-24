@@ -93,7 +93,9 @@ test('getQueueDepth logs an unreadable queue once per process, not every cycle',
     $inspector->getQueueDepth('sqs', 'missing-queue-b');
     $inspector->getQueueDepth('sqs', 'missing-queue-b');
 
-    Log::shouldHaveReceived('info')
-        ->with('Queue depth unavailable; reporting zero until the queue becomes readable', Mockery::type('array'))
+    Log::shouldHaveReceived('warning')
+        ->with('Queue depth unavailable; reporting zero until the queue becomes readable', Mockery::on(
+            fn (array $context): bool => array_key_exists('exception', $context) && array_key_exists('error', $context)
+        ))
         ->once();
 });

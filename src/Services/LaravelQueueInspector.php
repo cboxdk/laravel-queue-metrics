@@ -50,19 +50,23 @@ final readonly class LaravelQueueInspector implements QueueInspector
     }
 
     /**
-     * Log an unreadable queue once per process instead of every cycle.
+     * Log an unreadable queue once per failure kind per process instead of
+     * every cycle.
      *
      * A queue the driver cannot report on (for example an SQS queue that
      * does not exist yet) is an expected condition. Before this guard the
      * driver exception escaped to every caller, and the per-queue catch in
      * the metrics query path logged it as an error on every collection
-     * cycle.
+     * cycle. The reported zeros cannot be distinguished from an empty queue
+     * by consumers, so this logs at warning with the exception class — a
+     * backend outage (e.g. RedisException) must stay visible in the logs
+     * while it is being masked as zero depth.
      */
     private function reportUnreadableQueue(string $connection, string $queue, \Throwable $e): void
     {
         static $reported = [];
 
-        $key = "{$connection}:{$queue}";
+        $key = "{$connection}:{$queue}:".$e::class;
 
         if (isset($reported[$key])) {
             return;
@@ -70,9 +74,10 @@ final readonly class LaravelQueueInspector implements QueueInspector
 
         $reported[$key] = true;
 
-        logger()->info('Queue depth unavailable; reporting zero until the queue becomes readable', [
+        logger()->warning('Queue depth unavailable; reporting zero until the queue becomes readable', [
             'connection' => $connection,
             'queue' => $queue,
+            'exception' => $e::class,
             'error' => $e->getMessage(),
         ]);
     }
@@ -381,104 +386,56 @@ final readonly class LaravelQueueInspector implements QueueInspector
         string $connection,
         string $queueName,
     ): QueueDepthData {
-        try {
-            $reflection = new ReflectionClass($queue);
-            $redisProperty = $reflection->getProperty('redis');
-            $redisProperty->setAccessible(true);
-            $redisManager = $redisProperty->getValue($queue);
+        $redis = $queue->getConnection();
 
-            // Validate Redis manager has required methods
-            if (! is_object($redisManager) || ! method_exists($redisManager, 'connection')) {
-                return $this->emptyQueueDepthData($connection, $queueName);
-            }
-
-            // Get the actual Redis connection from the manager
-            $redis = $redisManager->connection();
-
-            // Validate Redis connection has required methods
-            if (! is_object($redis)
-                || ! method_exists($redis, 'llen')
-                || ! method_exists($redis, 'zcard')
-                || ! method_exists($redis, 'lindex')
-                || ! method_exists($redis, 'zrange')
-            ) {
-                return $this->emptyQueueDepthData($connection, $queueName);
-            }
-
-            $prefix = config("queue.connections.{$connection}.prefix");
-            if (! is_string($prefix)) {
-                $prefix = 'queues';
-            }
-
-            // Get pending jobs count
-            $pendingKey = "{$prefix}:{$queueName}";
-            $pendingCount = $redis->llen($pendingKey);
-            $pendingJobs = is_int($pendingCount) ? $pendingCount : 0;
-
-            // Get reserved jobs count
-            $reservedKey = "{$prefix}:{$queueName}:reserved";
-            $reservedCount = $redis->zcard($reservedKey);
-            $reservedJobs = is_int($reservedCount) ? $reservedCount : 0;
-
-            // Get delayed jobs count
-            $delayedKey = "{$prefix}:{$queueName}:delayed";
-            $delayedCount = $redis->zcard($delayedKey);
-            $delayedJobs = is_int($delayedCount) ? $delayedCount : 0;
-
-            // Get oldest pending job timestamp
-            $oldestPending = null;
-            $oldestJob = $redis->lindex($pendingKey, 0);
-            if (is_string($oldestJob)) {
-                $decoded = json_decode($oldestJob, true);
-                if (is_array($decoded) && isset($decoded['pushedAt']) && is_numeric($decoded['pushedAt'])) {
-                    $oldestPending = Carbon::createFromTimestamp((int) $decoded['pushedAt']);
-                }
-            }
-
-            // Get oldest delayed job timestamp
-            $oldestDelayed = null;
-            $oldestDelayedJobs = $redis->zrange($delayedKey, 0, 0, 'WITHSCORES');
-            if (is_array($oldestDelayedJobs) && ! empty($oldestDelayedJobs)) {
-                $timestamp = reset($oldestDelayedJobs);
-                if (is_numeric($timestamp)) {
-                    $oldestDelayed = Carbon::createFromTimestamp((int) $timestamp);
-                }
-            }
-
-            return new QueueDepthData(
-                connection: $connection,
-                queue: $queueName,
-                pendingJobs: $pendingJobs,
-                reservedJobs: $reservedJobs,
-                delayedJobs: $delayedJobs,
-                oldestPendingJobAge: $oldestPending,
-                oldestDelayedJobAge: $oldestDelayed,
-                measuredAt: Carbon::now(),
-            );
-        } catch (ReflectionException $e) {
-            logger()->debug('Redis queue inspection failed', [
-                'connection' => $connection,
-                'queue' => $queueName,
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->emptyQueueDepthData($connection, $queueName);
+        $prefix = config("queue.connections.{$connection}.prefix");
+        if (! is_string($prefix)) {
+            $prefix = 'queues';
         }
-    }
 
-    /**
-     * Create an empty QueueDepthData for fallback scenarios.
-     */
-    private function emptyQueueDepthData(string $connection, string $queueName): QueueDepthData
-    {
+        // Get pending jobs count
+        $pendingKey = "{$prefix}:{$queueName}";
+        $pendingCount = $redis->llen($pendingKey);
+        $pendingJobs = is_int($pendingCount) ? $pendingCount : 0;
+
+        // Get reserved jobs count
+        $reservedKey = "{$prefix}:{$queueName}:reserved";
+        $reservedCount = $redis->zcard($reservedKey);
+        $reservedJobs = is_int($reservedCount) ? $reservedCount : 0;
+
+        // Get delayed jobs count
+        $delayedKey = "{$prefix}:{$queueName}:delayed";
+        $delayedCount = $redis->zcard($delayedKey);
+        $delayedJobs = is_int($delayedCount) ? $delayedCount : 0;
+
+        // Get oldest pending job timestamp
+        $oldestPending = null;
+        $oldestJob = $redis->lindex($pendingKey, 0);
+        if (is_string($oldestJob)) {
+            $decoded = json_decode($oldestJob, true);
+            if (is_array($decoded) && isset($decoded['pushedAt']) && is_numeric($decoded['pushedAt'])) {
+                $oldestPending = Carbon::createFromTimestamp((int) $decoded['pushedAt']);
+            }
+        }
+
+        // Get oldest delayed job timestamp
+        $oldestDelayed = null;
+        $oldestDelayedJobs = $redis->zrange($delayedKey, 0, 0, ['withscores' => true]);
+        if (is_array($oldestDelayedJobs) && ! empty($oldestDelayedJobs)) {
+            $timestamp = reset($oldestDelayedJobs);
+            if (is_numeric($timestamp)) {
+                $oldestDelayed = Carbon::createFromTimestamp((int) $timestamp);
+            }
+        }
+
         return new QueueDepthData(
             connection: $connection,
             queue: $queueName,
-            pendingJobs: 0,
-            reservedJobs: 0,
-            delayedJobs: 0,
-            oldestPendingJobAge: null,
-            oldestDelayedJobAge: null,
+            pendingJobs: $pendingJobs,
+            reservedJobs: $reservedJobs,
+            delayedJobs: $delayedJobs,
+            oldestPendingJobAge: $oldestPending,
+            oldestDelayedJobAge: $oldestDelayed,
             measuredAt: Carbon::now(),
         );
     }
