@@ -249,20 +249,39 @@ final class RedisMetricsStore
     }
 
     /**
+     * Scan for keys and return them WITHOUT the Redis connection prefix.
+     *
+     * The raw client bypasses Laravel's key prefixing, so the MATCH pattern
+     * must include the connection prefix (e.g. 'laravel_database_') and the
+     * keys the server returns carry it too. The prefix is stripped again
+     * before returning: every other store method goes back through the
+     * Laravel connection, which re-applies the prefix, so a raw key would be
+     * prefixed twice and every follow-up read or delete would miss.
+     *
      * @return array<int, string>
      */
     public function scanKeys(string $pattern): array
     {
-        // Get the underlying PhpRedis client - it includes Redis connection prefix
         /** @var \Redis|\RedisCluster $client */
         $client = $this->getRedis()->client();
 
-        // Combine Laravel's Redis connection prefix (e.g., 'laravel_database_') with our pattern
-        $fullPattern = $this->getRedis()->_prefix('').$pattern;
+        $connectionPrefix = $this->getRedis()->_prefix('');
+        $fullPattern = $connectionPrefix.$pattern;
 
-        return $client instanceof \RedisCluster
+        $keys = $client instanceof \RedisCluster
             ? $this->scanClusterKeys($client, $fullPattern)
             : $this->scanSingleNodeKeys($client, $fullPattern);
+
+        if ($connectionPrefix === '') {
+            return $keys;
+        }
+
+        return array_map(
+            static fn (string $key): string => str_starts_with($key, $connectionPrefix)
+                ? substr($key, strlen($connectionPrefix))
+                : $key,
+            $keys,
+        );
     }
 
     /**

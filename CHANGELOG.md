@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- `scanKeys()` on the Redis store now strips the Redis connection prefix from its results. The raw-client scan returned keys carrying the prefix (e.g. `laravel_database_`), and every follow-up read or delete through the store re-applied it, so the lookups were double-prefixed and silently missed. In practice `cleanup()` for job metrics, queue snapshots, and baselines, `deleteBaseline()`, and per-job-class baseline reads were all no-ops whenever a connection prefix was configured — which is Laravel's default.
+
 ## v3.3.0 - Redis Cluster support and metrics accuracy fixes - 2026-08-24
 
 ### Added

@@ -12,26 +12,17 @@ use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
  */
 final class RedisKeyScannerService
 {
-    private ?string $fullPrefix = null;
-
     public function __construct(
         private readonly RedisMetricsStore $redisStore,
     ) {}
 
     /**
-     * Get the full Redis key prefix (lazy loaded to avoid connection during boot).
+     * The store's own key prefix. scanKeys() already strips the Redis
+     * connection prefix from its results, so only this one remains.
      */
-    private function getFullPrefix(): string
+    private function getStorePrefix(): string
     {
-        if ($this->fullPrefix === null) {
-            /** @var string $redisConnection */
-            $redisConnection = config('queue-metrics.storage.connection', 'default');
-            $connectionPrefix = app('redis')->connection($redisConnection)->_prefix('');
-            $ourPrefix = $this->redisStore->key('');
-            $this->fullPrefix = $connectionPrefix.$ourPrefix;
-        }
-
-        return $this->fullPrefix;
+        return $this->redisStore->key('');
     }
 
     /**
@@ -55,17 +46,17 @@ final class RedisKeyScannerService
             return [];
         }
 
-        $fullPrefix = $this->getFullPrefix();
+        $storePrefix = $this->getStorePrefix();
 
         // Extract unique entities from all keys using the provided parser
         $discovered = [];
         foreach ($allKeys as $key) {
-            // Remove the full prefix first
-            if (! str_starts_with($key, $fullPrefix)) {
+            // Remove the store prefix first
+            if (! str_starts_with($key, $storePrefix)) {
                 continue;
             }
 
-            $keyWithoutPrefix = substr($key, strlen($fullPrefix));
+            $keyWithoutPrefix = substr($key, strlen($storePrefix));
 
             // Parse the key using the provided callable
             $entity = $keyParser($keyWithoutPrefix);
