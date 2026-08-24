@@ -8,7 +8,14 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 
 - `getQueueMetrics()` no longer reports `pending`, `oldest_job_age`, `depth`, `scheduled`, and `reserved` as zero whenever a recorded snapshot exists. The snapshot reader now returns only the fields the snapshot actually stores, live queue state wins the merge for state-shaped fields, and `getQueueState()` now reads real depth and job-age numbers from the queue inspector instead of hardcoding zeros. Previously any snapshot (written every collection cycle) zeroed out the live backlog in the reported metrics.
 - Eliminated the phantom `default` queue: queue discovery no longer seeds a hardcoded `'default'` name (the real default comes from the connection configs), and jobs dispatched inside a batch are now recorded under the queue carried by the `JobQueued` event instead of a literal `default`. On drivers with named queues (e.g. SQS) the phantom queue was probed every cycle and could cause downstream consumers to act on a queue no producer writes to.
-- `getQueueDepth()` now tolerates a queue the driver cannot read (for example an SQS queue that does not exist yet): it reports zero depth and logs once per queue per process at info level, instead of letting the driver exception surface as a logged error on every collection cycle.
+- `getQueueDepth()` now tolerates a queue the driver cannot read (for example an SQS queue that does not exist yet): it reports zero depth and logs once per queue per failure kind per process, instead of letting the driver exception surface as a logged error on every collection cycle. The log level is warning and includes the exception class, so a backend outage being masked as zero depth stays visible in the logs.
+- Jobs dispatched without an explicit queue are now recorded under the connection's configured default queue name instead of a literal `default` — the same resolution the queue driver itself performs. This completes the phantom-`default` elimination for plain `dispatch()` calls, where the `JobQueued` event carries no queue name at all.
+- The Redis fallback depth path always reported zero with phpredis and predis alike: it guarded on `method_exists()` for `llen`/`zcard`/`lindex`/`zrange`, which is always false on Laravel's Redis connections because commands are proxied through `__call`. The path now uses `RedisQueue::getConnection()`, which also means the queue's actual configured Redis connection is inspected instead of the default one. On Laravel versions without the native queue size methods (< 12.19), depth monitoring for Redis queues was effectively blind.
+
+### Changed
+
+- `getAllQueuesWithMetrics()` now reuses the depth it just measured instead of performing a second full inspector read per queue per cycle, and the depth-to-state mapping is centralized in `QueueDepthData::toQueueStateArray()`.
+- `QueueMetricsRepository::getLatestMetrics()` now documents every key as optional — the stored snapshot only contains what the writer records.
 
 ## v3.2.1 - Documentation fixes - 2026-07-15
 
