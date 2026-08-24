@@ -35,7 +35,21 @@ final readonly class QueueMetricsQueryService
         string $connection = 'default',
         string $queue = 'default',
     ): QueueMetricsData {
-        $state = $this->queueMetricsRepository->getQueueState($connection, $queue);
+        return $this->composeQueueMetrics(
+            $connection,
+            $queue,
+            $this->queueMetricsRepository->getQueueState($connection, $queue),
+        );
+    }
+
+    /**
+     * @param  array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int}  $state
+     */
+    private function composeQueueMetrics(
+        string $connection,
+        string $queue,
+        array $state,
+    ): QueueMetricsData {
         $metrics = $this->queueMetricsRepository->getLatestMetrics($connection, $queue);
         $health = $this->queueMetricsRepository->getHealthStatus($connection, $queue);
 
@@ -137,7 +151,9 @@ final readonly class QueueMetricsQueryService
 
             try {
                 $depth = $this->getQueueDepth($connection, $queue);
-                $metrics = $this->getQueueMetrics($connection, $queue);
+                // Reuse the depth just measured instead of a second full
+                // inspector read through the repository's getQueueState().
+                $metrics = $this->composeQueueMetrics($connection, $queue, $depth->toQueueStateArray());
                 $baseline = $this->getBaseline($connection, $queue);
 
                 // Get workers for this specific queue

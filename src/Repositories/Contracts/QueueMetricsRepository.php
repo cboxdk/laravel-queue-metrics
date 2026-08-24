@@ -32,7 +32,15 @@ interface QueueMetricsRepository
     /**
      * Get latest metrics for a queue.
      *
-     * @return array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int, throughput_per_minute: float, avg_duration: float, failure_rate: float, utilization_rate: float, active_workers: int, recorded_at: Carbon|null}|array{}
+     * Returns only the fields the stored snapshot actually contains — every
+     * key is optional. The built-in snapshot writer records the performance
+     * fields (throughput_per_minute, avg_duration, failure_rate,
+     * total_processed, total_failed, last_processed_at); state-shaped fields
+     * (depth, pending, scheduled, reserved, oldest_job_age) are only present
+     * when a custom recordSnapshot() caller stored them, and live queue
+     * state always wins over them when metrics are composed.
+     *
+     * @return array{depth?: int, pending?: int, scheduled?: int, reserved?: int, oldest_job_age?: int, throughput_per_minute?: float, avg_duration?: float, failure_rate?: float, utilization_rate?: float, active_workers?: int, recorded_at?: Carbon|null}
      */
     public function getLatestMetrics(string $connection, string $queue): array;
 

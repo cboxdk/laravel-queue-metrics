@@ -77,6 +77,23 @@ final readonly class QueueDepthData
         return $this->pendingJobs + $this->reservedJobs + $this->delayedJobs;
     }
 
+    /**
+     * The live-state shape consumed by QueueMetricsRepository::getQueueState()
+     * and the metrics merge in QueueMetricsQueryService.
+     *
+     * @return array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int}
+     */
+    public function toQueueStateArray(): array
+    {
+        return [
+            'depth' => $this->totalJobs(),
+            'pending' => $this->pendingJobs,
+            'scheduled' => $this->delayedJobs,
+            'reserved' => $this->reservedJobs,
+            'oldest_job_age' => (int) ($this->secondsOldestPendingJob() ?? 0),
+        ];
+    }
+
     public function secondsOldestPendingJob(): ?float
     {
         if ($this->oldestPendingJobAge === null) {

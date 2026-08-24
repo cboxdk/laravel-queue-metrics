@@ -26,15 +26,7 @@ final readonly class RedisQueueMetricsRepository implements QueueMetricsReposito
      */
     public function getQueueState(string $connection, string $queue): array
     {
-        $depth = $this->queueInspector->getQueueDepth($connection, $queue);
-
-        return [
-            'depth' => $depth->totalJobs(),
-            'pending' => $depth->pendingJobs,
-            'scheduled' => $depth->delayedJobs,
-            'reserved' => $depth->reservedJobs,
-            'oldest_job_age' => (int) ($depth->secondsOldestPendingJob() ?? 0),
-        ];
+        return $this->queueInspector->getQueueDepth($connection, $queue)->toQueueStateArray();
     }
 
     /**
