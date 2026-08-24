@@ -1,4 +1,4 @@
-# Queue Metrics for Laravel
+# Cbox Queue Metrics
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/cboxdk/laravel-queue-metrics.svg?style=flat-square)](https://packagist.org/packages/cboxdk/laravel-queue-metrics)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/cboxdk/laravel-queue-metrics/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/cboxdk/laravel-queue-metrics/actions?query=workflow%3Arun-tests+branch%3Amain)
@@ -58,10 +58,10 @@ While this package provides a high-level overview of your queue's health and per
 The two packages are designed to work together: **Metrics** tells you *that* something is wrong, while **Monitor** tells you *what* is wrong and lets you fix it.
 
 ### Getting Started
-- **[Installation](docs/installation.md)** - Get up and running
+- **[Installation](docs/getting-started/installation.md)** - Get up and running
 - **[Quick Start](docs/quickstart.md)** - 5-minute walkthrough
 - **[Requirements](docs/requirements.md)** - PHP, Laravel, and dependencies
-- **[Configuration](docs/configuration-reference.md)** - Customize behavior
+- **[Configuration](docs/configuration/reference.md)** - Customize behavior
 
 ### Integration
 - **[Facade API](docs/basic-usage/facade-api.md)** - Developer interface
@@ -91,7 +91,7 @@ php artisan vendor:publish --tag="laravel-queue-metrics-migrations"
 php artisan migrate
 ```
 
-**[→ Full installation guide](docs/installation.md)**
+**[→ Full installation guide](docs/getting-started/installation.md)**
 
 ## Key Features
 
@@ -221,7 +221,7 @@ The package automatically schedules necessary maintenance tasks. You can disable
 
 If you prefer to manually schedule commands in your `Console/Kernel.php` (or `routes/console.php`), simply set `'enabled' => false`.
 
-**[→ Complete configuration reference](docs/configuration-reference.md)**
+**[→ Complete configuration reference](docs/configuration/reference.md)**
 
 ## Usage Examples
 

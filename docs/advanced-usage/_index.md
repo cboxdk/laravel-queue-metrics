@@ -34,6 +34,12 @@ Optimize queue metrics collection for your specific workload, including storage 
 
 **Learn more:** [Performance Tuning](performance)
 
+### Redis Cluster
+
+Run the metrics store on a Redis Cluster and monitor cluster-hosted queues, including the requirements and known limitations.
+
+**Learn more:** [Redis Cluster](redis-cluster)
+
 ## When to Use Advanced Features
 
 ### Architecture Knowledge
@@ -73,7 +79,7 @@ Performance tuning is essential for:
 Before diving into advanced topics, ensure you're familiar with:
 
 - [Basic Usage](../basic-usage) - Facade API, HTTP endpoints, and commands
-- [Configuration Reference](../configuration-reference) - Available configuration options
+- [Configuration Reference](../configuration/reference) - Available configuration options
 - Laravel's event system and service container
 
 ## Getting Started

@@ -1,7 +1,7 @@
 ---
-title: "Security"
+title: "Endpoint Security"
 description: "Secure the queue metrics dashboard and HTTP endpoints with authorization, middleware, and IP restrictions"
-weight: 80
+weight: 1
 ---
 
 # Security

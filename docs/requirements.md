@@ -32,4 +32,4 @@ Install the package with Composer:
 composer require cboxdk/laravel-queue-metrics
 ```
 
-For setup steps after installation, see the [Installation](installation.md) guide.
+For setup steps after installation, see the [Installation](getting-started/installation.md) guide.

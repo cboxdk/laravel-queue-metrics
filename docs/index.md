@@ -45,11 +45,11 @@ Want to get up and running immediately? Follow the [Quick Start Guide](quickstar
 
 ### Complete Installation
 
-For detailed installation instructions including storage backend selection and configuration options, see the [Installation Guide](installation.md).
+For detailed installation instructions including storage backend selection and configuration options, see the [Installation Guide](getting-started/installation.md).
 
 ### Configuration
 
-Need to customize behavior? Check the [Configuration Reference](configuration-reference.md) for all available options.
+Need to customize behavior? Check the [Configuration Reference](configuration/reference.md) for all available options.
 
 ## Core Features
 
@@ -69,11 +69,12 @@ Deep dive into advanced capabilities:
 - [Events System](advanced-usage/events.md) - React to metrics changes and lifecycle events
 - [Prometheus Integration](advanced-usage/prometheus.md) - Export metrics for monitoring infrastructure
 - [Performance Tuning](advanced-usage/performance.md) - Optimize for your specific workload
+- [Redis Cluster](advanced-usage/redis-cluster.md) - Run the metrics store on a Redis Cluster
 
 ## Need Help?
 
 - **Quick answers**: See the [Quick Start Guide](quickstart.md)
-- **Configuration issues**: Check the [Configuration Reference](configuration-reference.md)
+- **Configuration issues**: Check the [Configuration Reference](configuration/reference.md)
 - **Found a bug?**: Report it on [GitHub Issues](https://github.com/cboxdk/laravel-queue-metrics/issues)
 
 ## Package Requirements

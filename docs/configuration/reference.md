@@ -1,7 +1,7 @@
 ---
 title: "Configuration Reference"
 description: "Complete Queue Metrics for Laravel configuration options and environment variables"
-weight: 90
+weight: 1
 ---
 
 # Configuration Reference

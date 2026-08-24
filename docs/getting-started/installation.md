@@ -1,7 +1,7 @@
 ---
 title: "Installation"
 description: "Complete Queue Metrics for Laravel installation guide with Redis and database storage options"
-weight: 2
+weight: 1
 ---
 
 # Installation
@@ -102,7 +102,7 @@ This creates `config/queue-metrics.php` where you can customize:
 - Performance settings
 - Worker heartbeat intervals
 
-See [Configuration Reference](configuration-reference.md) for all options.
+See [Configuration Reference](../configuration/reference.md) for all options.
 
 ## Verification
 
@@ -204,7 +204,7 @@ public function boot(): void
 }
 ```
 
-For more advanced configuration, see [Security](security.md).
+For more advanced configuration, see [Endpoint Security](../security/endpoints.md).
 
 ### 3. Register Event Listeners (Optional)
 
@@ -432,6 +432,6 @@ php artisan route:clear
 ## Next Steps
 
 - [Quick Start Guide](quickstart.md) - Start using the package
-- [Configuration Reference](configuration-reference.md) - Customize behavior
+- [Configuration Reference](../configuration/reference.md) - Customize behavior
 - [Facade API](basic-usage/facade-api.md) - Learn the developer interface
 - [Events](advanced-usage/events.md) - React to metrics events

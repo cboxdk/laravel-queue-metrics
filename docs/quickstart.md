@@ -358,7 +358,7 @@ DB::table('queue_job_metrics')->get();
 📚 **Learn More:**
 - [Events](advanced-usage/events.md) - React to metrics changes
 - [Facade API](basic-usage/facade-api.md) - Complete API reference
-- [Configuration](configuration-reference.md) - All config options
+- [Configuration](configuration/reference.md) - All config options
 
 🏗️ **Advanced:**
 - [Architecture](advanced-usage/architecture.md) - How it works

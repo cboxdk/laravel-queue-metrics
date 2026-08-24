@@ -4,6 +4,15 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Redis Cluster documentation page (`docs/advanced-usage/redis-cluster.md`) covering requirements, configuration, behavior differences, and the worker-heartbeat limitation.
+- Supply-chain gate: `bin/check-licenses.php` (permissive-licence check over `composer.lock`), `bin/generate-sbom.php` (deterministic CycloneDX 1.5 SBOM, committed as `sbom.json`), composer scripts (`lint`, `license-check`, `sbom`, `qa`), and a Supply Chain CI workflow running `composer audit --no-dev`, the licence gate, and SBOM validation.
+
+### Changed
+
+- Documentation restructured into topic folders: installation moved to `getting-started/`, the configuration reference to `configuration/`, and endpoint security to `security/`, each with a section landing page. The README is titled Cbox Queue Metrics per the branding guidelines.
+
 ### Fixed
 
 - `scanKeys()` on the Redis store now strips the Redis connection prefix from its results. The raw-client scan returned keys carrying the prefix (e.g. `laravel_database_`), and every follow-up read or delete through the store re-applied it, so the lookups were double-prefixed and silently missed. In practice `cleanup()` for job metrics, queue snapshots, and baselines, `deleteBaseline()`, and per-job-class baseline reads were all no-ops whenever a connection prefix was configured — which is Laravel's default.
