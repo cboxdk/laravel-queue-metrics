@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## Unreleased
+## v3.3.2 - Cluster-safe worker heartbeats - 2026-08-24
 
 ### Fixed
 
