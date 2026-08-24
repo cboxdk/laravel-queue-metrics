@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## Unreleased
+## v3.3.0 - Redis Cluster support and metrics accuracy fixes - 2026-08-24
 
 ### Added
 
