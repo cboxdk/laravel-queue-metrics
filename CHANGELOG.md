@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- `getQueueMetrics()` no longer reports `pending`, `oldest_job_age`, `depth`, `scheduled`, and `reserved` as zero whenever a recorded snapshot exists. The snapshot reader now returns only the fields the snapshot actually stores, live queue state wins the merge for state-shaped fields, and `getQueueState()` now reads real depth and job-age numbers from the queue inspector instead of hardcoding zeros. Previously any snapshot (written every collection cycle) zeroed out the live backlog in the reported metrics.
+
 ## v3.2.1 - Documentation fixes - 2026-07-15
 
 ### Fixed

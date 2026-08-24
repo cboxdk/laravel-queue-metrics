@@ -39,7 +39,10 @@ final readonly class QueueMetricsQueryService
         $metrics = $this->queueMetricsRepository->getLatestMetrics($connection, $queue);
         $health = $this->queueMetricsRepository->getHealthStatus($connection, $queue);
 
-        return QueueMetricsData::fromArray(array_merge($state, $metrics, [
+        // Live state wins over the recorded snapshot for state-shaped fields:
+        // a snapshot is always staler than the queue read made moments ago,
+        // and a snapshot missing those fields must never mask them as zero.
+        return QueueMetricsData::fromArray(array_merge($metrics, $state, [
             'connection' => $connection,
             'queue' => $queue,
             'health' => $health,
