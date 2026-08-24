@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## Unreleased
+## v3.3.1 - scanKeys prefix fix, supply-chain gate, and docs restructure - 2026-08-24
 
 ### Added
 
