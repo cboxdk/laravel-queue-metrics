@@ -47,6 +47,12 @@ interface QueueMetricsRepository
     /**
      * Get queue health status.
      *
+     * Scores from live queue state (depth, oldest job age, and — when there
+     * is a backlog — the active worker count) merged with the recorded
+     * snapshot's performance fields; live state wins the merge. Returns
+     * status "unknown" only when no snapshot exists and the queue holds no
+     * jobs.
+     *
      * @return array{status: string, score: float}
      */
     public function getHealthStatus(string $connection, string $queue): array;

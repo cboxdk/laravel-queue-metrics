@@ -2,6 +2,16 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Health scoring now sees the real queue: `getHealthStatus()` merges live state (depth, oldest job age) into the scored metrics, with live state winning over the snapshot, and attaches the live active-worker count when the queue holds jobs. Previously the score read those fields from the recorded snapshot, which never stores them, so the depth, age, and no-worker penalties could never fire and a queue with a six-figure backlog still reported `healthy` as long as its failure rate was low. A queue with jobs but no snapshot is now scored instead of reported `unknown`; `unknown` is reserved for queues with no snapshot and no jobs.
+
+### Changed
+
+- The health-score rules moved to a shared `HealthScoreCalculator`, removing the duplicated scoring logic in the Database and Redis repositories. The no-worker penalty only applies when worker data is present — an unknown worker count no longer scores like a confirmed zero. Both queue-metrics repositories gained `WorkerHeartbeatRepository` and `HealthScoreCalculator` constructor dependencies (container-resolved; only affects manual construction).
+
 ## v3.3.2 - Cluster-safe worker heartbeats - 2026-08-24
 
 ### Fixed

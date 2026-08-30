@@ -9,7 +9,9 @@ use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
 use Cbox\LaravelQueueMetrics\Models\MetricsHash;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
+use Cbox\LaravelQueueMetrics\Support\HealthScoreCalculator;
 use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
 
 /**
@@ -20,6 +22,8 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
     public function __construct(
         private DatabaseMetricsStore $store,
         private QueueInspector $queueInspector,
+        private WorkerHeartbeatRepository $workerHeartbeats,
+        private HealthScoreCalculator $healthScore,
     ) {}
 
     /**
@@ -107,19 +111,30 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
      */
     public function getHealthStatus(string $connection, string $queue): array
     {
+        $state = $this->queueInspector->getQueueDepth($connection, $queue)->toQueueStateArray();
         $metrics = $this->getLatestMetrics($connection, $queue);
 
-        if (empty($metrics)) {
+        if (empty($metrics) && $state['depth'] === 0) {
             return ['status' => 'unknown', 'score' => 0.0];
         }
 
-        $score = $this->calculateHealthScore($metrics);
+        /*
+         * Live state wins over the snapshot, mirroring getQueueMetrics():
+         * the depth and age penalties must see the queue as it is now, not
+         * as a snapshot writer recorded it. Worker data is only attached
+         * when there is a backlog, since that is the only case the
+         * no-worker penalty looks at - an empty queue skips the read.
+         */
+        $scored = array_merge($metrics, $state);
 
-        $status = match (true) {
-            $score >= 80.0 => 'healthy',
-            $score >= 50.0 => 'warning',
-            default => 'critical',
-        };
+        if ($state['depth'] > 0) {
+            $scored['active_workers'] = $this->workerHeartbeats
+                ->getActiveWorkers($connection, $queue)
+                ->count();
+        }
+
+        $score = $this->healthScore->calculate($scored);
+        $status = $this->healthScore->status($score);
 
         // Check if health score changed significantly and dispatch event
         $previousScore = $this->getPreviousHealthScore($connection, $queue);
@@ -204,42 +219,6 @@ final readonly class DatabaseQueueMetricsRepository implements QueueMetricsRepos
         }
 
         return $deleted;
-    }
-
-    /**
-     * @param  array<string, mixed>  $metrics
-     */
-    private function calculateHealthScore(array $metrics): float
-    {
-        $score = 100.0;
-
-        // Penalize for queue depth
-        $depthValue = $metrics['depth'] ?? 0;
-        $depth = is_numeric($depthValue) ? (int) $depthValue : 0;
-        if ($depth > 100) {
-            $score -= min(30, ($depth - 100) / 10);
-        }
-
-        // Penalize for old jobs
-        $oldestAgeValue = $metrics['oldest_job_age'] ?? 0;
-        $oldestAge = is_numeric($oldestAgeValue) ? (int) $oldestAgeValue : 0;
-        if ($oldestAge > 300) { // 5 minutes
-            $score -= min(30, ($oldestAge - 300) / 60);
-        }
-
-        // Penalize for high failure rate
-        $failureRateValue = $metrics['failure_rate'] ?? 0.0;
-        $failureRate = is_numeric($failureRateValue) ? (float) $failureRateValue : 0.0;
-        $score -= min(20, $failureRate);
-
-        // Penalize for no active workers
-        $activeWorkersValue = $metrics['active_workers'] ?? 0;
-        $activeWorkers = is_numeric($activeWorkersValue) ? (int) $activeWorkersValue : 0;
-        if ($activeWorkers === 0 && $depth > 0) {
-            $score -= 20;
-        }
-
-        return max(0.0, $score);
     }
 
     /**

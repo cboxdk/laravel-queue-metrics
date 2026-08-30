@@ -5,8 +5,11 @@ declare(strict_types=1);
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Repositories\RedisQueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\HealthScoreCalculator;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Redis;
 
 beforeEach(function () {
@@ -21,7 +24,8 @@ beforeEach(function () {
     Redis::connection('default')->flushdb();
 
     $this->inspector = Mockery::mock(QueueInspector::class);
-    $this->repo = new RedisQueueMetricsRepository(app(RedisMetricsStore::class), $this->inspector);
+    $this->workers = Mockery::mock(WorkerHeartbeatRepository::class);
+    $this->repo = new RedisQueueMetricsRepository(app(RedisMetricsStore::class), $this->inspector, $this->workers, new HealthScoreCalculator);
 });
 
 test('getQueueState returns live depth info from the queue inspector', function () {
@@ -93,4 +97,31 @@ test('getLatestMetrics omits fields the snapshot does not store', function () {
 
 test('getLatestMetrics returns empty array when no snapshot exists', function () {
     expect($this->repo->getLatestMetrics('redis', 'default'))->toBe([]);
+})->group('redis');
+
+test('getHealthStatus scores real backlog even when the snapshot only stores performance fields', function () {
+    Event::fake();
+
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(new QueueDepthData(
+        connection: 'redis',
+        queue: 'default',
+        pendingJobs: 152361,
+        reservedJobs: 0,
+        delayedJobs: 0,
+        oldestPendingJobAge: Carbon::now()->subSeconds(83880),
+        oldestDelayedJobAge: null,
+        measuredAt: Carbon::now(),
+    ));
+    $this->workers->shouldReceive('getActiveWorkers')->with('redis', 'default')->andReturn(collect());
+
+    $this->repo->recordSnapshot('redis', 'default', [
+        'throughput_per_minute' => 10.0,
+        'avg_duration' => 100.0,
+        'failure_rate' => 0.0,
+    ]);
+
+    $status = $this->repo->getHealthStatus('redis', 'default');
+
+    expect($status['status'])->toBe('critical')
+        ->and($status['score'])->toBeLessThan(50.0);
 })->group('redis');

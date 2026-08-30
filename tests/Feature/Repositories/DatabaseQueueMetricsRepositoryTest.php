@@ -6,8 +6,10 @@ use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 use Cbox\LaravelQueueMetrics\Events\HealthScoreChanged;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Repositories\DatabaseQueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
+use Cbox\LaravelQueueMetrics\Support\HealthScoreCalculator;
 use Illuminate\Support\Facades\Event;
 
 beforeEach(function () {
@@ -21,8 +23,23 @@ beforeEach(function () {
 
     $this->store = new DatabaseMetricsStore;
     $this->inspector = Mockery::mock(QueueInspector::class);
-    $this->repo = new DatabaseQueueMetricsRepository($this->store, $this->inspector);
+    $this->workers = Mockery::mock(WorkerHeartbeatRepository::class);
+    $this->repo = new DatabaseQueueMetricsRepository($this->store, $this->inspector, $this->workers, new HealthScoreCalculator);
 });
+
+function dbLiveDepth(int $pending, int $ageSeconds = 0): QueueDepthData
+{
+    return new QueueDepthData(
+        connection: 'redis',
+        queue: 'default',
+        pendingJobs: $pending,
+        reservedJobs: 0,
+        delayedJobs: 0,
+        oldestPendingJobAge: $ageSeconds > 0 ? Carbon::now()->subSeconds($ageSeconds) : null,
+        oldestDelayedJobAge: null,
+        measuredAt: Carbon::now(),
+    );
+}
 
 // --- getQueueState ---
 
@@ -143,6 +160,8 @@ test('recordSnapshot trims sorted set to 1000 entries', function () {
 test('getHealthStatus returns unknown when no metrics exist', function () {
     Event::fake();
 
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(dbLiveDepth(0));
+
     $status = $this->repo->getHealthStatus('redis', 'default');
 
     expect($status['status'])->toBe('unknown');
@@ -152,17 +171,13 @@ test('getHealthStatus returns unknown when no metrics exist', function () {
 test('getHealthStatus returns healthy for good metrics', function () {
     Event::fake();
 
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(dbLiveDepth(10, 60));
+    $this->workers->shouldReceive('getActiveWorkers')->with('redis', 'default')->andReturn(collect([1, 2, 3, 4, 5]));
+
     $this->repo->recordSnapshot('redis', 'default', [
-        'depth' => 10,
-        'pending' => 10,
-        'scheduled' => 0,
-        'reserved' => 0,
-        'oldest_job_age' => 60,
         'throughput_per_minute' => 10.0,
         'avg_duration' => 100.0,
         'failure_rate' => 0.0,
-        'utilization_rate' => 0.5,
-        'active_workers' => 5,
     ]);
 
     $status = $this->repo->getHealthStatus('redis', 'default');
@@ -174,17 +189,13 @@ test('getHealthStatus returns healthy for good metrics', function () {
 test('getHealthStatus returns warning for moderate issues', function () {
     Event::fake();
 
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(dbLiveDepth(250, 400));
+    $this->workers->shouldReceive('getActiveWorkers')->with('redis', 'default')->andReturn(collect([1, 2]));
+
     $this->repo->recordSnapshot('redis', 'default', [
-        'depth' => 250,
-        'pending' => 250,
-        'scheduled' => 0,
-        'reserved' => 0,
-        'oldest_job_age' => 400,
         'throughput_per_minute' => 2.0,
         'avg_duration' => 500.0,
         'failure_rate' => 5.0,
-        'utilization_rate' => 0.9,
-        'active_workers' => 2,
     ]);
 
     $status = $this->repo->getHealthStatus('redis', 'default');
@@ -197,17 +208,13 @@ test('getHealthStatus returns warning for moderate issues', function () {
 test('getHealthStatus returns critical for severe issues', function () {
     Event::fake();
 
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(dbLiveDepth(500, 3000));
+    $this->workers->shouldReceive('getActiveWorkers')->with('redis', 'default')->andReturn(collect());
+
     $this->repo->recordSnapshot('redis', 'default', [
-        'depth' => 500,
-        'pending' => 500,
-        'scheduled' => 0,
-        'reserved' => 0,
-        'oldest_job_age' => 3000,
         'throughput_per_minute' => 0.0,
         'avg_duration' => 1000.0,
         'failure_rate' => 20.0,
-        'utilization_rate' => 1.0,
-        'active_workers' => 0,
     ]);
 
     $status = $this->repo->getHealthStatus('redis', 'default');
@@ -216,36 +223,72 @@ test('getHealthStatus returns critical for severe issues', function () {
     expect($status['score'])->toBeLessThan(50.0);
 });
 
-test('getHealthStatus dispatches HealthScoreChanged event on significant change', function () {
+test('getHealthStatus scores real backlog even when the snapshot only stores performance fields', function () {
     Event::fake();
 
-    // Record healthy metrics and get health status to establish baseline
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(dbLiveDepth(152361, 83880));
+    $this->workers->shouldReceive('getActiveWorkers')->with('redis', 'default')->andReturn(collect());
+
     $this->repo->recordSnapshot('redis', 'default', [
-        'depth' => 10,
-        'pending' => 10,
-        'scheduled' => 0,
-        'reserved' => 0,
-        'oldest_job_age' => 0,
         'throughput_per_minute' => 10.0,
         'avg_duration' => 100.0,
         'failure_rate' => 0.0,
-        'utilization_rate' => 0.5,
-        'active_workers' => 5,
+    ]);
+
+    $status = $this->repo->getHealthStatus('redis', 'default');
+
+    expect($status['status'])->toBe('critical');
+    expect($status['score'])->toBeLessThan(50.0);
+});
+
+test('getHealthStatus returns unknown only when no snapshot exists and the queue is empty', function () {
+    Event::fake();
+
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(dbLiveDepth(0));
+    $this->workers->shouldNotReceive('getActiveWorkers');
+
+    $status = $this->repo->getHealthStatus('redis', 'default');
+
+    expect($status)->toBe(['status' => 'unknown', 'score' => 0.0]);
+});
+
+test('getHealthStatus skips the worker read for an empty queue', function () {
+    Event::fake();
+
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')->andReturn(dbLiveDepth(0));
+    $this->workers->shouldNotReceive('getActiveWorkers');
+
+    $this->repo->recordSnapshot('redis', 'default', [
+        'throughput_per_minute' => 10.0,
+        'avg_duration' => 100.0,
+        'failure_rate' => 0.0,
+    ]);
+
+    $status = $this->repo->getHealthStatus('redis', 'default');
+
+    expect($status['status'])->toBe('healthy');
+    expect($status['score'])->toBe(100.0);
+});
+
+test('getHealthStatus dispatches HealthScoreChanged event on significant change', function () {
+    Event::fake();
+
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')
+        ->andReturn(dbLiveDepth(10), dbLiveDepth(500, 3000));
+    $this->workers->shouldReceive('getActiveWorkers')->with('redis', 'default')
+        ->andReturn(collect([1, 2, 3, 4, 5]), collect());
+
+    $this->repo->recordSnapshot('redis', 'default', [
+        'throughput_per_minute' => 10.0,
+        'avg_duration' => 100.0,
+        'failure_rate' => 0.0,
     ]);
     $this->repo->getHealthStatus('redis', 'default'); // Score = 100
 
-    // Now record bad metrics
     $this->repo->recordSnapshot('redis', 'default', [
-        'depth' => 500,
-        'pending' => 500,
-        'scheduled' => 0,
-        'reserved' => 0,
-        'oldest_job_age' => 3000,
         'throughput_per_minute' => 0.0,
         'avg_duration' => 1000.0,
         'failure_rate' => 20.0,
-        'utilization_rate' => 1.0,
-        'active_workers' => 0,
     ]);
     $this->repo->getHealthStatus('redis', 'default'); // Score should be much lower
 
@@ -259,34 +302,18 @@ test('getHealthStatus dispatches HealthScoreChanged event on significant change'
 test('getHealthStatus does not dispatch event on small change', function () {
     Event::fake();
 
-    // Record healthy metrics to establish baseline
+    $this->inspector->shouldReceive('getQueueDepth')->with('redis', 'default')
+        ->andReturn(dbLiveDepth(10), dbLiveDepth(110));
+    $this->workers->shouldReceive('getActiveWorkers')->with('redis', 'default')
+        ->andReturn(collect([1, 2, 3, 4, 5]));
+
     $this->repo->recordSnapshot('redis', 'default', [
-        'depth' => 10,
-        'pending' => 10,
-        'scheduled' => 0,
-        'reserved' => 0,
-        'oldest_job_age' => 0,
         'throughput_per_minute' => 10.0,
         'avg_duration' => 100.0,
         'failure_rate' => 0.0,
-        'utilization_rate' => 0.5,
-        'active_workers' => 5,
     ]);
     $this->repo->getHealthStatus('redis', 'default'); // Score = 100
 
-    // Record metrics with only a tiny change (depth 110 = small penalty)
-    $this->repo->recordSnapshot('redis', 'default', [
-        'depth' => 110,
-        'pending' => 110,
-        'scheduled' => 0,
-        'reserved' => 0,
-        'oldest_job_age' => 0,
-        'throughput_per_minute' => 10.0,
-        'avg_duration' => 100.0,
-        'failure_rate' => 0.0,
-        'utilization_rate' => 0.5,
-        'active_workers' => 5,
-    ]);
     $this->repo->getHealthStatus('redis', 'default'); // Score = 99 (small change)
 
     Event::assertNotDispatched(HealthScoreChanged::class);
