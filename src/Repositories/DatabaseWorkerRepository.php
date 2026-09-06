@@ -7,6 +7,8 @@ namespace Cbox\LaravelQueueMetrics\Repositories;
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\WorkerStatsData;
 use Cbox\LaravelQueueMetrics\Models\MetricsHash;
+use Cbox\LaravelQueueMetrics\Models\MetricsSet;
+use Cbox\LaravelQueueMetrics\Models\MetricsSortedSet;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
 use Illuminate\Support\Collection;
@@ -202,33 +204,64 @@ final readonly class DatabaseWorkerRepository implements WorkerRepository
 
     public function cleanupStaleWorkers(int $olderThanSeconds): int
     {
-        $driver = $this->store->driver();
         $indexKey = $this->store->key('workers', 'all');
-
-        // Calculate cutoff timestamp
+        $activeWorkersKey = $this->store->key('active_workers');
         $cutoff = Carbon::now()->subSeconds($olderThanSeconds)->timestamp;
 
-        // Get workers with stale timestamps using sorted set score
-        /** @var array<int, string> $staleMembers */
-        $staleMembers = $driver->getSortedSetByScore($indexKey, '-inf', (string) $cutoff);
+        /** @var int $chunkSize */
+        $chunkSize = is_numeric($configured = config('queue-metrics.storage.cleanup_chunk_size', 1000))
+            ? (int) $configured
+            : 1000;
+        $chunkSize = max(1, $chunkSize);
 
         $deleted = 0;
 
-        foreach ($staleMembers as $member) {
-            $parts = explode(':', $member, 2);
-            if (count($parts) !== 2) {
-                continue;
+        // Delete in bounded batches instead of loading the whole stale set into
+        // PHP and deleting one row at a time. The unbounded load OOM-killed the
+        // command on a churning fleet (workers SIGKILLed on scale-in never
+        // unregister, and the index only shrinks here), so the set never shrank.
+        // Unlike the Redis driver, getActiveWorkers() here reads active_workers +
+        // the hash, not the index, and the storage TTL (3600s) is far longer than
+        // the stale threshold (60s) — so the hash and active-worker rows are
+        // removed here too, otherwise a stale worker stays counted as active until
+        // its TTL expires.
+        do {
+            /** @var array<int, string> $staleMembers */
+            $staleMembers = MetricsSortedSet::where('key', $indexKey)
+                ->where('score', '<=', $cutoff)
+                ->orderBy('score')
+                ->limit($chunkSize)
+                ->pluck('member')
+                ->all();
+
+            if ($staleMembers === []) {
+                break;
             }
 
-            [$memberHostname, $memberPid] = $parts;
-            $workerKey = $this->store->key('worker', $memberHostname, $memberPid);
+            $workerKeys = [];
 
-            // Delete worker hash, remove from index and active set
-            $driver->delete($workerKey);
-            $driver->removeFromSortedSet($indexKey, $member);
-            $driver->removeFromSet($this->store->key('active_workers'), [$member]);
-            $deleted++;
-        }
+            foreach ($staleMembers as $member) {
+                $parts = explode(':', $member, 2);
+
+                if (count($parts) !== 2) {
+                    continue;
+                }
+
+                [$memberHostname, $memberPid] = $parts;
+                $workerKeys[] = $this->store->key('worker', $memberHostname, $memberPid);
+            }
+
+            if ($workerKeys !== []) {
+                MetricsHash::whereIn('key', $workerKeys)->delete();
+            }
+
+            // Remove every fetched member from the index and active set — including
+            // any malformed one — so the batch always makes progress.
+            MetricsSortedSet::where('key', $indexKey)->whereIn('member', $staleMembers)->delete();
+            MetricsSet::where('key', $activeWorkersKey)->whereIn('member', $staleMembers)->delete();
+
+            $deleted += count($staleMembers);
+        } while (count($staleMembers) === $chunkSize);
 
         return $deleted;
     }

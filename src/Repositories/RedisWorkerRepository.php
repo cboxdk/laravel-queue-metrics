@@ -222,24 +222,17 @@ final readonly class RedisWorkerRepository implements WorkerRepository
         $driver = $this->redis->driver();
         $indexKey = $this->redis->key('workers', 'all');
 
-        // Calculate cutoff timestamp
         $cutoff = Carbon::now()->subSeconds($olderThanSeconds)->timestamp;
 
-        // Get workers with stale heartbeats using ZSET score (timestamp)
-        /** @var array<string> */
-        $staleWorkerIds = $driver->getSortedSetByScore($indexKey, '-inf', (string) $cutoff);
-
-        $deleted = 0;
-
-        foreach ($staleWorkerIds as $workerId) {
-            $workerKey = $this->redis->key('worker', $workerId);
-
-            // Delete worker hash and remove from index
-            $driver->delete($workerKey);
-            $driver->removeFromSortedSet($indexKey, $workerId);
-            $deleted++;
-        }
-
-        return $deleted;
+        // Trim the stale index server-side (ZREMRANGEBYSCORE) rather than loading
+        // the whole stale set into PHP and deleting one member at a time. That
+        // array is the entire stale set with no limit, so on a churning fleet —
+        // workers SIGKILLed on scale-in never unregister and the index only ever
+        // shrinks here — it grew until it exceeded the process memory limit and
+        // OOM-killed the command before it deleted anything, so the set never
+        // shrank. getActiveWorkers() reads this index, so trimming it drops stale
+        // workers immediately; the per-worker hashes carry a TTL and expire on
+        // their own, so nothing else needs materialising.
+        return $driver->removeSortedSetByScore($indexKey, '-inf', (string) $cutoff);
     }
 }
