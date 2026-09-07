@@ -25,7 +25,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.head_ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.head_ref || github.ref }}
 
       - name: Fix PHP code style issues
         uses: aglipanci/laravel-pint-action@2.6

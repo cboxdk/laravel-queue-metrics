@@ -125,6 +125,37 @@ test('cleanupStaleWorkers returns zero when no stale workers', function () {
     expect($removed)->toBe(0);
 });
 
+test('cleanupStaleWorkers removes stale workers across multiple bounded chunks', function () {
+    config()->set('queue-metrics.storage.cleanup_chunk_size', 2);
+
+    foreach (range(1, 5) as $pid) {
+        $this->repo->registerWorker($pid, 'host', 'redis', 'default', now()->subMinutes(5));
+    }
+
+    $this->repo->registerWorker(99, 'host', 'redis', 'default', now());
+
+    $removed = $this->repo->cleanupStaleWorkers(60);
+
+    expect($removed)->toBe(5)
+        ->and($this->repo->getWorkerStats(99, 'host'))->not->toBeNull();
+
+    foreach (range(1, 5) as $pid) {
+        expect($this->repo->getWorkerStats($pid, 'host'))->toBeNull();
+    }
+});
+
+test('cleanupStaleWorkers drops the stale worker from the active set immediately', function () {
+    $this->repo->registerWorker(1, 'host', 'redis', 'default', now()->subMinutes(5));
+    $this->repo->registerWorker(2, 'host', 'redis', 'default', now());
+
+    $this->repo->cleanupStaleWorkers(60);
+
+    $activePids = array_map(static fn ($worker) => $worker->pid, $this->repo->getActiveWorkers());
+
+    expect($activePids)->not->toContain(1)
+        ->and($activePids)->toContain(2);
+});
+
 test('getWorkerStats returns null for non-existent worker', function () {
     expect($this->repo->getWorkerStats(999, 'unknown-host'))->toBeNull();
 });
