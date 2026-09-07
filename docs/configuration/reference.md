@@ -49,15 +49,21 @@ return [
     | Storage Configuration
     |--------------------------------------------------------------------------
     |
-    | driver: 'redis' (only Redis is currently supported)
-    | connection: Redis connection name from config/database.php
-    | prefix: Key prefix for Redis storage
+    | driver: 'redis' or 'database'
+    | connection: Redis connection name from config/database.php (redis driver)
+    | prefix: Key prefix for stored metrics
+    | max_samples_per_key: Maximum retained samples per metric key
+    |                      (recommended: 1000 for Redis, 500 for database)
+    | cleanup_chunk_size: Batch size for cleanup deletions, bounding the
+    |                     memory the cleanup commands use
     |
     */
     'storage' => [
         'driver' => env('QUEUE_METRICS_STORAGE', 'redis'),
         'connection' => env('QUEUE_METRICS_CONNECTION', 'default'),
         'prefix' => 'queue_metrics',
+        'max_samples_per_key' => env('QUEUE_METRICS_MAX_SAMPLES', 1000),
+        'cleanup_chunk_size' => 1000,
 
         // TTL (time to live) in seconds for metric types
         'ttl' => [
@@ -167,6 +173,7 @@ QUEUE_METRICS_PERSISTENCE=true
 # Storage configuration
 QUEUE_METRICS_STORAGE=redis
 QUEUE_METRICS_CONNECTION=default
+QUEUE_METRICS_MAX_SAMPLES=1000
 
 # Security (comma-separated IPs)
 QUEUE_METRICS_ALLOWED_IPS=127.0.0.1,::1
