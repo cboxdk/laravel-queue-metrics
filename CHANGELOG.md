@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## Unreleased
+## v3.3.3 - Live health scoring and bounded worker cleanup - 2026-09-07
 
 ### Fixed
 
