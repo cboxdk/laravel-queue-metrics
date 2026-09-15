@@ -218,9 +218,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --fix-missing redis-server
           sudo service redis-server stop
-          redis-server --daemonize yes --port 7000 --appendonly yes --cluster-enabled yes --cluster-config-file nodes-7000.conf
-          redis-server --daemonize yes --port 7001 --appendonly yes --cluster-enabled yes --cluster-config-file nodes-7001.conf
-          redis-server --daemonize yes --port 7002 --appendonly yes --cluster-enabled yes --cluster-config-file nodes-7002.conf
+          for port in 7000 7001 7002; do
+            redis-server --daemonize yes --port "$port" --appendonly yes --cluster-enabled yes --cluster-config-file "nodes-$port.conf"
+          done
+
+          # --daemonize returns as soon as the parent forks, before the child is
+          # listening. `--cluster create` against a node that is not up yet dies
+          # with "[ERR] Node 127.0.0.1:700x is not configured as a cluster node"
+          # and fails the job before a single test runs, so wait for each node to
+          # answer and report cluster mode first. INFO, not CLUSTER INFO: the
+          # latter errors outright on a node that is up but not cluster-enabled,
+          # which is the state this is here to tell apart.
+          for port in 7000 7001 7002; do
+            for attempt in $(seq 1 30); do
+              if redis-cli -h 127.0.0.1 -p "$port" info cluster 2>/dev/null | grep -q "cluster_enabled:1"; then
+                echo "node $port up after ${attempt} attempt(s)"
+                continue 2
+              fi
+              sleep 1
+            done
+            echo "node $port never came up in cluster mode" >&2
+            exit 1
+          done
+
           redis-cli --cluster create 127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 --cluster-replicas 0 --cluster-yes
 
       - name: Wait for Redis Cluster to be ready
