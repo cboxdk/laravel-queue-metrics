@@ -15,6 +15,16 @@
     cacheDirectory=".phpunit.cache"
     backupStaticProperties="false"
 >
+    <php>
+        <!--
+            PHP's 128M default is not a budget anyone chose, and this suite runs
+            close to it: booting Testbench plus PHPUnit's own parser leaves only
+            a few MB of headroom. With executionOrder="random" that made the run
+            fail outright on some orders and pass on others, always reported at
+            whichever test happened to allocate last rather than at the cause.
+        -->
+        <ini name="memory_limit" value="512M"/>
+    </php>
     <testsuites>
         <testsuite name="Cbox Test Suite">
             <directory>tests</directory>

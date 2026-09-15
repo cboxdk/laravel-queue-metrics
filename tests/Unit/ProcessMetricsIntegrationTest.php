@@ -116,17 +116,18 @@ it('tracks peak memory during execution', function () {
     $initialSnapshot = ProcessMetrics::sample($trackerId);
     expect($initialSnapshot->isSuccess())->toBeTrue();
 
-    // Allocate significant memory
-    $largeArray = [];
-    for ($i = 0; $i < 100000; $i++) {
-        $largeArray[] = str_repeat('x', 100);
-    }
+    // Allocate enough to move RSS, in one buffer rather than 100,000 small
+    // strings. Those cost 18 MB of PHP heap against 8 MB here for the same
+    // effect, and the suite shares one memory_limit: under some test orders
+    // that overhead was enough to exhaust the default 128 MB and kill the
+    // whole run, which read as an unrelated flake.
+    $largeBuffer = str_repeat('x', 8 * 1024 * 1024);
 
     $peakSnapshot = ProcessMetrics::sample($trackerId);
     expect($peakSnapshot->isSuccess())->toBeTrue();
 
     // Free memory
-    unset($largeArray);
+    unset($largeBuffer);
 
     $statsResult = ProcessMetrics::stop($trackerId);
     expect($statsResult->isSuccess())->toBeTrue();
