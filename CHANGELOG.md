@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## Unreleased
+## v3.4.0 - Delayed jobs that have come due - 2026-09-15
 
 ### Added
 
