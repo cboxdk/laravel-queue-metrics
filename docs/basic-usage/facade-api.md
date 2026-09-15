@@ -254,6 +254,28 @@ echo "Reserved: {$depth->reserved}\n";
 echo "Total: {$depth->total}\n";
 ```
 
+#### Delayed jobs that have come due
+
+`delayedDueNowJobs` counts the delayed jobs whose availability time has already
+passed. It is a subset of the delayed count, not a state of its own.
+
+```php
+$depth = QueueMetrics::getQueueDepth('redis', 'default');
+
+if ($depth->delayedDueNowJobs > 0) {
+    // Work is due but still sitting in the delayed set.
+}
+```
+
+This matters because Laravel only moves a due delayed job into the ready set
+inside a worker's `pop()`. With no worker running on the queue, nothing performs
+that migration: the job reads as neither pending nor reserved and stays where it
+is indefinitely. Anything deciding whether a queue needs a worker — an
+autoscaler, an alert on a stalled queue — cannot see that work any other way.
+
+Only drivers that hold delayed jobs in a separate store report a non-zero count.
+On the database driver a due job is already pending, so the count stays `0`.
+
 ### getAllQueuesWithMetrics()
 
 Get metrics for all discovered queues.
