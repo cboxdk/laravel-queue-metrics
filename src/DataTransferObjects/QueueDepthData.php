@@ -11,6 +11,15 @@ use Carbon\Carbon;
  */
 final readonly class QueueDepthData
 {
+    /**
+     * @param  int  $delayedDueNowJobs  Subset of $delayedJobs whose availability time has
+     *                                  already passed. Only a driver that holds delayed jobs
+     *                                  in a separate store reports this — on Redis nothing
+     *                                  moves them to the ready set until a worker calls pop(),
+     *                                  so a non-zero count with no workers running is work
+     *                                  that will never start on its own. Drivers where a due
+     *                                  job is already pending (database) report zero.
+     */
     public function __construct(
         public string $connection,
         public string $queue,
@@ -20,6 +29,7 @@ final readonly class QueueDepthData
         public ?Carbon $oldestPendingJobAge,
         public ?Carbon $oldestDelayedJobAge,
         public Carbon $measuredAt,
+        public int $delayedDueNowJobs = 0,
     ) {}
 
     /**
@@ -52,6 +62,7 @@ final readonly class QueueDepthData
                 ? Carbon::parse($data['oldest_delayed_job_age'])
                 : null,
             measuredAt: is_string($measuredAt) ? Carbon::parse($measuredAt) : Carbon::now(),
+            delayedDueNowJobs: is_numeric($data['delayed_due_now_jobs'] ?? 0) ? (int) ($data['delayed_due_now_jobs'] ?? 0) : 0,
         );
     }
 
@@ -66,6 +77,7 @@ final readonly class QueueDepthData
             'pending_jobs' => $this->pendingJobs,
             'reserved_jobs' => $this->reservedJobs,
             'delayed_jobs' => $this->delayedJobs,
+            'delayed_due_now_jobs' => $this->delayedDueNowJobs,
             'oldest_pending_job_age' => $this->oldestPendingJobAge?->toIso8601String(),
             'oldest_delayed_job_age' => $this->oldestDelayedJobAge?->toIso8601String(),
             'measured_at' => $this->measuredAt->toIso8601String(),
@@ -81,7 +93,7 @@ final readonly class QueueDepthData
      * The live-state shape consumed by QueueMetricsRepository::getQueueState()
      * and the metrics merge in QueueMetricsQueryService.
      *
-     * @return array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int}
+     * @return array{depth: int, pending: int, scheduled: int, reserved: int, delayed_due_now: int, oldest_job_age: int}
      */
     public function toQueueStateArray(): array
     {
@@ -90,6 +102,7 @@ final readonly class QueueDepthData
             'pending' => $this->pendingJobs,
             'scheduled' => $this->delayedJobs,
             'reserved' => $this->reservedJobs,
+            'delayed_due_now' => $this->delayedDueNowJobs,
             'oldest_job_age' => (int) ($this->secondsOldestPendingJob() ?? 0),
         ];
     }

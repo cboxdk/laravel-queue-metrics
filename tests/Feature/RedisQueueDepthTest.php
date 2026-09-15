@@ -64,3 +64,54 @@ function readDepthViaRedisFallback(object $queue, string $queueName): QueueDepth
 
     return $depth;
 }
+
+/**
+ * Laravel only moves a due delayed job to the ready set inside a worker's
+ * pop(), so with no worker on the queue it reads as neither pending nor
+ * reserved and stays put. delayedDueNowJobs is the only signal that the work
+ * exists, which is what lets a consumer decide the queue needs a worker.
+ */
+it('counts delayed jobs that have come due but nothing has migrated', function () {
+    $queue = app('queue')->connection('redis');
+    $queue->later(-30, 'DueJob', '', 'depth-due');
+    $queue->later(3600, 'FutureJob', '', 'depth-due');
+
+    $depth = readDepthViaRedisFallback($queue, 'depth-due');
+
+    expect($depth->pendingJobs)->toBe(0)
+        ->and($depth->delayedJobs)->toBe(2)
+        ->and($depth->delayedDueNowJobs)->toBe(1);
+})->group('redis');
+
+it('counts no delayed job as due while every one is still in the future', function () {
+    $queue = app('queue')->connection('redis');
+    $queue->later(3600, 'FutureJob', '', 'depth-not-due');
+
+    $depth = readDepthViaRedisFallback($queue, 'depth-not-due');
+
+    expect($depth->delayedJobs)->toBe(1)
+        ->and($depth->delayedDueNowJobs)->toBe(0);
+})->group('redis');
+
+it('reports the due count through the native size API path too', function () {
+    $queue = app('queue')->connection('redis');
+    $queue->later(-30, 'DueJob', '', 'depth-due-native');
+
+    $inspector = new LaravelQueueInspector(app('queue'));
+    $method = new ReflectionMethod($inspector, 'getDepthNativeApi');
+
+    /** @var QueueDepthData $depth */
+    $depth = $method->invoke($inspector, $queue, 'redis', 'depth-due-native');
+
+    expect($depth->delayedJobs)->toBe(1)
+        ->and($depth->delayedDueNowJobs)->toBe(1);
+})->skip(
+    fn (): bool => ! method_exists(app('queue')->connection('redis'), 'delayedSize'),
+    'Requires the Laravel 12.19+ native queue size API',
+)->group('redis');
+
+it('leaves the due count at zero for a driver with no separate delayed store', function () {
+    $depth = app(LaravelQueueInspector::class)->getQueueDepth('database', 'default');
+
+    expect($depth->delayedDueNowJobs)->toBe(0);
+})->group('redis');

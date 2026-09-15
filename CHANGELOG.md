@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Queue depth now reports `delayedDueNowJobs`: the delayed jobs whose availability time has already passed. Laravel migrates those into the ready set only inside a worker's `pop()`, so on a queue with no worker running they read as neither pending nor reserved and stay in the delayed set indefinitely — invisible to anything deciding whether the queue needs a worker. The count is exposed on `QueueDepthData`, on `QueueMetricsData` as `delayedDueNow`, and as `depth.delayed_due_now` in `getAllQueuesWithMetrics()`. It is read live on every call and deliberately never served from a recorded snapshot, which cannot answer what has come due as of this instant. Drivers that have no separate delayed store report `0`, because a due job there is already pending.
+
 ## v3.3.3 - Live health scoring and bounded worker cleanup - 2026-09-07
 
 ### Fixed

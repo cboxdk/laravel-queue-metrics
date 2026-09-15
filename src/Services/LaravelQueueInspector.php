@@ -167,6 +167,13 @@ final readonly class LaravelQueueInspector implements QueueInspector
         $reserved = $queueInstance->reservedSize($queue);
         $reservedJobs = is_int($reserved) ? $reserved : 0;
 
+        // delayedSize() counts the whole delayed set, not the part that has come
+        // due, and no native method reports the latter — so the one driver where
+        // the distinction matters is still read directly.
+        $delayedDueNowJobs = $delayedJobs > 0 && $queueInstance instanceof RedisQueue
+            ? $this->redisDelayedDueNowJobs($queueInstance, $connection, $queue)
+            : 0;
+
         // Get oldest pending job age if available (Laravel 12.19+)
         $oldestPendingAge = null;
         if (is_object($queueInstance) && method_exists($queueInstance, 'creationTimeOfOldestPendingJob')) {
@@ -194,6 +201,7 @@ final readonly class LaravelQueueInspector implements QueueInspector
             oldestPendingJobAge: $oldestPendingAge,
             oldestDelayedJobAge: $oldestDelayedAge,
             measuredAt: Carbon::now(),
+            delayedDueNowJobs: $delayedDueNowJobs,
         );
     }
 
@@ -388,35 +396,25 @@ final readonly class LaravelQueueInspector implements QueueInspector
     ): QueueDepthData {
         $redis = $queue->getConnection();
 
-        $prefix = config("queue.connections.{$connection}.prefix");
-        if (! is_string($prefix)) {
-            $prefix = 'queues';
-        }
-
-        // On a cluster, Laravel 13's RedisQueue wraps unbraced queue names in a
-        // {hash tag} (getQueueRedisKey), so jobs live at queues:{name}. Mirror
-        // that or reads return 0. Detected on the raw client so the check works
-        // on every supported Laravel version; RedisQueue cannot drive a cluster
-        // before Laravel 13, so the branch is simply inert there.
-        $queueKey = $queueName;
-        if ($redis->client() instanceof \RedisCluster && ! $this->hasHashTag($queueKey)) {
-            $queueKey = '{'.$queueKey.'}';
-        }
+        $pendingKey = $this->redisQueueKey($queue, $connection, $queueName);
 
         // Get pending jobs count
-        $pendingKey = "{$prefix}:{$queueKey}";
         $pendingCount = $redis->llen($pendingKey);
         $pendingJobs = is_int($pendingCount) ? $pendingCount : 0;
 
         // Get reserved jobs count
-        $reservedKey = "{$prefix}:{$queueKey}:reserved";
+        $reservedKey = $pendingKey.':reserved';
         $reservedCount = $redis->zcard($reservedKey);
         $reservedJobs = is_int($reservedCount) ? $reservedCount : 0;
 
         // Get delayed jobs count
-        $delayedKey = "{$prefix}:{$queueKey}:delayed";
+        $delayedKey = $pendingKey.':delayed';
         $delayedCount = $redis->zcard($delayedKey);
         $delayedJobs = is_int($delayedCount) ? $delayedCount : 0;
+
+        $delayedDueNowJobs = $delayedJobs > 0
+            ? $this->redisDelayedDueNowJobs($queue, $connection, $queueName)
+            : 0;
 
         // Get oldest pending job timestamp
         $oldestPending = null;
@@ -447,7 +445,51 @@ final readonly class LaravelQueueInspector implements QueueInspector
             oldestPendingJobAge: $oldestPending,
             oldestDelayedJobAge: $oldestDelayed,
             measuredAt: Carbon::now(),
+            delayedDueNowJobs: $delayedDueNowJobs,
         );
+    }
+
+    /**
+     * The Redis key Laravel stores this queue's ready list under.
+     *
+     * Laravel's own getQueueRedisKey() is protected, so the prefix and the
+     * cluster hash tag are derived here instead. On a cluster, Laravel 13's
+     * RedisQueue wraps unbraced queue names in a {hash tag}, so jobs live at
+     * queues:{name}. Mirror that or reads return 0. Detected on the raw client
+     * so the check works on every supported Laravel version; RedisQueue cannot
+     * drive a cluster before Laravel 13, so the branch is simply inert there.
+     */
+    private function redisQueueKey(RedisQueue $queue, string $connection, string $queueName): string
+    {
+        $prefix = config("queue.connections.{$connection}.prefix");
+        if (! is_string($prefix)) {
+            $prefix = 'queues';
+        }
+
+        if ($queue->getConnection()->client() instanceof \RedisCluster && ! $this->hasHashTag($queueName)) {
+            $queueName = '{'.$queueName.'}';
+        }
+
+        return "{$prefix}:{$queueName}";
+    }
+
+    /**
+     * Delayed jobs whose availability time has passed.
+     *
+     * Laravel moves these to the ready set in migrateExpiredJobs(), which runs
+     * only inside a worker's pop(). With no worker on the queue they stay in
+     * the delayed set indefinitely while reading as neither pending nor
+     * reserved, so a consumer deciding whether the queue needs a worker cannot
+     * see them any other way. Scored by availability timestamp, matching the
+     * ZRANGEBYSCORE the migration itself uses.
+     */
+    private function redisDelayedDueNowJobs(RedisQueue $queue, string $connection, string $queueName): int
+    {
+        $delayedKey = $this->redisQueueKey($queue, $connection, $queueName).':delayed';
+
+        $count = $queue->getConnection()->zcount($delayedKey, '-inf', (string) Carbon::now()->getTimestamp());
+
+        return is_numeric($count) ? (int) $count : 0;
     }
 
     /**

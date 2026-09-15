@@ -14,7 +14,7 @@ interface QueueMetricsRepository
     /**
      * Get current queue state from Laravel queue driver.
      *
-     * @return array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int}
+     * @return array{depth: int, pending: int, scheduled: int, reserved: int, delayed_due_now: int, oldest_job_age: int}
      */
     public function getQueueState(string $connection, string $queue): array;
 
@@ -39,6 +39,10 @@ interface QueueMetricsRepository
      * (depth, pending, scheduled, reserved, oldest_job_age) are only present
      * when a custom recordSnapshot() caller stored them, and live queue
      * state always wins over them when metrics are composed.
+     *
+     * delayed_due_now is deliberately absent: it answers whether work has come
+     * due as of this instant, and a snapshot recorded seconds ago cannot. It
+     * comes from the live read in getQueueState() only.
      *
      * @return array{depth?: int, pending?: int, scheduled?: int, reserved?: int, oldest_job_age?: int, throughput_per_minute?: float, avg_duration?: float, failure_rate?: float, utilization_rate?: float, active_workers?: int, recorded_at?: Carbon|null}
      */

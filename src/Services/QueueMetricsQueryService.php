@@ -43,7 +43,7 @@ final readonly class QueueMetricsQueryService
     }
 
     /**
-     * @param  array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int}  $state
+     * @param  array{depth: int, pending: int, scheduled: int, reserved: int, delayed_due_now: int, oldest_job_age: int}  $state
      */
     private function composeQueueMetrics(
         string $connection,
@@ -190,6 +190,7 @@ final readonly class QueueMetricsQueryService
                         'pending' => $depth->pendingJobs,
                         'scheduled' => $depth->delayedJobs,
                         'reserved' => $depth->reservedJobs,
+                        'delayed_due_now' => $depth->delayedDueNowJobs,
                         'oldest_job_age_seconds' => $depth->secondsOldestPendingJob() ?? 0,
                         'oldest_job_age_status' => $depth->oldestPendingJobAge?->toIso8601String() ?? 'unknown',
                     ],

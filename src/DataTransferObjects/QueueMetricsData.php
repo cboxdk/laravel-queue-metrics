@@ -28,6 +28,7 @@ final readonly class QueueMetricsData
         public string $driver,
         public HealthStats $health,
         public Carbon $calculatedAt,
+        public int $delayedDueNow = 0,
     ) {}
 
     /**
@@ -51,6 +52,7 @@ final readonly class QueueMetricsData
         $driver = $data['driver'] ?? 'unknown';
         $health = $data['health'] ?? [];
         $calculatedAt = $data['calculated_at'] ?? null;
+        $delayedDueNow = $data['delayed_due_now'] ?? 0;
 
         return new self(
             connection: is_string($connection) ? $connection : 'default',
@@ -71,6 +73,7 @@ final readonly class QueueMetricsData
             calculatedAt: (is_string($calculatedAt) || $calculatedAt instanceof \DateTimeInterface)
                 ? Carbon::parse($calculatedAt)
                 : Carbon::now(),
+            delayedDueNow: is_numeric($delayedDueNow) ? (int) $delayedDueNow : 0,
         );
     }
 
@@ -86,6 +89,7 @@ final readonly class QueueMetricsData
             'pending' => $this->pending,
             'scheduled' => $this->scheduled,
             'reserved' => $this->reserved,
+            'delayed_due_now' => $this->delayedDueNow,
             'oldest_job_age' => $this->oldestJobAge,
             'age_status' => $this->ageStatus,
             'throughput_per_minute' => $this->throughputPerMinute,

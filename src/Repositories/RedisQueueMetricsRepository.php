@@ -26,7 +26,7 @@ final readonly class RedisQueueMetricsRepository implements QueueMetricsReposito
     ) {}
 
     /**
-     * @return array{depth: int, pending: int, scheduled: int, reserved: int, oldest_job_age: int}
+     * @return array{depth: int, pending: int, scheduled: int, reserved: int, delayed_due_now: int, oldest_job_age: int}
      */
     public function getQueueState(string $connection, string $queue): array
     {
