@@ -258,12 +258,10 @@ final readonly class LaravelQueueInspector implements QueueInspector
 
             // Get database connection via reflection
             $databaseProperty = $reflection->getProperty('database');
-            $databaseProperty->setAccessible(true);
             $database = $databaseProperty->getValue($queueInstance);
 
             // Get table name via reflection
             $tableProperty = $reflection->getProperty('table');
-            $tableProperty->setAccessible(true);
             $table = $tableProperty->getValue($queueInstance);
 
             // Validate we got the expected types
