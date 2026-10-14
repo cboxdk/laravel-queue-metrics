@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## Unreleased
+## v3.4.2 - Self-failed jobs, nested sync jobs and discovery cleanup - 2026-10-14
 
 ### Fixed
 
