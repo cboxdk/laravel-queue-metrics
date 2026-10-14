@@ -9,6 +9,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
+use Cbox\LaravelQueueMetrics\Support\JobKey;
 use Cbox\LaravelQueueMetrics\Support\JobMetricsCollector;
 use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
@@ -39,7 +40,7 @@ final readonly class JobProcessedListener
         }
 
         $payload = $job->payload();
-        $jobId = (string) $job->getJobId();
+        $jobId = JobKey::of($job);
 
         // Skip performance metrics for debounced (superseded) jobs.
         // The JobDebouncedListener already recorded the debounce counter.

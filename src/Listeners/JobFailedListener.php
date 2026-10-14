@@ -8,6 +8,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordJobFailureAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsFailed;
+use Cbox\LaravelQueueMetrics\Support\JobKey;
 use Cbox\LaravelQueueMetrics\Support\JobMetricsCollector;
 use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
@@ -28,7 +29,7 @@ final readonly class JobFailedListener
     {
         $job = $event->job;
         $payload = $job->payload();
-        $jobId = (string) $job->getJobId();
+        $jobId = JobKey::of($job);
 
         $snapshot = JobMetricsCollector::collect($jobId);
 

@@ -8,6 +8,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordJobStartAction;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobKey;
 use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobStartTimeCache;
 use Cbox\LaravelQueueMetrics\Support\QueueName;
@@ -30,7 +31,7 @@ final readonly class JobProcessingListener
     {
         $job = $event->job;
         $payload = $job->payload();
-        $jobId = (string) $job->getJobId();
+        $jobId = JobKey::of($job);
 
         JobStartTimeCache::store($jobId, microtime(true));
 

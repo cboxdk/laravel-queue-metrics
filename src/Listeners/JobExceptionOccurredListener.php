@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\JobKey;
 use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 
@@ -28,7 +29,7 @@ final readonly class JobExceptionOccurredListener
         $job = $event->job;
         $payload = $job->payload();
 
-        $jobId = (string) $job->getJobId();
+        $jobId = JobKey::of($job);
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
         $connection = $event->connectionName;
         $queue = QueueName::normalize($connection, $job->getQueue());

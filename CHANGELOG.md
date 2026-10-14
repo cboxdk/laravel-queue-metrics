@@ -7,6 +7,7 @@ All notable changes to `laravel-queue-metrics` will be documented in this file.
 ### Fixed
 
 - A job that fails itself with `$this->fail()` and returns normally is no longer counted as both failed and completed. Laravel raises `JobProcessed` after `JobFailed` in that case, because `fire()` returned without throwing; the failure listener had already recorded the job and consumed its start time, so the job was recorded a second time as a completion with a 0 ms duration — inflating throughput, diluting the failure rate and dragging average duration down. Processed events for a job that has failed are now ignored.
+- A job dispatched synchronously from inside another job no longer wipes out the outer job's duration. The sync driver gives every job an empty job ID, so both jobs shared one entry in the in-process start-time, CPU and memory caches: the inner job's start overwrote the outer job's, and the inner job's completion consumed it, leaving the outer job with a 0 ms duration and no CPU or memory delta. Jobs without a driver ID are now keyed by their payload UUID (falling back to the job object's identity), consistently across the processing, processed, failed, exception, timeout and debounce listeners. That key is also the job ID reported in events and stored metrics for such jobs, which was previously an empty string.
 
 ## v3.4.1 - SQS queue names and real job durations - 2026-10-14
 

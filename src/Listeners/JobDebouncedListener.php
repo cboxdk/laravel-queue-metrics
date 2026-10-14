@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsDebounced;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobKey;
 use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobStartTimeCache;
 use Cbox\LaravelQueueMetrics\Support\QueueName;
@@ -43,7 +44,7 @@ final readonly class JobDebouncedListener
         /** @var Job $job */
         $job = $event->job; // @phpstan-ignore property.notFound
         $payload = $job->payload();
-        $jobId = (string) $job->getJobId();
+        $jobId = JobKey::of($job);
 
         // Mark this job so JobProcessedListener skips performance metrics
         DebouncedJobTracker::mark($jobId);
