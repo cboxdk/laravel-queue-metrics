@@ -558,10 +558,32 @@ queue_metrics:{type}:{connection}:{queue}:{identifier}
 
 Examples:
 queue_metrics:jobs:redis:default:App\Jobs\ProcessOrder
-queue_metrics:queues:redis:default
-queue_metrics:workers:redis:default:worker-12345
-queue_metrics:baselines:redis:default:App\Jobs\ProcessOrder
+queue_metrics:durations:redis:default:App\Jobs\ProcessOrder
+queue_metrics:queue_snapshot:redis:default
+queue_metrics:baseline:redis:default:App\Jobs\ProcessOrder
+queue_metrics:worker:worker-12345
 ```
+
+The prefix comes from `queue-metrics.storage.prefix`. The database driver uses
+the same keys without the prefix, because its tables already namespace them.
+
+#### Escaped Segments
+
+Segments are joined with `:`, so a segment that itself contains `:` would be
+read back with the wrong boundaries. Since v3.4.1 every segment is escaped
+before it is joined: `~` becomes `~~`, then `:` becomes `~c`. A queue named
+`reports:nightly` is stored as:
+
+```
+queue_metrics:jobs:redis:reports~cnightly:App\Jobs\ProcessOrder
+```
+
+Names with neither character, which is nearly all of them, are stored
+unchanged. Unescape a segment by reversing the two replacements. Worker IDs
+on Horizon contain the supervisor name (`master:supervisor-1`), so their
+worker keys always carry the escape. When you read keys directly, look them
+up with the escaped name; `Cbox\LaravelQueueMetrics\Support\MetricsKeyBuilder`
+builds keys with the same escaping.
 
 ### Database Tables
 

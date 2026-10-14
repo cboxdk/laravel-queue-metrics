@@ -304,6 +304,10 @@ KEYS queue_metrics:* | wc -l
 MEMORY USAGE queue_metrics:jobs:redis:default:App\\Jobs\\ProcessOrder
 ```
 
+Key segments are escaped: a `:` in a queue name or worker ID is stored as `~c`
+and a `~` as `~~`, so the keys of a queue named `reports:nightly` contain
+`reports~cnightly`. See [Escaped Segments](architecture.md#escaped-segments).
+
 ### 3. Database Storage Size
 
 ```sql

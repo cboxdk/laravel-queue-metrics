@@ -313,8 +313,12 @@ dump($metrics);
 ```bash
 redis-cli
 > KEYS queue_metrics:*
-> GET queue_metrics:jobs:redis:default:App\\Jobs\\TestJob
+> HGETALL queue_metrics:jobs:redis:default:App\\Jobs\\TestJob
 ```
+
+A `:` in a queue name is stored as `~c` (and `~` as `~~`), so a queue named
+`reports:nightly` appears as `queue_metrics:jobs:redis:reports~cnightly:…`. See
+[Escaped Segments](advanced-usage/architecture.md#escaped-segments).
 
 **Database:**
 
