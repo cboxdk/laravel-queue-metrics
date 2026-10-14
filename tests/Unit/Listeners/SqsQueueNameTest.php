@@ -32,6 +32,7 @@ function jobOnSqsQueueUrl(): Job
     $job->shouldReceive('getJobId')->andReturn('sqs-job');
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\\Jobs\\SendEmail']);
     $job->shouldReceive('getQueue')->andReturn('https://sqs.us-east-1.amazonaws.com/123456789012/emails');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     return $job;
 }

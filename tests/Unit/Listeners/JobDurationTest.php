@@ -30,6 +30,7 @@ function durationTestJob(string $jobId, array $payload = []): Job
     $job->shouldReceive('getJobId')->andReturn($jobId);
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\\Jobs\\TimedJob', ...$payload]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     return $job;
 }

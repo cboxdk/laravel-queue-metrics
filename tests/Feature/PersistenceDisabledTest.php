@@ -67,6 +67,7 @@ it('fires JobMetricsCompleted event when persistence is disabled', function () {
         'pushedAt' => microtime(true) - 0.1,
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $event = new JobProcessed('redis', $job);
     $listener->handle($event);
@@ -96,6 +97,7 @@ it('fires JobMetricsFailed event when persistence is disabled', function () {
         'pushedAt' => microtime(true) - 0.05,
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $exception = new RuntimeException('Test failure');
     $event = new JobFailed('redis', $job, $exception);
@@ -126,6 +128,7 @@ it('skips repository calls in JobProcessingListener when persistence is disabled
     $job->shouldReceive('getJobId')->andReturn('job-3');
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\Jobs\TestJob']);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $event = new JobProcessing('redis', $job);
     $listener->handle($event);
@@ -175,6 +178,7 @@ it('skips repository calls in JobTimedOutListener when persistence is disabled',
     $job->shouldReceive('getJobId')->andReturn('job-5');
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\Jobs\SlowJob']);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $event = new JobTimedOut('redis', $job);
     $listener->handle($event);
@@ -189,6 +193,7 @@ it('skips repository calls in JobExceptionOccurredListener when persistence is d
     $job->shouldReceive('getJobId')->andReturn('job-6');
     $job->shouldReceive('payload')->andReturn(['displayName' => 'App\Jobs\BrokenJob']);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $exception = new RuntimeException('Something broke');
     $event = new JobExceptionOccurred('redis', $job, $exception);

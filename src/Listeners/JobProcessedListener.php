@@ -28,6 +28,16 @@ final readonly class JobProcessedListener
     public function handle(JobProcessed $event): void
     {
         $job = $event->job;
+
+        // A job that fails itself (`$this->fail()`) without throwing still
+        // returns from fire(), so the worker raises JobProcessed after
+        // JobFailed. JobFailedListener has already recorded the failure,
+        // consumed the start time and marked the worker idle; recording it
+        // again here would count the job as completed as well, with 0 ms.
+        if ($job->hasFailed()) {
+            return;
+        }
+
         $payload = $job->payload();
         $jobId = (string) $job->getJobId();
 

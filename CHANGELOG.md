@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- A job that fails itself with `$this->fail()` and returns normally is no longer counted as both failed and completed. Laravel raises `JobProcessed` after `JobFailed` in that case, because `fire()` returned without throwing; the failure listener had already recorded the job and consumed its start time, so the job was recorded a second time as a completion with a 0 ms duration — inflating throughput, diluting the failure rate and dragging average duration down. Processed events for a job that has failed are now ignored.
+
 ## v3.4.1 - SQS queue names and real job durations - 2026-10-14
 
 ### Fixed

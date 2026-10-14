@@ -144,6 +144,7 @@ it('reports peak RSS as memoryMb and incremental as memoryIncrementalMb', functi
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
@@ -199,6 +200,7 @@ it('reports peak RSS for sleep jobs with near-zero incremental', function () {
         'pushedAt' => microtime(true) - 0.15,
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
@@ -254,6 +256,7 @@ it('falls back to zero incremental when baseline is missing', function () {
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
@@ -287,6 +290,7 @@ it('cleans up memory cache entry after job completion', function () {
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
@@ -342,6 +346,7 @@ it('two jobs with different allocation sizes report distinguishable values', fun
         'pushedAt' => microtime(true),
     ]);
     $jobSmall->shouldReceive('getQueue')->andReturn('default');
+    $jobSmall->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $jobSmall));
 
@@ -392,6 +397,7 @@ it('two jobs with different allocation sizes report distinguishable values', fun
         'pushedAt' => microtime(true),
     ]);
     $jobLarge->shouldReceive('getQueue')->andReturn('default');
+    $jobLarge->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $jobLarge));
 
@@ -455,6 +461,7 @@ it('clamps negative incremental to zero while peak RSS stays at actual peak', fu
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 

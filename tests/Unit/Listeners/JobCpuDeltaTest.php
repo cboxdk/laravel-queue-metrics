@@ -143,6 +143,7 @@ it('reports cpu time as delta between start and end snapshots, not duration', fu
         'pushedAt' => microtime(true) - 0.5, // 500ms ago (simulated duration)
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
@@ -186,6 +187,7 @@ it('reports zero cpu when no baseline was cached', function () {
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
@@ -212,6 +214,7 @@ it('cleans up cache entry after job completion', function () {
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 
@@ -260,6 +263,7 @@ it('cpu time is much less than duration for sleep-bound jobs', function () {
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     $this->processedListener->handle(new JobProcessed('redis', $job));
 

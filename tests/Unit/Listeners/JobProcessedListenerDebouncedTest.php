@@ -48,6 +48,7 @@ it('skips performance metrics for debounced jobs', function () {
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     DebouncedJobTracker::mark('job-debounced');
 
@@ -71,6 +72,7 @@ it('records performance metrics for normal jobs', function () {
         'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('hasFailed')->andReturn(false);
 
     // NOT marked as debounced
 
