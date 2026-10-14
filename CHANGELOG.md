@@ -2,6 +2,23 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Queues and job classes that stop running now drop out of discovery on the Redis driver. Discovery was kept in plain Redis sets whose TTL every job start refreshed for the whole set, so a renamed or deleted job class, or a queue nothing dispatches to any more, stayed in `listJobs()` and `listQueues()` for as long as any other job ran. `queue-metrics:calculate` kept writing snapshots for those queues, `queue-metrics:calculate-baselines` kept visiting them, and `getAggregatedJobMetrics()` (`GET /queue-metrics/jobs/{jobClass}`) kept reporting a job class on queues it had left. Each entry now records when it was last seen and is dropped once it has not been seen for `storage.ttl.aggregated` (7 days by default), the same rule the database driver has applied since v3.4.2. `getAllQueuesWithMetrics()` and `getAllJobsWithMetrics()` find queues by scanning metric keys rather than reading discovery, and are unaffected.
+
+### Changed
+
+- The Redis driver keeps discovery in sorted sets scored by last-seen time, under new keys: `{prefix}:discovery:queues:seen` and `{prefix}:discovery:jobs:seen`. A job start sends `ZADD` and `EXPIRE` where it used to send `SADD` and `EXPIRE`, so the number of commands per job is unchanged. Every discovery command touches a single key, so this works on Redis Cluster. The member formats are unchanged.
+- `RedisMetricsStore::isSet()` reports whether a key exists and holds a plain set, for phpredis and predis alike.
+- The architecture page describes the storage stores and database tables the package actually ships. It previously described a `StorageDriver` interface, a null driver and job-metrics tables that do not exist. A new [Queue and Job Discovery](docs/advanced-usage/discovery.md) page covers discovery, its retention and the upgrade.
+
+### Upgrading
+
+- No action is needed, including for rolling deploys. v3.5.0 stops writing the old plain-set keys `{prefix}:discovery:queues` and `{prefix}:discovery:jobs`, but still reads them and merges them with the new sorted sets, so entries that v3.4 workers still write are not lost. Only v3.4 workers refresh the old keys' TTL, so they expire at most one `aggregated` TTL after the last v3.4 worker started its last job. Until then, an entry that exists only in an old key is still listed, as in v3.4. To drop the old keys sooner, `DEL` them once every worker runs v3.5.0. Each queue or job class that only they listed is discovered again when its next job starts.
+- Rolling back to v3.4 reads only the old keys, which v3.5.0 did not update, so after a rollback discovery lists only what is still in them until each queue and job class runs again.
+
 ## v3.4.2 - Self-failed jobs, nested sync jobs and discovery cleanup - 2026-10-14
 
 ### Fixed

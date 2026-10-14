@@ -56,6 +56,8 @@ return [
     |                      (recommended: 1000 for Redis, 500 for database)
     | cleanup_chunk_size: Batch size for cleanup deletions, bounding the
     |                     memory the cleanup commands use
+    | ttl.aggregated: Also how long a queue or job class stays discovered
+    |                 after it last ran (see Queue and Job Discovery)
     |
     */
     'storage' => [
@@ -68,7 +70,7 @@ return [
         // TTL (time to live) in seconds for metric types
         'ttl' => [
             'raw' => 3600,          // 1 hour for raw job metrics
-            'aggregated' => 604800, // 7 days for aggregated metrics
+            'aggregated' => 604800, // 7 days for aggregated metrics and discovery
             'baseline' => 2592000,  // 30 days for baseline calculations
         ],
     ],
@@ -160,6 +162,11 @@ return [
 ];
 ```
 
+`storage.ttl.aggregated` also sets how long a queue or job class stays in
+discovery after its last job started. A queue nothing dispatches to any more
+stops being calculated once that period has passed. See
+[Queue and Job Discovery](../advanced-usage/discovery.md#retention-and-ageing).
+
 ## Environment Variables
 
 ```env
@@ -241,5 +248,5 @@ No Redis or database connection is required. Listeners still instrument jobs (du
 
 ## Next Steps
 
-- [API Endpoints](basic-usage/api-endpoints.md) - HTTP access to metrics
-- [Prometheus](advanced-usage/prometheus.md) - Monitoring integration
+- [API Endpoints](../basic-usage/api-endpoints.md) - HTTP access to metrics
+- [Prometheus](../advanced-usage/prometheus.md) - Monitoring integration

@@ -62,9 +62,12 @@ Point the storage connection at a cluster connection defined in
   (the read-modify-write that must be atomic) and the worker index with plain
   single-key commands. The two writes are not atomic with each other, but a
   missed index update self-heals on the next heartbeat seconds later.
+- [Discovery](discovery.md) reads and writes its sorted sets and, during an
+  upgrade from v3.4, the legacy plain sets with single-key commands only. The
+  keys can sit on different slots.
 
 ## Verification
 
 The test suite runs against a real 3-master cluster in CI (see the
 `test-with-redis-cluster` job), covering key scanning, hash-tagged depth
-reads, and the transaction and pipeline write paths.
+reads, the transaction and pipeline write paths, and queue and job discovery.

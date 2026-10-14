@@ -43,6 +43,8 @@ return [
         'max_samples_per_key' => env('QUEUE_METRICS_MAX_SAMPLES', 1000),
         'cleanup_chunk_size' => 1000,
 
+        // Seconds. 'aggregated' is also how long a queue or job class stays
+        // discovered after it last ran.
         'ttl' => [
             'raw' => 3600,
             'aggregated' => 604800,

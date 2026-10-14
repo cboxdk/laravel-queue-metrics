@@ -268,37 +268,32 @@ interface JobMetricsRepository
 
 ### 5. Storage Drivers
 
-**Purpose**: Pluggable storage backends
+**Purpose**: The key-value primitives the repositories are written against
 
-**Location**: `src/Storage/`
-
-**Pattern**: Strategy pattern
+**Location**: `src/Support/`
 
 **Available Drivers**:
-- `RedisStorageDriver` - Fast, automatic TTL
-- `DatabaseStorageDriver` - Persistent, queryable
-- `NullStorageDriver` - No-op for testing
+- `RedisMetricsStore` - Redis, with TTLs enforced by Redis
+- `DatabaseMetricsStore` - Eloquent tables (`queue_metrics_keys`, `_hashes`,
+  `_sets`, `_sorted_sets`) with an `expires_at` column per row
 
-**Key Operations**:
-- `get(string $key): mixed`
-- `set(string $key, mixed $value, ?int $ttl): void`
-- `increment(string $key, int $value, ?int $ttl): int`
-- `scan(string $pattern): array`
-- `transaction(Closure $callback): mixed`
+Both stores expose the same Redis-shaped operations: strings, hashes, sets,
+sorted sets, `expire()`, `scanKeys()`, `transaction()` and `pipeline()`. Each
+storage driver has its own repository implementations (`RedisJobMetricsRepository`,
+`DatabaseJobMetricsRepository`, and so on) that use its store directly.
 
 **Driver Selection**:
 
 ```php
 // config/queue-metrics.php
 'storage' => [
-    'driver' => 'redis', // 'redis', 'database', 'null'
+    'driver' => 'redis', // 'redis' or 'database'
 ],
 ```
 
-**Why Separate Drivers?**:
-- Different use cases (speed vs persistence)
-- Easy testing with NullDriver
-- Can add custom drivers (Memcached, DynamoDB, etc.)
+The stores are not an extension point. To store metrics somewhere else, bind
+your own implementations of the repository contracts through
+`queue-metrics.repositories`; see [Extension Points](#extension-points).
 
 ### 6. Service Layer
 
@@ -585,55 +580,50 @@ worker keys always carry the escape. When you read keys directly, look them
 up with the escaped name; `Cbox\LaravelQueueMetrics\Support\MetricsKeyBuilder`
 builds keys with the same escaping.
 
+#### Discovery Keys
+
+The queues and job classes the package has seen are kept in two sorted sets,
+scored by the Unix time each entry was last seen:
+
+```
+queue_metrics:discovery:queues:seen   # members: redis:default
+queue_metrics:discovery:jobs:seen     # members: redis:default:App\Jobs\ProcessOrder
+```
+
+An entry not seen for the `aggregated` TTL is dropped on the next read. Before
+v3.5.0 these were plain sets at `queue_metrics:discovery:queues` and
+`queue_metrics:discovery:jobs`; v3.5.0 still reads those during an upgrade but
+no longer writes them. See [Queue and Job Discovery](discovery.md) for the
+details and the upgrade path.
+
 ### Database Tables
 
+The database driver stores the same keys, without the prefix, in four tables
+that mirror the Redis data types (named here with the default `queue_metrics`
+prefix). Every row carries its own `expires_at`, which
+reads respect and `queue-metrics:cleanup-database` purges.
+
 ```sql
--- Job metrics
-queue_job_metrics:
-  - id
-  - job_id
-  - job_class
-  - connection
-  - queue
-  - started_at
-  - completed_at
-  - duration_ms
-  - memory_mb
-  - cpu_time_ms
-  - status (completed/failed)
-  - exception
-  - created_at
+-- Strings
+queue_metrics_keys:        key (primary), value, expires_at, updated_at
 
--- Queue snapshots
-queue_snapshots:
-  - id
-  - connection
-  - queue
-  - depth_pending
-  - depth_delayed
-  - depth_reserved
-  - recorded_at
-  - created_at
+-- Hashes, stored as JSON
+queue_metrics_hashes:      key (primary), data, expires_at, updated_at
 
--- Worker heartbeats
-worker_heartbeats:
-  - id
-  - worker_id
-  - connection
-  - queue
-  - status
-  - current_job
-  - memory_mb
-  - cpu_percent
-  - last_heartbeat
-  - created_at
+-- Sets, one row per member; expires_at is per member
+queue_metrics_sets:        key, member, created_at, expires_at
+
+-- Sorted sets, one row per member
+queue_metrics_sorted_sets: key, member, score, expires_at, updated_at
 ```
 
 ## Extension Points
 
 The architecture provides several extension points:
 
-1. **Custom Storage Drivers**: Implement `StorageDriver` interface
+1. **Custom Repositories**: Bind your own implementation of a repository
+   contract (`JobMetricsRepository`, `QueueMetricsRepository`, ...) in
+   `queue-metrics.repositories`
 2. **Custom Hooks**: Register via `QueueMetrics::hook()`
 3. **Event Listeners**: React to domain events
 4. **Custom Services**: Build on repository layer

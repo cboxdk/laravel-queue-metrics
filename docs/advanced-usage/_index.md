@@ -40,6 +40,12 @@ Run the metrics store on a Redis Cluster and monitor cluster-hosted queues, incl
 
 **Learn more:** [Redis Cluster](redis-cluster)
 
+### Queue and Job Discovery
+
+How the package finds the queues and job classes it calculates metrics and baselines for, how a retired queue or job class ages out, and the v3.5.0 change to the Redis discovery keys.
+
+**Learn more:** [Queue and Job Discovery](discovery)
+
 ## When to Use Advanced Features
 
 ### Architecture Knowledge
