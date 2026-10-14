@@ -68,6 +68,20 @@ test('getAllQueues gathers queues from connection lists and worker configs', fun
         ->and($queues)->not->toContain('default');
 });
 
+test('getAllQueues reports an SQS queue configured as a URL by its queue name', function () {
+    config()->set('queue.connections', [
+        'sqs' => ['driver' => 'sqs', 'queue' => 'https://sqs.eu-west-1.amazonaws.com/123456789012/emails'],
+        'sqs-suffixed' => [
+            'driver' => 'sqs',
+            'queue' => 'https://sqs.eu-west-1.amazonaws.com/123456789012/orders-production.fifo',
+            'suffix' => '-production',
+        ],
+    ]);
+    config()->set('queue.workers', []);
+
+    expect(app(LaravelQueueInspector::class)->getAllQueues())->toBe(['emails', 'orders.fifo']);
+});
+
 // --- getQueueDepth tolerance ---
 
 test('getQueueDepth reports zeros instead of throwing when the driver cannot read the queue', function () {

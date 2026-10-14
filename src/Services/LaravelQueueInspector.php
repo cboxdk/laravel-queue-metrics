@@ -7,6 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Services;
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Contracts\QueueInspector;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Queue\RedisQueue;
 use ReflectionClass;
@@ -113,10 +114,13 @@ final readonly class LaravelQueueInspector implements QueueInspector
         // queue that does not exist on drivers with named queues (e.g. SQS).
         $discovered = [];
 
+        // An SQS connection may configure its queue as the full queue URL.
+        // Metrics are recorded under the queue name, so discovery reports the
+        // name as well rather than a URL no recorded metric is keyed by.
         foreach ($connections as $connection => $config) {
             $queue = $config['queue'] ?? null;
             if (is_string($queue)) {
-                $discovered[] = $queue;
+                $discovered[] = QueueName::normalize($connection, $queue);
             }
 
             // Also check for multiple queues in config
@@ -124,7 +128,7 @@ final readonly class LaravelQueueInspector implements QueueInspector
             if (is_array($queues)) {
                 foreach ($queues as $q) {
                     if (is_string($q)) {
-                        $discovered[] = $q;
+                        $discovered[] = QueueName::normalize($connection, $q);
                     }
                 }
             }
