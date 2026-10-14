@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsCompleted;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
 use Cbox\LaravelQueueMetrics\Support\JobMetricsCollector;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
 use Illuminate\Queue\Events\JobProcessed;
@@ -39,7 +40,7 @@ final readonly class JobProcessedListener
         $snapshot = JobMetricsCollector::collect($jobId);
 
         $connection = $event->connectionName;
-        $queue = $job->getQueue();
+        $queue = QueueName::normalize($connection, $job->getQueue());
         $hostname = gethostname() ?: 'unknown';
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
         $persistenceEnabled = config('queue-metrics.persistence.enabled', true);

@@ -9,6 +9,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Events\JobMetricsFailed;
 use Cbox\LaravelQueueMetrics\Support\JobMetricsCollector;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryLimitParser;
 use Illuminate\Queue\Events\JobFailed;
@@ -32,7 +33,7 @@ final readonly class JobFailedListener
         $snapshot = JobMetricsCollector::collect($jobId);
 
         $connection = $event->connectionName;
-        $queue = $job->getQueue();
+        $queue = QueueName::normalize($connection, $job->getQueue());
         $hostname = gethostname() ?: 'unknown';
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
         $persistenceEnabled = config('queue-metrics.persistence.enabled', true);

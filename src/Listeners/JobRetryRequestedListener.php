@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Illuminate\Queue\Events\JobRetryRequested;
 
 /**
@@ -30,7 +31,7 @@ final readonly class JobRetryRequestedListener
         // Extract job metadata from stdClass
         $jobId = is_string($jobStdClass->id ?? null) ? $jobStdClass->id : 'unknown';
         $connection = is_string($jobStdClass->connection ?? null) ? $jobStdClass->connection : 'redis';
-        $queue = is_string($jobStdClass->queue ?? null) ? $jobStdClass->queue : 'default';
+        $queue = QueueName::normalize($connection, is_string($jobStdClass->queue ?? null) ? $jobStdClass->queue : 'default');
 
         // Get payload - event provides helper method that decodes JSON
         /** @var array{displayName?: string, attempts?: int} $payload */

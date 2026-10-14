@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobStartTimeCache;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryConverter;
 use Cbox\SystemMetrics\ProcessMetrics;
@@ -53,7 +54,7 @@ final readonly class JobProcessingListener
 
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
         $connection = $event->connectionName;
-        $queue = $job->getQueue();
+        $queue = QueueName::normalize($connection, $job->getQueue());
 
         if (config('queue-metrics.persistence.enabled', true)) {
             try {

@@ -70,3 +70,11 @@ it('falls back to default when neither the event, the job, nor the connection co
 
     $this->listener->handle(queuedEventFor(eventQueue: null, jobQueue: null));
 });
+
+it('records the queue name when the queue is given as an SQS queue URL', function () {
+    config(['queue.connections.redis.queue' => 'https://sqs.us-east-1.amazonaws.com/123456789012/emails']);
+
+    expectRecordedQueue($this->repository, 'emails');
+
+    $this->listener->handle(queuedEventFor(eventQueue: null, jobQueue: null));
+});

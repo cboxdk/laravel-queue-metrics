@@ -12,6 +12,7 @@ use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobStartTimeCache;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Contracts\Queue\Job;
@@ -56,7 +57,7 @@ final readonly class JobDebouncedListener
 
         /** @var string $connection */
         $connection = $event->connectionName; // @phpstan-ignore property.notFound
-        $queue = $job->getQueue();
+        $queue = QueueName::normalize($connection, $job->getQueue());
         $hostname = gethostname() ?: 'unknown';
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
 

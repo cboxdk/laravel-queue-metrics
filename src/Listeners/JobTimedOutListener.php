@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Illuminate\Queue\Events\JobTimedOut;
 
 /**
@@ -30,7 +31,7 @@ final readonly class JobTimedOutListener
         $jobId = (string) $job->getJobId();
         $jobClass = $payload['displayName'] ?? 'UnknownJob';
         $connection = $event->connectionName;
-        $queue = $job->getQueue();
+        $queue = QueueName::normalize($connection, $job->getQueue());
 
         // Record timeout
         // This helps identify:

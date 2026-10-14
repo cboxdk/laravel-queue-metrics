@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Illuminate\Queue\Events\JobQueued;
 
 /**
@@ -38,6 +39,8 @@ final readonly class JobQueuedListener
         if (! is_string($queue) || $queue === '') {
             $queue = $this->connectionDefaultQueue($connection);
         }
+
+        $queue = QueueName::normalize($connection, $queue);
 
         // Job can be an object or a string depending on the queue driver
         $job = $event->job;
