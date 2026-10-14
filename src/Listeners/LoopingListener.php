@@ -7,6 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Listeners;
 use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Support\HeartbeatThrottleCache;
+use Cbox\LaravelQueueMetrics\Support\QueueName;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Illuminate\Queue\Events\Looping;
 
@@ -29,7 +30,7 @@ final readonly class LoopingListener
 
         $workerId = HorizonDetector::generateWorkerId();
         $connection = $event->connectionName;
-        $queue = $event->queue;
+        $queue = QueueName::normalize($connection, $event->queue);
 
         if (HeartbeatThrottleCache::shouldSkip($workerId, WorkerState::IDLE->value, time())) {
             return;

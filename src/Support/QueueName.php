@@ -34,10 +34,15 @@ final class QueueName
         return self::withoutSuffix($name, config("queue.connections.{$connection}.suffix"));
     }
 
+    /**
+     * A prefix check rather than FILTER_VALIDATE_URL: the SQS `prefix` is never
+     * validated by Laravel, and hosts such as a Docker Compose `local_stack`
+     * service are rejected by the filter.
+     */
     private static function isUrl(string $queue): bool
     {
-        return (str_starts_with($queue, 'https://') || str_starts_with($queue, 'http://'))
-            && filter_var($queue, FILTER_VALIDATE_URL) !== false;
+        return str_starts_with(strtolower($queue), 'https://')
+            || str_starts_with(strtolower($queue), 'http://');
     }
 
     /**

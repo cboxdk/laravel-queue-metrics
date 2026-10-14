@@ -10,6 +10,8 @@ it('reduces an SQS queue URL to the queue name', function (string $queue, string
     'standard queue' => ['https://sqs.us-east-1.amazonaws.com/123456789012/emails', 'emails'],
     'fifo queue' => ['https://sqs.us-east-1.amazonaws.com/123456789012/orders.fifo', 'orders.fifo'],
     'custom endpoint' => ['http://localhost:4566/000000000000/emails', 'emails'],
+    'host with an underscore' => ['http://local_stack:4566/000000000000/emails', 'emails'],
+    'uppercase scheme' => ['HTTPS://sqs.us-east-1.amazonaws.com/123456789012/emails', 'emails'],
 ]);
 
 it('leaves queue names that are not URLs unchanged', function (string $queue) {
