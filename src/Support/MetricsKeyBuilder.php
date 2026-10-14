@@ -20,10 +20,14 @@ final readonly class MetricsKeyBuilder
 
     /**
      * Build a Redis key from segments.
+     *
+     * Segments are escaped the same way the metrics stores escape them, so a
+     * key built here for a queue name containing `:` matches the key the
+     * package writes.
      */
     public function key(string ...$segments): string
     {
-        return $this->prefix.':'.implode(':', $segments);
+        return $this->prefix.':'.KeySegment::join(...$segments);
     }
 
     /**
