@@ -48,13 +48,12 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             $ttl,
             $discoveryTtl
         ) {
-            // Register queue in discovery set (push-based tracking)
-            $driver->addToSet($queueDiscoveryKey, ["{$connection}:{$queue}"]);
-            $driver->expire($queueDiscoveryKey, $discoveryTtl);
-
-            // Register job in discovery set (push-based tracking)
-            $driver->addToSet($jobDiscoveryKey, [KeySegment::join($connection, $queue, $jobClass)]);
-            $driver->expire($jobDiscoveryKey, $discoveryTtl);
+            // Register queue and job in their discovery sets (push-based
+            // tracking). The TTL is per member, so a queue or job class that
+            // stops running ages out on its own; expiring the whole key here
+            // would extend every member each time any job starts.
+            $driver->addToSet($queueDiscoveryKey, ["{$connection}:{$queue}"], $discoveryTtl);
+            $driver->addToSet($jobDiscoveryKey, [KeySegment::join($connection, $queue, $jobClass)], $discoveryTtl);
 
             // Increment total queued counter
             $driver->incrementHashField($metricsKey, 'total_queued', 1);
@@ -564,23 +563,34 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         $members = $this->store->driver()->getSetMembers($key);
 
         $jobs = [];
+        $unreadable = [];
         foreach ($members as $member) {
-            // Parse "connection:queue:JobClass" format
-            $parts = explode(':', $member, 3);
-            if (count($parts) === 3) {
-                [$connection, $queue, $jobClass] = array_map(KeySegment::unescape(...), $parts);
+            $segments = KeySegment::split($member, 3);
 
-                // Keyed so a member written before segments were escaped does
-                // not list the same job twice while it ages out.
-                $jobs["{$connection}\0{$queue}\0{$jobClass}"] = [
-                    'connection' => $connection,
-                    'queue' => $queue,
-                    'jobClass' => $jobClass,
-                ];
+            if ($segments === null) {
+                $unreadable[] = $member;
+
+                continue;
             }
+
+            [$connection, $queue, $jobClass] = $segments;
+
+            $jobs[] = [
+                'connection' => $connection,
+                'queue' => $queue,
+                'jobClass' => $jobClass,
+            ];
         }
 
-        return array_values($jobs);
+        // Members written before segments were escaped cannot be parsed back;
+        // read by position they list the job under a queue name cut at its
+        // first colon. Drop them rather than wait for them to expire; the next
+        // start of that job re-registers it under its escaped key.
+        if ($unreadable !== []) {
+            $this->store->driver()->removeFromSet($key, $unreadable);
+        }
+
+        return $jobs;
     }
 
     /**

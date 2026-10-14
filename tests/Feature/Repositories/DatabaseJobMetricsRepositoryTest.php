@@ -295,6 +295,27 @@ test('markJobDiscovered does not create duplicates', function () {
     expect($jobs)->toHaveCount(1);
 });
 
+test('listJobs drops a member written before key segments were escaped', function () {
+    $this->repo->markJobDiscovered('redis', 'reports:nightly', 'App\\Jobs\\Report');
+    $this->store->addToSet('discovery:jobs', ['redis:reports:nightly:App\\Jobs\\Report', 'redis:a~b:App\\Jobs\\Tilde']);
+
+    expect($this->repo->listJobs())->toBe([
+        ['connection' => 'redis', 'queue' => 'reports:nightly', 'jobClass' => 'App\\Jobs\\Report'],
+    ])->and($this->store->getSetMembers('discovery:jobs'))->toBe(['redis:reports~cnightly:App\\Jobs\\Report']);
+});
+
+test('a job class that stops running ages out of discovery while others keep starting', function () {
+    $this->repo->recordStart('job-1', 'App\\Jobs\\Retired', 'redis', 'legacy', now());
+
+    $this->travel(6)->days();
+    $this->repo->recordStart('job-2', 'App\\Jobs\\Active', 'redis', 'default', now());
+
+    $this->travel(2)->days();
+
+    expect(array_column($this->repo->listJobs(), 'jobClass'))->toBe(['App\\Jobs\\Active'])
+        ->and($this->store->getSetMembers('discovery:queues'))->toBe(['redis:default']);
+});
+
 // --- recordQueuedAt ---
 
 test('recordQueuedAt stores timestamp', function () {

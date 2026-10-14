@@ -32,4 +32,25 @@ final class KeySegment
     {
         return implode(':', array_map(self::escape(...), $segments));
     }
+
+    /**
+     * Split a value written by join() back into its segments.
+     *
+     * Returns null unless the value has exactly $segmentCount segments and is
+     * byte-for-byte what join() writes for them. A value stored before
+     * segments were escaped (`redis:reports:nightly:App\Jobs\Report`) fails
+     * that check rather than being read back with the wrong boundaries.
+     *
+     * @return list<string>|null
+     */
+    public static function split(string $joined, int $segmentCount): ?array
+    {
+        $segments = array_map(self::unescape(...), explode(':', $joined));
+
+        if (count($segments) !== $segmentCount || self::join(...$segments) !== $joined) {
+            return null;
+        }
+
+        return $segments;
+    }
 }

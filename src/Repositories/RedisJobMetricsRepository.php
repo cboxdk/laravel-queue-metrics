@@ -652,23 +652,35 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $members = $this->redis->driver()->getSetMembers($key);
 
         $jobs = [];
+        $unreadable = [];
         foreach ($members as $member) {
-            // Parse "connection:queue:JobClass" format
-            $parts = explode(':', $member, 3);
-            if (count($parts) === 3) {
-                [$connection, $queue, $jobClass] = array_map(KeySegment::unescape(...), $parts);
+            $segments = KeySegment::split($member, 3);
 
-                // Keyed so a member written before segments were escaped does
-                // not list the same job twice while it ages out.
-                $jobs["{$connection}\0{$queue}\0{$jobClass}"] = [
-                    'connection' => $connection,
-                    'queue' => $queue,
-                    'jobClass' => $jobClass,
-                ];
+            if ($segments === null) {
+                $unreadable[] = $member;
+
+                continue;
             }
+
+            [$connection, $queue, $jobClass] = $segments;
+
+            $jobs[] = [
+                'connection' => $connection,
+                'queue' => $queue,
+                'jobClass' => $jobClass,
+            ];
         }
 
-        return array_values($jobs);
+        // Members written before segments were escaped cannot be parsed back,
+        // and the set's TTL is refreshed on every job start, so they would
+        // otherwise be listed — under a queue name cut at its first colon —
+        // for as long as any job runs. Drop them; the next start of that job
+        // re-registers it under its escaped key.
+        if ($unreadable !== []) {
+            $this->redis->driver()->removeFromSet($key, $unreadable);
+        }
+
+        return $jobs;
     }
 
     /**
