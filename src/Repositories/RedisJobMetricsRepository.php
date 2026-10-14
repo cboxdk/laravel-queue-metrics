@@ -6,6 +6,7 @@ namespace Cbox\LaravelQueueMetrics\Repositories;
 
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\KeySegment;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
@@ -49,7 +50,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $pipe->expire($queueDiscoveryKey, $discoveryTtl);
 
             // Register job in discovery set (push-based tracking)
-            $pipe->addToSet($jobDiscoveryKey, ["{$connection}:{$queue}:{$jobClass}"]);
+            $pipe->addToSet($jobDiscoveryKey, [KeySegment::join($connection, $queue, $jobClass)]);
             $pipe->expire($jobDiscoveryKey, $discoveryTtl);
 
             // Increment total queued counter
@@ -655,15 +656,19 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             // Parse "connection:queue:JobClass" format
             $parts = explode(':', $member, 3);
             if (count($parts) === 3) {
-                $jobs[] = [
-                    'connection' => $parts[0],
-                    'queue' => $parts[1],
-                    'jobClass' => $parts[2],
+                [$connection, $queue, $jobClass] = array_map(KeySegment::unescape(...), $parts);
+
+                // Keyed so a member written before segments were escaped does
+                // not list the same job twice while it ages out.
+                $jobs["{$connection}\0{$queue}\0{$jobClass}"] = [
+                    'connection' => $connection,
+                    'queue' => $queue,
+                    'jobClass' => $jobClass,
                 ];
             }
         }
 
-        return $jobs;
+        return array_values($jobs);
     }
 
     /**
@@ -674,7 +679,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         $key = $this->redis->key('discovery', 'jobs');
         $ttl = $this->redis->getTtl('aggregated');
 
-        $this->redis->driver()->addToSet($key, ["{$connection}:{$queue}:{$jobClass}"]);
+        $this->redis->driver()->addToSet($key, [KeySegment::join($connection, $queue, $jobClass)]);
         $this->redis->driver()->expire($key, $ttl);
     }
 

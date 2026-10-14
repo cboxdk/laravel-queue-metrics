@@ -58,7 +58,7 @@ final class RedisMetricsStore
      */
     public function key(string ...$segments): string
     {
-        return $this->getPrefix().':'.implode(':', $segments);
+        return $this->getPrefix().':'.KeySegment::join(...$segments);
     }
 
     /**

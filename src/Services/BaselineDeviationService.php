@@ -7,6 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Services;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\KeySegment;
 use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
@@ -166,7 +167,7 @@ final readonly class BaselineDeviationService
         foreach ($keys as $key) {
             $pos = strrpos($key, $prefix);
             if ($pos !== false) {
-                $jobClass = substr($key, $pos + strlen($prefix));
+                $jobClass = KeySegment::unescape(substr($key, $pos + strlen($prefix)));
                 if (! empty($jobClass)) {
                     $jobClasses[] = $jobClass;
                 }

@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\DataTransferObjects\AggregatedJobMetricsData;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\BaselineData;
 use Cbox\LaravelQueueMetrics\DataTransferObjects\JobMetricsData;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
+use Cbox\LaravelQueueMetrics\Support\KeySegment;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
@@ -79,9 +80,9 @@ final readonly class JobMetricsQueryService
                 return null;
             }
 
-            $connection = $parts[1];
-            $queue = $parts[2];
-            $jobClass = implode(':', array_slice($parts, 3));
+            $connection = KeySegment::unescape($parts[1]);
+            $queue = KeySegment::unescape($parts[2]);
+            $jobClass = KeySegment::unescape(implode(':', array_slice($parts, 3)));
 
             return [
                 'connection' => $connection,

@@ -11,6 +11,7 @@ use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueMetricsData;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
+use Cbox\LaravelQueueMetrics\Support\KeySegment;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
@@ -137,8 +138,8 @@ final readonly class QueueMetricsQueryService
             // parts[1] = connection
             // parts[2] = queue
             return [
-                'connection' => $parts[1],
-                'queue' => $parts[2],
+                'connection' => KeySegment::unescape($parts[1]),
+                'queue' => KeySegment::unescape($parts[2]),
             ];
         };
 

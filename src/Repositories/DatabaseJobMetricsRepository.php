@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Models\MetricsHash;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Support\DatabaseMetricsStore;
+use Cbox\LaravelQueueMetrics\Support\KeySegment;
 
 /**
  * Database-based implementation of job metrics repository.
@@ -52,7 +53,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             $driver->expire($queueDiscoveryKey, $discoveryTtl);
 
             // Register job in discovery set (push-based tracking)
-            $driver->addToSet($jobDiscoveryKey, ["{$connection}:{$queue}:{$jobClass}"]);
+            $driver->addToSet($jobDiscoveryKey, [KeySegment::join($connection, $queue, $jobClass)]);
             $driver->expire($jobDiscoveryKey, $discoveryTtl);
 
             // Increment total queued counter
@@ -567,15 +568,19 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
             // Parse "connection:queue:JobClass" format
             $parts = explode(':', $member, 3);
             if (count($parts) === 3) {
-                $jobs[] = [
-                    'connection' => $parts[0],
-                    'queue' => $parts[1],
-                    'jobClass' => $parts[2],
+                [$connection, $queue, $jobClass] = array_map(KeySegment::unescape(...), $parts);
+
+                // Keyed so a member written before segments were escaped does
+                // not list the same job twice while it ages out.
+                $jobs["{$connection}\0{$queue}\0{$jobClass}"] = [
+                    'connection' => $connection,
+                    'queue' => $queue,
+                    'jobClass' => $jobClass,
                 ];
             }
         }
 
-        return $jobs;
+        return array_values($jobs);
     }
 
     /**
@@ -586,7 +591,7 @@ final readonly class DatabaseJobMetricsRepository implements JobMetricsRepositor
         $key = $this->store->key('discovery', 'jobs');
         $ttl = $this->store->getTtl('aggregated');
 
-        $this->store->driver()->addToSet($key, ["{$connection}:{$queue}:{$jobClass}"], $ttl);
+        $this->store->driver()->addToSet($key, [KeySegment::join($connection, $queue, $jobClass)], $ttl);
     }
 
     /**

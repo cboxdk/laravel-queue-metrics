@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\Events\BaselineRecalculated;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\BaselineRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
+use Cbox\LaravelQueueMetrics\Support\KeySegment;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
@@ -316,7 +317,7 @@ final readonly class CalculateBaselinesAction
             // Extract job class from key format: queue_metrics:jobs:{connection}:{queue}:{jobClass}
             $parts = explode(':', $key);
             if (count($parts) >= 5) {
-                $jobClass = implode(':', array_slice($parts, 4)); // Handle job classes with colons
+                $jobClass = KeySegment::unescape(implode(':', array_slice($parts, 4))); // Handle job classes with colons
                 $jobClasses[] = $jobClass;
             }
         }

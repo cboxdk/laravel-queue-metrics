@@ -23,7 +23,7 @@ final class DatabaseMetricsStore
      */
     public function key(string ...$segments): string
     {
-        return implode(':', $segments);
+        return KeySegment::join(...$segments);
     }
 
     /**
