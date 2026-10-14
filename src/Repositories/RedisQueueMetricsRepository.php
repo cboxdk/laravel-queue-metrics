@@ -11,6 +11,7 @@ use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Support\HealthScoreCalculator;
 use Cbox\LaravelQueueMetrics\Support\MetricsConstants;
+use Cbox\LaravelQueueMetrics\Support\RedisDiscoveryIndex;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
@@ -159,14 +160,13 @@ final readonly class RedisQueueMetricsRepository implements QueueMetricsReposito
     }
 
     /**
-     * List all discovered queues using discovery set (O(N) instead of O(total_keys)).
+     * List the queues seen within the aggregated TTL (O(N) instead of O(total_keys)).
      *
      * @return array<int, array{connection: string, queue: string}>
      */
     public function listQueues(): array
     {
-        $key = $this->redis->key('discovery', 'queues');
-        $members = $this->redis->driver()->getSetMembers($key);
+        $members = $this->queueDiscovery()->members();
 
         $queues = [];
         foreach ($members as $member) {
@@ -184,15 +184,16 @@ final readonly class RedisQueueMetricsRepository implements QueueMetricsReposito
     }
 
     /**
-     * Register queue in discovery set (push-based tracking).
+     * Mark a queue as seen now (push-based tracking).
      */
     public function markQueueDiscovered(string $connection, string $queue): void
     {
-        $key = $this->redis->key('discovery', 'queues');
-        $ttl = $this->redis->getTtl('aggregated');
+        $this->queueDiscovery()->touch($this->redis, "{$connection}:{$queue}");
+    }
 
-        $this->redis->driver()->addToSet($key, ["{$connection}:{$queue}"]);
-        $this->redis->driver()->expire($key, $ttl);
+    private function queueDiscovery(): RedisDiscoveryIndex
+    {
+        return new RedisDiscoveryIndex($this->redis, 'queues');
     }
 
     public function cleanup(int $olderThanSeconds): int

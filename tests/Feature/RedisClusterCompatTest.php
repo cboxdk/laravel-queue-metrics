@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Cbox\LaravelQueueMetrics\DataTransferObjects\QueueDepthData;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
+use Cbox\LaravelQueueMetrics\Repositories\Contracts\QueueMetricsRepository;
 use Cbox\LaravelQueueMetrics\Services\LaravelQueueInspector;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 use Illuminate\Support\Facades\Redis;
@@ -91,6 +92,31 @@ it('writes through a pipeline and reads the result back', function () {
     });
 
     expect($store->getHash($key))->toMatchArray(['field' => 'value']);
+})->group('redis');
+
+// Discovery reads and writes span the last-seen sorted sets and the legacy plain sets,
+// which hash to different slots; every command must touch a single key so a
+// multi-shard cluster never rejects one with CROSSSLOT.
+it('registers, lists, merges and cleans discovery members across slots', function () {
+    $jobs = app(JobMetricsRepository::class);
+    $queues = app(QueueMetricsRepository::class);
+    $store = app(RedisMetricsStore::class);
+
+    $store->addToSet($store->key('discovery', 'jobs'), ['redis:legacy:App\\Jobs\\Legacy', 'redis:reports:nightly:App\\Jobs\\Report']);
+    $store->addToSet($store->key('discovery', 'queues'), ['redis:legacy']);
+
+    $jobs->recordStart('cluster-job-2', 'App\\Jobs\\Example', 'redis', 'default', now());
+    $jobs->markJobDiscovered('redis', 'other', 'App\\Jobs\\Other');
+    $queues->markQueueDiscovered('redis', 'other');
+
+    $jobClasses = array_column($jobs->listJobs(), 'jobClass');
+    sort($jobClasses);
+    $queueNames = array_column($queues->listQueues(), 'queue');
+    sort($queueNames);
+
+    expect($jobClasses)->toBe(['App\\Jobs\\Example', 'App\\Jobs\\Legacy', 'App\\Jobs\\Other'])
+        ->and($queueNames)->toBe(['default', 'legacy', 'other'])
+        ->and($store->getSetMembers($store->key('discovery', 'jobs')))->toBe(['redis:legacy:App\\Jobs\\Legacy']);
 })->group('redis');
 
 /**

@@ -243,6 +243,28 @@ final class RedisMetricsStore
         return (bool) $this->getRedis()->exists($key);
     }
 
+    /**
+     * Whether the key exists and holds a plain set.
+     *
+     * Lets a caller run set commands on a key it does not own the type of
+     * without risking a WRONGTYPE error. phpredis reports the type as an
+     * integer constant, predis as a status reply.
+     */
+    public function isSet(string $key): bool
+    {
+        $type = $this->getRedis()->command('type', [$key]);
+
+        if (is_int($type)) {
+            return $type === \Redis::REDIS_SET;
+        }
+
+        if ($type instanceof \Stringable) {
+            return $type->__toString() === 'set';
+        }
+
+        return $type === 'set';
+    }
+
     public function expire(string $key, int $seconds): bool
     {
         return (bool) $this->getRedis()->expire($key, $seconds);

@@ -348,6 +348,30 @@ test('markQueueDiscovered does not create duplicates', function () {
     expect($queues)->toHaveCount(1);
 });
 
+test('a queue not marked discovered within the aggregated TTL ages out while others stay', function () {
+    config()->set('queue-metrics.storage.ttl.aggregated', 604800);
+    $this->repo->markQueueDiscovered('redis', 'retired');
+
+    $this->travel(6)->days();
+    $this->repo->markQueueDiscovered('redis', 'default');
+
+    $this->travel(2)->days();
+
+    expect(array_column($this->repo->listQueues(), 'queue'))->toBe(['default']);
+});
+
+test('marking a queue discovered again refreshes its expiry', function () {
+    config()->set('queue-metrics.storage.ttl.aggregated', 604800);
+    $this->repo->markQueueDiscovered('redis', 'default');
+
+    $this->travel(6)->days();
+    $this->repo->markQueueDiscovered('redis', 'default');
+
+    $this->travel(6)->days();
+
+    expect(array_column($this->repo->listQueues(), 'queue'))->toBe(['default']);
+});
+
 // --- cleanup ---
 
 test('cleanup removes old snapshots', function () {

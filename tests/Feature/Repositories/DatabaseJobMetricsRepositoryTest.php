@@ -316,6 +316,18 @@ test('a job class that stops running ages out of discovery while others keep sta
         ->and($this->store->getSetMembers('discovery:queues'))->toBe(['redis:default']);
 });
 
+test('a job class that keeps starting stays discovered past the aggregated TTL', function () {
+    $this->repo->recordStart('job-1', 'App\\Jobs\\Active', 'redis', 'default', now());
+
+    $this->travel(6)->days();
+    $this->repo->recordStart('job-2', 'App\\Jobs\\Active', 'redis', 'default', now());
+
+    $this->travel(6)->days();
+
+    expect(array_column($this->repo->listJobs(), 'jobClass'))->toBe(['App\\Jobs\\Active'])
+        ->and($this->store->getSetMembers('discovery:queues'))->toBe(['redis:default']);
+});
+
 // --- recordQueuedAt ---
 
 test('recordQueuedAt stores timestamp', function () {

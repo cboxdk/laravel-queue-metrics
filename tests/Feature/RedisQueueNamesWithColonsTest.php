@@ -51,12 +51,14 @@ it('lists jobs on a queue whose name contains a colon with the right queue and c
 it('drops a job discovery member written before key segments were escaped', function () {
     $repository = app(JobMetricsRepository::class);
     $store = app(RedisMetricsStore::class);
-    $discoveryKey = $store->key('discovery', 'jobs');
+    $legacyKey = $store->key('discovery', 'jobs');
+    $seenKey = $store->key('discovery', 'jobs', 'seen');
 
     $repository->recordStart('job-1', 'App\\Jobs\\Report', 'redis', 'reports:nightly', Carbon::now());
-    $store->addToSet($discoveryKey, ['redis:reports:nightly:App\\Jobs\\Report']);
+    $store->addToSet($legacyKey, ['redis:reports:nightly:App\\Jobs\\Report']);
 
     expect($repository->listJobs())->toBe([
         ['connection' => 'redis', 'queue' => 'reports:nightly', 'jobClass' => 'App\\Jobs\\Report'],
-    ])->and($store->getSetMembers($discoveryKey))->toBe(['redis:reports~cnightly:App\\Jobs\\Report']);
+    ])->and($store->getSetMembers($legacyKey))->toBe([])
+        ->and($store->getSortedSetByRank($seenKey, 0, -1))->toBe(['redis:reports~cnightly:App\\Jobs\\Report']);
 })->group('redis');

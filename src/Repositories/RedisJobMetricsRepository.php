@@ -7,6 +7,7 @@ namespace Cbox\LaravelQueueMetrics\Repositories;
 use Carbon\Carbon;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Support\KeySegment;
+use Cbox\LaravelQueueMetrics\Support\RedisDiscoveryIndex;
 use Cbox\LaravelQueueMetrics\Support\RedisMetricsStore;
 
 /**
@@ -27,15 +28,14 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     ): void {
         $metricsKey = $this->redis->key('jobs', $connection, $queue, $jobClass);
         $jobKey = $this->redis->key('job', (string) $jobId);
-        $jobDiscoveryKey = $this->redis->key('discovery', 'jobs');
-        $queueDiscoveryKey = $this->redis->key('discovery', 'queues');
+        $jobDiscovery = $this->jobDiscovery();
+        $queueDiscovery = new RedisDiscoveryIndex($this->redis, 'queues');
         $ttl = $this->redis->getTtl('raw');
-        $discoveryTtl = $this->redis->getTtl('aggregated');
 
         // Use transaction to ensure atomic registration of both discovery sets with metrics
         $this->redis->transaction(function ($pipe) use (
-            $jobDiscoveryKey,
-            $queueDiscoveryKey,
+            $jobDiscovery,
+            $queueDiscovery,
             $metricsKey,
             $jobKey,
             $connection,
@@ -43,15 +43,10 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             $jobClass,
             $startedAt,
             $ttl,
-            $discoveryTtl
         ) {
-            // Register queue in discovery set (push-based tracking)
-            $pipe->addToSet($queueDiscoveryKey, ["{$connection}:{$queue}"]);
-            $pipe->expire($queueDiscoveryKey, $discoveryTtl);
-
-            // Register job in discovery set (push-based tracking)
-            $pipe->addToSet($jobDiscoveryKey, [KeySegment::join($connection, $queue, $jobClass)]);
-            $pipe->expire($jobDiscoveryKey, $discoveryTtl);
+            // Mark queue and job as seen now (push-based tracking)
+            $queueDiscovery->touch($pipe, "{$connection}:{$queue}");
+            $jobDiscovery->touch($pipe, KeySegment::join($connection, $queue, $jobClass));
 
             // Increment total queued counter
             $pipe->incrementHashField($metricsKey, 'total_queued', 1);
@@ -642,14 +637,14 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
     }
 
     /**
-     * List all discovered jobs using discovery set (O(N) instead of O(total_keys)).
+     * List the jobs seen within the aggregated TTL (O(N) instead of O(total_keys)).
      *
      * @return array<int, array{connection: string, queue: string, jobClass: string}>
      */
     public function listJobs(): array
     {
-        $key = $this->redis->key('discovery', 'jobs');
-        $members = $this->redis->driver()->getSetMembers($key);
+        $discovery = $this->jobDiscovery();
+        $members = $discovery->members();
 
         $jobs = [];
         $unreadable = [];
@@ -671,28 +666,28 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
             ];
         }
 
-        // Members written before segments were escaped cannot be parsed back,
-        // and the set's TTL is refreshed on every job start, so they would
-        // otherwise be listed — under a queue name cut at its first colon —
-        // for as long as any job runs. Drop them; the next start of that job
-        // re-registers it under its escaped key.
-        if ($unreadable !== []) {
-            $this->redis->driver()->removeFromSet($key, $unreadable);
-        }
+        // Members written before segments were escaped cannot be parsed back;
+        // read by position they list the job under a queue name cut at its
+        // first colon. Older workers can still be writing the legacy set
+        // during a rolling deploy, which refreshes its TTL, so drop them
+        // rather than wait for them to expire. The next start of that job
+        // registers it under its escaped key.
+        $discovery->forget($unreadable);
 
         return $jobs;
     }
 
     /**
-     * Register job in discovery set (push-based tracking).
+     * Mark a job as seen now (push-based tracking).
      */
     public function markJobDiscovered(string $connection, string $queue, string $jobClass): void
     {
-        $key = $this->redis->key('discovery', 'jobs');
-        $ttl = $this->redis->getTtl('aggregated');
+        $this->jobDiscovery()->touch($this->redis, KeySegment::join($connection, $queue, $jobClass));
+    }
 
-        $this->redis->driver()->addToSet($key, [KeySegment::join($connection, $queue, $jobClass)]);
-        $this->redis->driver()->expire($key, $ttl);
+    private function jobDiscovery(): RedisDiscoveryIndex
+    {
+        return new RedisDiscoveryIndex($this->redis, 'jobs');
     }
 
     /**
