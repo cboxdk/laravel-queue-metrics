@@ -29,7 +29,7 @@ final readonly class JobFailedListener
         $payload = $job->payload();
         $jobId = (string) $job->getJobId();
 
-        $snapshot = JobMetricsCollector::collect($jobId, $payload);
+        $snapshot = JobMetricsCollector::collect($jobId);
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();

@@ -10,6 +10,7 @@ use Cbox\LaravelQueueMetrics\Listeners\JobProcessingListener;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\JobMetricsRepository;
 use Cbox\LaravelQueueMetrics\Repositories\Contracts\WorkerHeartbeatRepository;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobStartTimeCache;
 use Cbox\SystemMetrics\Contracts\ProcessMetricsSource;
 use Cbox\SystemMetrics\DTO\Metrics\Cpu\CpuTimes;
 use Cbox\SystemMetrics\DTO\Metrics\Process\ProcessResourceUsage;
@@ -70,6 +71,7 @@ function createJobTestSource(int $userCpuMs, int $systemCpuMs, int $memoryRssByt
 
 beforeEach(function () {
     JobCpuSnapshotCache::reset();
+    JobStartTimeCache::reset();
 
     $this->jobMetricsRepository = Mockery::mock(JobMetricsRepository::class);
     $this->workerHeartbeatRepository = Mockery::mock(WorkerHeartbeatRepository::class);
@@ -92,6 +94,7 @@ beforeEach(function () {
 afterEach(function () {
     ProcessMetrics::setSource(null);
     JobCpuSnapshotCache::reset();
+    JobStartTimeCache::reset();
     Mockery::close();
 });
 
@@ -222,6 +225,7 @@ it('cpu time is much less than duration for sleep-bound jobs', function () {
     // Simulate: worker had 3000ms CPU at start, 3005ms at end (only 5ms CPU used)
     // But wall-clock duration is 500ms (sleep-bound job)
     JobCpuSnapshotCache::store('job-sleep', 3000.0);
+    JobStartTimeCache::store('job-sleep', microtime(true) - 0.5);
 
     $source = createJobTestSource(userCpuMs: 3003, systemCpuMs: 2);
     ProcessMetrics::setSource($source);
@@ -253,7 +257,7 @@ it('cpu time is much less than duration for sleep-bound jobs', function () {
     $job->shouldReceive('getJobId')->andReturn('job-sleep');
     $job->shouldReceive('payload')->andReturn([
         'displayName' => 'App\\Jobs\\SleepJob',
-        'pushedAt' => microtime(true) - 0.5, // 500ms wall-clock duration
+        'pushedAt' => microtime(true),
     ]);
     $job->shouldReceive('getQueue')->andReturn('default');
 

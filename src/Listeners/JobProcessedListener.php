@@ -36,7 +36,7 @@ final readonly class JobProcessedListener
             return;
         }
 
-        $snapshot = JobMetricsCollector::collect($jobId, $payload);
+        $snapshot = JobMetricsCollector::collect($jobId);
 
         $connection = $event->connectionName;
         $queue = $job->getQueue();

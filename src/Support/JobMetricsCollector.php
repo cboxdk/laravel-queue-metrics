@@ -20,12 +20,15 @@ final class JobMetricsCollector
     /**
      * Collect metrics for a job that has just finished processing.
      *
-     * @param  array<string, mixed>  $payload
+     * Duration runs from when this worker started processing the job. A job
+     * never seen starting in this process reports 0 rather than a value
+     * measured from dispatch.
      */
-    public static function collect(string $jobId, array $payload): JobMetricsSnapshot
+    public static function collect(string $jobId): JobMetricsSnapshot
     {
-        $startTime = is_numeric($payload['pushedAt'] ?? null) ? (float) $payload['pushedAt'] : microtime(true);
-        $durationMs = max(0.0, (microtime(true) - $startTime) * 1000);
+        $now = microtime(true);
+        $startTime = JobStartTimeCache::get($jobId) ?? $now;
+        $durationMs = max(0.0, ($now - $startTime) * 1000);
 
         $trackerId = "job_{$jobId}";
 
@@ -57,6 +60,7 @@ final class JobMetricsCollector
                 }
             }
         } finally {
+            JobStartTimeCache::forget($jobId);
             JobCpuSnapshotCache::forget($jobId);
             JobMemorySnapshotCache::forget($jobId);
         }

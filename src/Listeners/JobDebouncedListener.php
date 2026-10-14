@@ -11,6 +11,7 @@ use Cbox\LaravelQueueMetrics\Events\JobMetricsDebounced;
 use Cbox\LaravelQueueMetrics\Support\DebouncedJobTracker;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobStartTimeCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\SystemMetrics\ProcessMetrics;
 use Illuminate\Contracts\Queue\Job;
@@ -49,6 +50,7 @@ final readonly class JobDebouncedListener
         // Stop process metrics tracker and clean up snapshot caches (from JobProcessingListener)
         $trackerId = "job_{$jobId}";
         ProcessMetrics::stop($trackerId);
+        JobStartTimeCache::forget($jobId);
         JobCpuSnapshotCache::forget($jobId);
         JobMemorySnapshotCache::forget($jobId);
 

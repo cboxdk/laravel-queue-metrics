@@ -9,6 +9,7 @@ use Cbox\LaravelQueueMetrics\Actions\RecordWorkerHeartbeatAction;
 use Cbox\LaravelQueueMetrics\Enums\WorkerState;
 use Cbox\LaravelQueueMetrics\Support\JobCpuSnapshotCache;
 use Cbox\LaravelQueueMetrics\Support\JobMemorySnapshotCache;
+use Cbox\LaravelQueueMetrics\Support\JobStartTimeCache;
 use Cbox\LaravelQueueMetrics\Utilities\HorizonDetector;
 use Cbox\LaravelQueueMetrics\Utilities\MemoryConverter;
 use Cbox\SystemMetrics\ProcessMetrics;
@@ -29,6 +30,8 @@ final readonly class JobProcessingListener
         $job = $event->job;
         $payload = $job->payload();
         $jobId = (string) $job->getJobId();
+
+        JobStartTimeCache::store($jobId, microtime(true));
 
         $pid = getmypid();
         if ($pid !== false) {
@@ -72,6 +75,7 @@ final readonly class JobProcessingListener
                 );
             } catch (\Throwable $e) {
                 ProcessMetrics::stop("job_{$jobId}");
+                JobStartTimeCache::forget($jobId);
                 JobCpuSnapshotCache::forget($jobId);
                 JobMemorySnapshotCache::forget($jobId);
 
