@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
-## Unreleased
+## v3.4.1 - SQS queue names and real job durations - 2026-10-14
 
 ### Fixed
 
