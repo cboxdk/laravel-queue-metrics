@@ -269,8 +269,32 @@ it('does not refresh the TTL of the legacy sets, so they expire once older worke
     $this->jobs->listJobs();
     $this->queues->listQueues();
 
-    expect($this->redis->ttl($this->jobsLegacyKey))->toBeLessThanOrEqual(100)
-        ->and($this->redis->ttl($this->queuesLegacyKey))->toBeLessThanOrEqual(100);
+    expect($this->redis->ttl($this->jobsLegacyKey))->toBeGreaterThan(0)->toBeLessThanOrEqual(100)
+        ->and($this->redis->ttl($this->queuesLegacyKey))->toBeGreaterThan(0)->toBeLessThanOrEqual(100);
+})->group('redis');
+
+it('gives a legacy set written without a TTL the retention period when it is read', function () {
+    $this->store->addToSet($this->jobsLegacyKey, ['redis:old:App\\Jobs\\Old']);
+    $this->store->addToSet($this->queuesLegacyKey, ['redis:old']);
+
+    expect($this->redis->ttl($this->jobsLegacyKey))->toBe(-1);
+
+    $this->jobs->listJobs();
+    $this->queues->listQueues();
+
+    expect($this->redis->ttl($this->jobsLegacyKey))->toBeGreaterThan(604700)->toBeLessThanOrEqual(604800)
+        ->and($this->redis->ttl($this->queuesLegacyKey))->toBeGreaterThan(604700)->toBeLessThanOrEqual(604800)
+        ->and(discoveryJobClasses())->toBe(['App\\Jobs\\Old']);
+})->group('redis');
+
+it('does not extend a legacy set that already has a TTL when it is read repeatedly', function () {
+    $this->store->addToSet($this->queuesLegacyKey, ['redis:old']);
+    $this->store->expire($this->queuesLegacyKey, 50);
+
+    $this->queues->listQueues();
+    $this->queues->listQueues();
+
+    expect($this->redis->ttl($this->queuesLegacyKey))->toBeGreaterThan(0)->toBeLessThanOrEqual(50);
 })->group('redis');
 
 it('removes an unparseable member from the legacy set and keeps its parseable neighbours', function () {

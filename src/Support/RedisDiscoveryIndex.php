@@ -21,7 +21,9 @@ use Carbon\Carbon;
  * with WRONGTYPE. Readers still merge the legacy set (`discovery:{name}`), so a
  * rolling deploy with older workers writing it loses nothing; nothing writes
  * the legacy set any more, so it expires on its own TTL once the last older
- * worker stops.
+ * worker stops. Versions before v2.0 wrote the legacy set without a TTL, so a
+ * reader gives one that has none the retention period; otherwise it would be
+ * merged into discovery forever.
  *
  * Every command touches exactly one key, which keeps the index safe on a Redis
  * Cluster, where the two keys can hash to different slots.
@@ -95,6 +97,7 @@ final readonly class RedisDiscoveryIndex
 
         $legacyKey = $this->legacyKey();
         if ($this->redis->isSet($legacyKey)) {
+            $this->redis->expireIfPersistent($legacyKey, $this->retentionSeconds());
             $members = [...$members, ...$this->redis->getSetMembers($legacyKey)];
         }
 

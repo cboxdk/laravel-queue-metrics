@@ -271,6 +271,22 @@ final class RedisMetricsStore
     }
 
     /**
+     * Give a key a TTL only if it exists and has none.
+     *
+     * Reads TTL first rather than sending `EXPIRE ... NX`, which needs Redis 7
+     * and is not passed through the same way by phpredis and predis. TTL
+     * replies -1 for a key without expiry and -2 for a missing key.
+     */
+    public function expireIfPersistent(string $key, int $seconds): bool
+    {
+        if ($this->getRedis()->ttl($key) !== -1) {
+            return false;
+        }
+
+        return $this->expire($key, $seconds);
+    }
+
+    /**
      * Scan for keys and return them WITHOUT the Redis connection prefix.
      *
      * The raw client bypasses Laravel's key prefixing, so the MATCH pattern
