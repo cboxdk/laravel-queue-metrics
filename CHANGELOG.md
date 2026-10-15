@@ -2,6 +2,21 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.5.1 - Legacy discovery sets expire - 2026-10-15
+
+### Fixed
+
+- A legacy discovery set written without a TTL no longer keeps retired queues and job classes listed forever. Versions before v2.0 wrote `{prefix}:discovery:queues` and `{prefix}:discovery:jobs` with no expiry, and v3.5.0 no longer writes those keys, so on an install that came from v1.x every member stayed in `listQueues()` and `listJobs()`, which is what v3.5.0 set out to fix. A reader now gives such a key the `aggregated` TTL the first time it reads it. A legacy key that already has a TTL is left alone.
+
+### Changed
+
+- `queue-metrics:calculate` reads the discovered job list once per run instead of once per queue. On Redis that saves about four round trips for every queue after the first.
+- `RedisMetricsStore::expireIfPersistent()` sets a TTL on a key only if it exists and has none.
+
+### Documentation
+
+- The discovery page says that reading discovery prunes it, so the storage connection must be writable (not a read-only replica). It also says that only a job starting marks a queue as seen, and that a scheduler host still on v3.4 does not see entries first seen on v3.5 workers during a rolling deploy.
+
 ## v3.5.0 - Discovery that ages out on Redis - 2026-10-14
 
 ### Fixed

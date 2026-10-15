@@ -38,6 +38,10 @@ app(JobMetricsRepository::class)->markJobDiscovered('redis', 'emails', App\Jobs\
 An entry registered this way ages out like any other: register it again
 within the retention period to keep it.
 
+Dispatching a job does not mark anything as seen; only a job starting does. A
+queue that receives jobs but has no worker running them for longer than the
+retention period drops out of discovery until a worker starts one of its jobs.
+
 ## What Reads Discovery
 
 | Reader | Uses |
@@ -101,6 +105,10 @@ Laravel's Redis connection prefix comes before it on the server.
   anyway.
 - **On a read** entries last seen one retention period ago or earlier are
   removed with `ZREMRANGEBYSCORE`, then the rest are read with `ZRANGE`.
+  Expired entries are removed only when something reads the list, such as the
+  scheduled `queue-metrics:calculate`. Reading therefore writes, so
+  `queue-metrics.storage.connection` must point at a writable Redis, not a
+  read-only replica.
 
 Every command touches a single key, so discovery works on a
 [Redis Cluster](redis-cluster.md) where the keys hash to different slots.
@@ -136,13 +144,19 @@ No action is needed to upgrade. During a rolling deploy:
   plain sets.
 - **Readers on v3.5.0** read the new sorted sets *and* merge the old plain sets,
   so entries that workers still on v3.4 write are listed too. Nothing is lost
-  while old and new workers run side by side. The old sets are read only if the
+  while old and new workers run side by side.
+- **Readers still on v3.4**, such as a scheduler host upgraded last, read only
+  the old plain sets. Until they are upgraded they do not see a queue or job
+  class that has only run on v3.5.0 workers. Upgrade the host that runs
+  `queue-metrics:calculate` together with, or before, the workers. The old sets are read only if the
   key holds a plain set, so a key of any other type is ignored rather than
   causing an error.
 - **The old plain sets expire on their own.** Only v3.4 workers refresh their
   TTL, so each one disappears at most one `aggregated` TTL (7 days by default)
   after the last v3.4 worker started its last job. Until then, an entry that
-  exists only in an old set is still listed, as it was in v3.4.
+  exists only in an old set is still listed, as it was in v3.4. Versions before
+  v2.0 wrote the old sets without a TTL; since v3.5.1 a reader gives such a set
+  the `aggregated` TTL the first time it reads it, so it expires too.
 - **Job class entries written before v3.4.1**, which cannot be read back with
   the right queue name, are removed from both the old set and the sorted set the
   first time they are read, as in v3.4.2.
