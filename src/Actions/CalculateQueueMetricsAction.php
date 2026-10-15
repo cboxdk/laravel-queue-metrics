@@ -26,8 +26,14 @@ final readonly class CalculateQueueMetricsAction
      */
     public function execute(string $connection, string $queue): void
     {
-        // Get all jobs for this queue
-        $allJobs = $this->jobRepository->listJobs();
+        $this->calculate($connection, $queue, $this->jobRepository->listJobs());
+    }
+
+    /**
+     * @param  array<int, array{connection: string, queue: string, jobClass: string}>  $allJobs
+     */
+    private function calculate(string $connection, string $queue, array $allJobs): void
+    {
         $queueJobs = array_filter($allJobs, fn ($job) => $job['connection'] === $connection && $job['queue'] === $queue);
 
         if (empty($queueJobs)) {
@@ -104,8 +110,13 @@ final readonly class CalculateQueueMetricsAction
         $queues = $this->queueRepository->listQueues();
         $count = 0;
 
+        // Read the job list once rather than once per queue: on Redis every
+        // read is a prune plus a range read, and on the legacy transition a
+        // type probe and a set read on top.
+        $allJobs = $this->jobRepository->listJobs();
+
         foreach ($queues as $queue) {
-            $this->execute($queue['connection'], $queue['queue']);
+            $this->calculate($queue['connection'], $queue['queue'], $allJobs);
             $count++;
         }
 
