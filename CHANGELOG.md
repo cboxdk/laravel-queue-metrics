@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.5.2 — Correct Redis job sample values - 2026-11-05
+
+Fix Redis job metric samples being read as numeric job IDs instead of their stored duration, memory and CPU values. This could make autoscaling estimate impossible memory requirements and start no workers while jobs waited.
+
+Samples now preserve chronological order and support both jobId:value and legacy numeric members. Existing Redis data needs no migration or deletion.
+
+Validated across PHP 8.3–8.5, Laravel 11–13, standalone Redis and Redis Cluster; Pint, PHPStan and current dependency audit pass. Production read-only evaluation confirmed corrected memory estimates against existing samples.
+
 ## v3.5.2 - Redis sample values - 2026-11-05
 
 ### Fixed
@@ -240,8 +248,8 @@ $metrics->cpu->peak;  // Peak CPU time
 $metrics->cpu->p95;   // 95th percentile
 $metrics->cpu->p99;   // 99th percentile
 
-```
 
+```
 CPU time is also available in the HTTP API via the `avg_cpu_time_ms` field on job metrics endpoints.
 
 ## v2.7.0 - Debounce metrics tracking - 2026-04-27
@@ -265,8 +273,8 @@ This release adds proper handling:
 laravel_queue_job_debounced_total{job="App\\Jobs\\SyncData",queue="default",connection="redis"} 23
 
 
-```
 
+```
 #### How It Works
 
 When Laravel fires `JobDebounced` (between `JobProcessing` and `JobProcessed`), the new `JobDebouncedListener`:
@@ -381,9 +389,10 @@ When Laravel fires `JobDebounced` (between `JobProcessing` and `JobProcessed`), 
 ### What's Changed
 
 - fix: Cast job IDs to string in all listeners for database queue driver compatibility
-    - Laravel's database queue driver returns int job IDs while Redis/SQS return strings
-    - All listeners now cast `$job->getJobId()` to string for consistent handling
-    - Repository interfaces accept `string|int` with internal string casting
+  - Laravel's database queue driver returns int job IDs while Redis/SQS return strings
+  - All listeners now cast `$job->getJobId()` to string for consistent handling
+  - Repository interfaces accept `string|int` with internal string casting
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.0...v1.5.0
 
@@ -392,8 +401,9 @@ When Laravel fires `JobDebounced` (between `JobProcessing` and `JobProcessed`), 
 ### What's Changed
 
 - fix: Cast job IDs to string in all listeners for consistency
-    - Ensures consistent string type for job IDs throughout listener logic
-    - Fixes potential type issues with database queue driver returning int IDs
+  - Ensures consistent string type for job IDs throughout listener logic
+  - Fixes potential type issues with database queue driver returning int IDs
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.1...v1.4.2
 
@@ -402,8 +412,9 @@ When Laravel fires `JobDebounced` (between `JobProcessing` and `JobProcessed`), 
 ### What's Changed
 
 - fix: Accept both string and int job IDs from Laravel queue drivers
-    - Laravel's database queue driver returns int job IDs while Redis/SQS drivers return string IDs
-    - Changed `$jobId` parameter type from `string` to `string|int` in all actions and repository interfaces
+  - Laravel's database queue driver returns int job IDs while Redis/SQS drivers return string IDs
+  - Changed `$jobId` parameter type from `string` to `string|int` in all actions and repository interfaces
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.4.0...v1.4.1
 
@@ -421,10 +432,11 @@ When Laravel fires `JobDebounced` (between `JobProcessing` and `JobProcessed`), 
 ### What's Changed
 
 - fix: Achieve PHPStan Level 9 compliance with empty baseline
-    - Remove redundant type checks and operators
-    - Add proper type annotations and validation guards
-    - Fix Carbon timestamp casting for binary operations
-    - Clear baseline from 32 errors to 0
+  - Remove redundant type checks and operators
+  - Add proper type annotations and validation guards
+  - Fix Carbon timestamp casting for binary operations
+  - Clear baseline from 32 errors to 0
+  
 
 **Full Changelog**: https://github.com/cboxdk/laravel-queue-metrics/compare/v1.3.0...v1.3.1
 
