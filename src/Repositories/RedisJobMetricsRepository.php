@@ -373,7 +373,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         /** @var array<string> */
         $samples = $driver->getSortedSetByRank($key, -$limit, -1);
 
-        return array_map('floatval', array_reverse($samples));
+        return $this->parseSamples($samples);
     }
 
     /**
@@ -402,7 +402,7 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         /** @var array<string> */
         $samples = $driver->getSortedSetByRank($key, -$limit, -1);
 
-        return array_map('floatval', array_reverse($samples));
+        return $this->parseSamples($samples);
     }
 
     /**
@@ -431,7 +431,23 @@ final readonly class RedisJobMetricsRepository implements JobMetricsRepository
         /** @var array<string> */
         $samples = $driver->getSortedSetByRank($key, -$limit, -1);
 
-        return array_map('floatval', array_reverse($samples));
+        return $this->parseSamples($samples);
+    }
+
+    /**
+     * Redis ZRANGE returns oldest first. Members contain a job ID followed by
+     * the value; older installations can also contain plain numeric members.
+     *
+     * @param  array<int, string>  $samples
+     * @return array<int, float>
+     */
+    private function parseSamples(array $samples): array
+    {
+        return array_map(static function (string $member): float {
+            $separator = strrpos($member, ':');
+
+            return (float) ($separator === false ? $member : substr($member, $separator + 1));
+        }, $samples);
     }
 
     public function getThroughput(

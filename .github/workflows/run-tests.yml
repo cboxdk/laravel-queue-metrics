@@ -69,7 +69,13 @@ jobs:
             composer remove cboxdk/laravel-telemetry --dev --no-interaction --no-update
           fi
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          # Legacy/lowest compatibility fixtures deliberately resolve old releases.
+          # Supply Chain independently audits the current production resolution.
+          if [ "${{ matrix.laravel }}" = "11.*" ] || [ "${{ matrix.stability }}" = "prefer-lowest" ]; then
+            COMPOSER_NO_SECURITY_BLOCKING=1 composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          else
+            composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          fi
 
       - name: List Installed Dependencies
         run: composer show -D
@@ -137,7 +143,13 @@ jobs:
             composer remove cboxdk/laravel-telemetry --dev --no-interaction --no-update
           fi
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          # Legacy/lowest compatibility fixtures deliberately resolve old releases.
+          # Supply Chain independently audits the current production resolution.
+          if [ "${{ matrix.laravel }}" = "11.*" ] || [ "${{ matrix.stability }}" = "prefer-lowest" ]; then
+            COMPOSER_NO_SECURITY_BLOCKING=1 composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          else
+            composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+          fi
 
       - name: List Installed Dependencies
         run: composer show -D

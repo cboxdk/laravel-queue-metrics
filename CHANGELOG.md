@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-queue-metrics` will be documented in this file.
 
+## v3.5.2 - Redis sample values - 2026-11-05
+
+### Fixed
+
+- Redis duration, memory and CPU samples now read the value after the job ID, preserving oldest-first order and supporting legacy numeric samples. Previously numeric UUID prefixes were interpreted as measurements, which could make queue autoscaling estimate impossible memory requirements and stop workers. Existing stored samples need no migration or deletion.
+
 ## v3.5.1 - Legacy discovery sets expire - 2026-10-15
 
 ### Fixed
